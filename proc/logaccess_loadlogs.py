@@ -20,6 +20,7 @@ analytics.ensure_index('abstract')
 analytics.ensure_index('pdf')
 analytics.ensure_index('page')
 analytics.ensure_index('issn')
+analytics.ensure_index('issue')
 print "listing log files at: "+LOGS_DIR
 
 logfiles = os.listdir(LOGS_DIR)
@@ -46,26 +47,26 @@ for file in logfiles:
                 url = data['%r'].split(' ')[1]
                 params = urlparse(url).query.split('&')
                 par = {}
+                
                 for param in params:
                     tmp = param.split('=')
                     if len(tmp) == 2:
                         par[tmp[0]] = tmp[1]
                 par['date'] = dat
-                print par
+                #print par
                 language = ""
                 if par.has_key('tlng'):
-                    if par['tlng'].upper in ALLOWED_LANGUAGES:
+                    if par['tlng'].upper() in ALLOWED_LANGUAGES:
                         language=par['tlng']
                     else:
-                        language='other'
-                    
+                        language='default'
+                else:
+                    language='default'
                 if par.has_key('script'):
                     if par['script'].upper() in ALLOWED_SCRIPTS:
                         analytics.update({"site":"www.scielo.br"}, {"$inc":{par["script"]:1,'total':1,par['date']:1}},True)
-                        
                         # CREATING SERIAL LOG DOCS
                         if par['script'].upper() == "SCI_SERIAL":
-                            print par['script'].upper()+" == SCI_SERIAL"
                             if par.has_key('pid'):
                                 analytics.update({"serial":par["pid"]}, {"$set":{'page':par['script']},"$inc":{'total':1,par['date']:1}},True)
                             else:
@@ -77,17 +78,17 @@ for file in logfiles:
                                 analytics.update({"site":"www.scielo.br"}, {"$inc":{'sci_issuetoc_error':1}},True)
                         elif par['script'].upper() == "SCI_ABSTRACT":
                             if par.has_key('pid'):
-                                analytics.update({"abstract":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,language:1}},True)
+                                analytics.update({"abstract":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
                             else:
                                 analytics.update({"site":"www.scielo.br"}, {"$inc":{'sci_abstract_error':1}},True)
                         elif par['script'].upper() == "SCI_ARTTEXT":
                             if par.has_key('pid'):
-                                analytics.update({"arttext":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,language:1}},True)
+                                analytics.update({"arttext":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
                             else:
                                 analytics.update({"site":"www.scielo.br"}, {"$inc":{'sci_arttext_error':1}},True)
                         elif par['script'].upper() == "SCI_PDF":
                             if par.has_key('pid'):
-                                analytics.update({"pdf":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,language:1}},True)
+                                analytics.update({"pdf":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
                             else:
                                 analytics.update({"site":"www.scielo.br"}, {"$inc":{'sci_pdf_error':1}},True)
                     else:
@@ -96,4 +97,5 @@ for file in logfiles:
                 #break
     else:
         print file+" was already processed"
+
 #proc_files.drop()
