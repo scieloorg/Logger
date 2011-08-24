@@ -110,9 +110,13 @@ void main(int argc, char *argv[])
   char line[256];
   int i, j, ptr;
   
-  fp = fopen("IpToCountry.csv", "r");
+   // Initialization
+  if (argc > 1)
+    fp = fopen(argv[1], "r");
+  else
+    fp = fopen("IpToCountry.csv", "r");
     
-  if (!fp) {
+  if (fp == NULL) {
     printf("Cannot find the IpToCountry.csv CSV file !\n");
     return;
   }
@@ -120,8 +124,8 @@ void main(int argc, char *argv[])
   InitDataBase(fp);
   fclose(fp);
   
-  if(argv[1]){
-	strncpy(line, argv[1], 256);
+  if(argv[2]){
+	strncpy(line, argv[2], 256);
   }
   
   if (strchr(line, '.') != NULL) {
@@ -142,8 +146,8 @@ void main(int argc, char *argv[])
 
   findLink = (LINK *) &links[IP >> 16];
   
-  if(argv[2]){
-	  if ((strcmp(argv[2],"-p") == 0)){
+  if(argv[3]){
+	  if ((strcmp(argv[3],"-p") == 0)){
 		  printf("%d.%d.%d.%d|", IPB[3], IPB[2], IPB[1], IPB[0]);
 	  }
   }  
