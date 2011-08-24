@@ -70,8 +70,8 @@ for file in logfiles:
                     if par['script'].upper() in ALLOWED_SCRIPTS:
                         analytics.update({"site":"www.scielo.br"}, {"$inc":{par["script"]:1,'total':1,par['date']:1}},True)
                         # CREATING SERIAL LOG DOCS
-                        
-                        analytics.update({"serial":par["pid"].replace('S','')[0:9]}, {"$inc":{'total':1,par['script']:1,par['date']:1,'lng_'+par['date']+'_'+language:1,country:1}},True)
+                        if par.has_key('pid'):
+                            analytics.update({"serial":str(par["pid"]).replace('S','')[0:9]}, {"$inc":{'total':1,par['script']:1,par['date']:1,'lng_'+par['date']+'_'+language:1,country:1}},True)
                         
                         #if par['script'].upper() == "SCI_SERIAL":
                             #if par.has_key('pid'):
