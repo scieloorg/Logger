@@ -47,7 +47,7 @@ for file in logfiles:
                 url = data['%r'].split(' ')[1]
                 ip = data['%h']
                 
-                country = os.system("lib/ip2contry/locateIP "+ip)
+                country = os.popen("lib/iptocountry/locateIP lib/iptocountry/csv/IpToCountry.csv "+ip).read().strip() 
                 
                 params = urlparse(url).query.split('&')
                 par = {}
