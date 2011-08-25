@@ -15,7 +15,7 @@ MONTH_DICT = {
     'SEP':'09',
     'OCT':'10',
     'NOV':'11',
-    'DEZ':'12',
+    'DEC':'12',
 }
 ALLOWED_SCRIPTS = [
     'SCI_ARTTEXT',

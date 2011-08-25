@@ -11,6 +11,7 @@ conn = Connection('localhost', 27017)
 
 db = conn.accesslog
 proc_files = db.processed_files
+error_log = db.error_log
 analytics = db.analytics
 analytics.ensure_index('site')
 analytics.ensure_index('serial')
@@ -43,11 +44,16 @@ for file in logfiles:
                 except:
                     sys.stderr.write("Unable to parse %s" % line)
 
-                dat = data['%t'][8:12]+MONTH_DICT[data['%t'][4:7].upper()]
+                if MONTH_DICT.has_key(data['%t'][4:7].upper()):
+                    month = MONTH_DICT[data['%t'][4:7].upper()]
+                else:
+                    continue
+                
+                dat = data['%t'][8:12]+month
                 url = data['%r'].split(' ')[1]
                 ip = data['%h']
                 
-                country = os.system("lib/ip2contry/locateIP "+ip)
+                #country = os.popen("lib/iptocountry/locateIP lib/iptocountry/csv/IpToCountry.csv "+ip).read().strip() 
                 
                 params = urlparse(url).query.split('&')
                 par = {}
@@ -70,9 +76,10 @@ for file in logfiles:
                     if par['script'].upper() in ALLOWED_SCRIPTS:
                         analytics.update({"site":"www.scielo.br"}, {"$inc":{par["script"]:1,'total':1,par['date']:1}},True)
                         # CREATING SERIAL LOG DOCS
-                        
-                        analytics.update({"serial":par["pid"].replace('S','')[0:9]}, {"$inc":{'total':1,par['script']:1,par['date']:1,'lng_'+par['date']+'_'+language:1,country:1}},True)
-                        
+                        if par.has_key('pid'):
+                            analytics.update({"serial":str(par["pid"]).replace('S','')[0:9]}, {"$inc":{'total':1,par['script'].lower():1,par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
+                        else:
+                            error_log.update({"file":file},{url:par,'type':'pid'})
                         #if par['script'].upper() == "SCI_SERIAL":
                             #if par.has_key('pid'):
                                 #analytics.update({"serial":par["pid"]}, {"$set":{'page':par['script']},"$inc":{'total':1,par['date']:1}},True)
@@ -80,26 +87,31 @@ for file in logfiles:
                                 #analytics.update({"site":"www.scielo.br"}, {"$inc":{'sci_serial_error':1}},True)
                         if par['script'].upper() == "SCI_ISSUETOC":
                             if par.has_key('pid'):
-                                analytics.update({"issuetoc":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][0:9]},"$inc":{'total':1,par['date']:1,country:1}},True)
+                                analytics.update({"issuetoc":par["pid"]}, {"$set":{'page':par['script'].lower(),'issn':par["pid"][0:9]},"$inc":{'total':1,par['date']:1}},True)
                             else:
                                 analytics.update({"site":"www.scielo.br"}, {"$inc":{'sci_issuetoc_error':1}},True)
+                                error_log.update({"file":file},{url:par,'type':'pid'})
                         elif par['script'].upper() == "SCI_ABSTRACT":
                             if par.has_key('pid'):
-                                analytics.update({"abstract":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,'lng_'+par['date']+'_'+language:1,country:1}},True)
+                                analytics.update({"abstract":par["pid"]}, {"$set":{'page':par['script'].lower(),'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
                             else:
                                 analytics.update({"site":"www.scielo.br"}, {"$inc":{'sci_abstract_error':1}},True)
+                                error_log.update({"file":file},{url:par,'type':'pid'})
                         elif par['script'].upper() == "SCI_ARTTEXT":
                             if par.has_key('pid'):
-                                analytics.update({"arttext":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,'lng_'+par['date']+'_'+language:1,country:1}},True)
+                                analytics.update({"arttext":par["pid"]}, {"$set":{'page':par['script'].lower(),'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
                             else:
                                 analytics.update({"site":"www.scielo.br"}, {"$inc":{'sci_arttext_error':1}},True)
+                                error_log.update({"file":file},{url:par,'type':'pid'})
                         elif par['script'].upper() == "SCI_PDF":
                             if par.has_key('pid'):
-                                analytics.update({"pdf":par["pid"]}, {"$set":{'page':par['script'],'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,'lng_'+par['date']+'_'+language:1,country:1}},True)
+                                analytics.update({"pdf":par["pid"]}, {"$set":{'page':par['script'].lower(),'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{'total':1,par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
                             else:
                                 analytics.update({"site":"www.scielo.br"}, {"$inc":{'sci_pdf_error':1}},True)
+                                error_log.update({"file":file},{url:par,'type':'pid'})
                     else:
                         analytics.update({"site":"www.scielo.br"}, {"$inc":{'error':1}},True)
+                        error_log.update({"file":file},{url:par,'type':'script'})
             #if count == 20:
                 #break
     else:
