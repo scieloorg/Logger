@@ -4,6 +4,7 @@ import apachelog
 from pymongo import Connection 
 import sys
 import os
+from lib.ip2country.ip2country import IP2Country
 from datetime import date
 from urlparse import urlparse
 
@@ -53,7 +54,10 @@ for file in logfiles:
                 url = data['%r'].split(' ')[1]
                 ip = data['%h']
                 
-                #country = os.popen("lib/iptocountry/locateIP lib/iptocountry/csv/IpToCountry.csv "+ip).read().strip() 
+                #i2pc = IP2Country(verbose=False)
+                #cc, country = i2pc.lookup(ip)
+                #country = "country_"+str(cc)
+                #print str(cc)+" "+ip
                 
                 params = urlparse(url).query.split('&')
                 par = {}
