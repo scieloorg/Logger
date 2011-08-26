@@ -4,7 +4,7 @@ import apachelog
 from pymongo import Connection 
 import sys
 import os
-from lib.ip2country.ip2country import IP2Country
+#from lib.ip2country.ip2country import IP2Country
 from datetime import date
 from urlparse import urlparse
 
