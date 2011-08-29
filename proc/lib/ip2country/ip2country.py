@@ -2,10 +2,10 @@
 ip2country - module for looking up the country a given IP address
 resides in.
 
-The method used for this is downloading/caching the APNIC database.
+The method used for this is downloading/caching the ALL database.
 
 On initial use, a file of approx 300-400k gets downloaded. But on
-successive usage, the table is read from disk (~/.apnicdb)
+successive usage, the table is read from disk (~/.db)
 
 Apart from monthly download of the table, this module works
 efficiently, since a web hit is not required for each lookup
@@ -26,15 +26,19 @@ niece to elope on the back of a Harley with a purple alien.
 #
 # Feel free to tweak these values if you need to
 
-# FTP URL from which to download APNIC data
-apnicUrl = "ftp://ftp.apnic.net/pub/stats/apnic/delegated-apnic-latest"
+# FTP URL from which to download ALL data
+urls = ["ftp://ftp.apnic.net/pub/stats/apnic/delegated-apnic-latest",
+            "ftp://ftp.apnic.net/pub/stats/afrinic/delegated-afrinic-latest",
+            "ftp://ftp.apnic.net/pub/stats/arin/delegated-arin-latest",
+            "ftp://ftp.apnic.net/pub/stats/lacnic/delegated-lacnic-latest",
+            "ftp://ftp.apnic.net/pub/stats/ripe-ncc/delegated-ripencc-latest",]
 
-# pathname for caching APNIC file, '~' may be used
-apnicFileDb = "~/.ip2countrydb"
+# pathname for caching ALL file, '~' may be used
+FileDb = "ip2countrydb"
 
-ipCacheFile = "~/.ip2countryips"
+ipCacheFile = "ip2countryips"
 
-# set the maximum age of a cached APNIC database in DAYS
+# set the maximum age of a cached ALL database in DAYS
 # if the cached file is older than this, a new one will
 # be downloaded
 maxApnicDbAge = 30
@@ -44,13 +48,13 @@ maxApnicDbAge = 30
 import sys, os, time, stat, StringIO, commands, re
 class IP2Country:
     """
-    Looks up IP addresses in APNIC database
+    Looks up IP addresses in ALL database
     
-    Caches the APNIC database locally, downloading it when
+    Caches the ALL database locally, downloading it when
     it gets more than a month old (or whatever you set maxApmicDbAge to
     """
-    apnicUrl = apnicUrl
-    apnicFileDb = apnicFileDb
+    urls = urls
+    FileDb = FileDb
     ipCacheFile = ipCacheFile
     
     updateInterval = 86400 * maxApnicDbAge
@@ -302,8 +306,8 @@ class IP2Country:
         self.verbose = kw.get('verbose', False)
     
         # normalise dbpath if it contains a '~'
-        if self.apnicFileDb.startswith("~/"):
-            self.apnicFileDb = os.path.expanduser(self.apnicFileDb)
+        if self.FileDb.startswith("~/"):
+            self.FileDb = os.path.expanduser(self.FileDb)
         if self.ipCacheFile.startswith("~/"):
             self.ipCacheFile = os.path.expanduser(self.ipCacheFile)
     
@@ -313,15 +317,15 @@ class IP2Country:
         now = time.time()
     
         gotLatest = False
-        if os.path.isfile(self.apnicFileDb):
-            if os.stat(self.apnicFileDb)[stat.ST_MTIME] - now < self.updateInterval:
-                self.log("Got latest apnic db, no need to download")
+        if os.path.isfile(self.FileDb):
+            if os.stat(self.FileDb)[stat.ST_MTIME] - now < self.updateInterval:
+                self.log("Got latest db, no need to download")
                 gotLatest = True
     
         if not gotLatest:
             self.download()
     
-        lines = file(self.apnicFileDb).read().split("\n")
+        lines = file(self.FileDb).read().split("\n")
     
         ipv4Recs = []
         self.db = ipTree = {}
@@ -329,7 +333,7 @@ class IP2Country:
             parts = line.split("|")
             if len(parts) < 7:
                 continue
-            if parts[0] != 'apnic' or parts[2] != 'ipv4':
+            if parts[0] != 'arin' and parts[0] != 'afrinic' and parts[0] != 'apnic' and parts[0] != 'lacnic' and parts[0] != 'ripencc' or parts[2] != 'ipv4':
                 continue
     
             # got an alloc
@@ -371,7 +375,7 @@ class IP2Country:
             ip, country = line.split(":")
             specificIPs[ip] = country
         
-        self.log("Created apnic lookup tables")
+        self.log("Created lookup tables")
     
     def lookup(self, ipaddr):
         """
@@ -389,7 +393,7 @@ class IP2Country:
         if bit0 in ['127', '192', '10']:
             return None, None
     
-        # not in cache IPs - consult APNIC database
+        # not in cache IPs - consult ALL database
         db = self.db
        
         if db.has_key(bit0):
@@ -419,8 +423,6 @@ class IP2Country:
             cc = db3["0"]
         else:
             cc = None
-    
-        #print repr(cc)
     
         if not cc:
             return self.lookupWhois(ipaddr)
@@ -454,34 +456,39 @@ class IP2Country:
             return cc, self.countryCodes.get(cc, "???")
         else:
             return None, None
+
     def download(self):
         """
-        Downloads the latest apnic database
+        Downloads the latest  database
         """
         from ftplib import FTP
         
-        url = self.apnicUrl
-    
-        # strip off 'ftp://' prefix if any
-        if url.startswith("ftp://"):
-            url = url[6:]
-    
-        host, path = url.split("/", 1)
-    
-        self.log("Cached DB is old or missing, need a new one")
-    
-        self.log("Connecting to apnic db server...")
-        conn = FTP(host)
-        self.log("Logging in...")
-        conn.login()
-        
-        s = StringIO.StringIO()
-    
-        self.log("Downloading ftp://%s" % path)
-        conn.retrbinary("RETR /"+path, file(self.apnicFileDb, "wb").write)
-        self.log("Download complete!")
-        conn.quit()
-        self.log("Closing server connection")
+        urls = self.urls
+
+        # get all urls
+        for i in range(len(urls)):
+
+            # strip off 'ftp://' prefix if any
+            if urls[i].startswith("ftp://"):
+                url = urls[i][6:]
+
+            host, path = url.split("/", 1)
+
+            self.log("Cached DB is old or missing, need a new one")
+
+            self.log("Connecting to db server...")
+            conn = FTP(host)
+            self.log("Logging in...")
+            conn.login()
+
+            s = StringIO.StringIO()
+
+            self.log("Downloading ftp://%s" % path)
+            conn.retrbinary("RETR /"+path, file(self.FileDb, "a").write)
+            self.log("Download complete!")
+            conn.quit()
+            self.log("Closing server connection")
+            
     def log(self, msg):
         if self.verbose:
             print "IP2Country:%s" % msg
@@ -490,7 +497,7 @@ if __name__ == '__main__':
     import traceback, readline
 
     # run a demo
-    print "I2PCountry demo"
+    print "I2PCountry Command Line"
 
     i2pc = IP2Country(verbose=True)
 
