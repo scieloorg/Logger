@@ -57,7 +57,7 @@ for file in logfiles:
                 
                 i2pc = IP2Country(verbose=False)
                 cc, country = i2pc.lookup(ip)
-                country = "country_"+str(cc)
+                country = str(cc).upper()
                 #print str(cc)+" "+ip
                 
                 params = urlparse(url).query.split('&')
@@ -82,23 +82,23 @@ for file in logfiles:
                     if par['script'].upper() in ALLOWED_SCRIPTS:
                         
                         script=par['script'].lower()
-                        analytics.update({"site":"www.scielo.br"}, {"$inc":{country:1, "country_"+par['date']+"_"+country:1}},True)
+                        analytics.update({"site":"www.scielo.br"}, {"$inc":{"country_"+country:1, "country_"+par['date']+"_"+country:1}},True)
                         # CREATING SERIAL LOG DOCS
                         if par.has_key('pid'):
-                            analytics.update({"serial":str(par["pid"]).replace('S','')[0:9]}, {"$inc":{country:1, "country_"+par['date']+"_"+country:1}},True)
+                            analytics.update({"serial":str(par["pid"]).replace('S','')[0:9]}, {"$inc":{"country_"+country:1, "country_"+par['date']+"_"+country:1}},True)
 
                         if par['script'].upper() == "SCI_ISSUETOC":
                             if par.has_key('pid'):
-                                analytics.update({"issuetoc":par["pid"]}, {"$set":{'page':script,'issn':par["pid"][0:9]}, "$inc":{country:1, "country_"+par['date']+"_"+country:1}},True)
+                                analytics.update({"issuetoc":par["pid"]}, {"$set":{'page':script,'issn':par["pid"][0:9]}, "$inc":{"country_"+country:1, "country_"+par['date']+"_"+country:1}},True)
                         elif par['script'].upper() == "SCI_ABSTRACT":
                             if par.has_key('pid'):
-                                analytics.update({"abstract":par["pid"]}, {"$set":{'page':script,'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{country:1, "country_"+par['date']+"_"+country:1}},True)
+                                analytics.update({"abstract":par["pid"]}, {"$set":{'page':script,'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{"country_"+country:1, "country_"+par['date']+"_"+country:1}},True)
                         elif par['script'].upper() == "SCI_ARTTEXT":
                             if par.has_key('pid'):
-                                analytics.update({"arttext":par["pid"]}, {"$set":{'page':script,'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{country:1, "country_"+par['date']+"_"+country:1}},True)
+                                analytics.update({"arttext":par["pid"]}, {"$set":{'page':script,'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{"country_"+country:1, "country_"+par['date']+"_"+country:1}},True)
                         elif par['script'].upper() == "SCI_PDF":
                             if par.has_key('pid'):
-                                analytics.update({"pdf":par["pid"]}, {"$set":{'page':script,'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{country:1, "country_"+par['date']+"_"+country:1}},True)
+                                analytics.update({"pdf":par["pid"]}, {"$set":{'page':script,'issn':par["pid"][1:10],'issue':par["pid"][1:18]},"$inc":{"country_"+country:1, "country_"+par['date']+"_"+country:1}},True)
     else:
         print file+" was already processed"
 
