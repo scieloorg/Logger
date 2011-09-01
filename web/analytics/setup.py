@@ -8,9 +8,9 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = ['pyramid', 'pyramid_debugtoolbar']
 
-setup(name='analystics',
+setup(name='analytics',
       version='0.0',
-      description='analystics',
+      description='analytics',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
         "Programming Language :: Python",
@@ -27,10 +27,10 @@ setup(name='analystics',
       zip_safe=False,
       install_requires=requires,
       tests_require=requires,
-      test_suite="analystics",
+      test_suite="analytics",
       entry_points = """\
       [paste.app_factory]
-      main = analystics:main
+      main = analytics:main
       """,
       paster_plugins=['pyramid'],
       )

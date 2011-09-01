@@ -1,1 +1,1 @@
-analystics README
+analytics README
