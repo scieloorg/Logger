@@ -88,7 +88,6 @@ for file in logfiles:
                         else:
                             error_log.update({"file":file},{url:par,'type':'pid'})
 
-
                         if par['script'].upper() == "SCI_ISSUETOC":
                             if par.has_key('pid'):
                                 analytics.update({"issuetoc":par["pid"]}, {"$set":{'page':script,'issn':par["pid"][0:9]},"$inc":{'total':1,par['date']:1}},True)
