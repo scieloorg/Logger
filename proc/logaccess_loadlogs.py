@@ -30,13 +30,19 @@ logfiles = os.listdir(LOGS_DIR)
 for file in logfiles:
     fileloaded = open(LOGS_DIR+"/"+file, 'r')
     if proc_files.find({'_id':file}).count() == 0:
-        pfpost = {} 
-        pfpost['proc_date'] = date.isoformat(date.today())
-        pfpost['_id'] = file
-        proc_files.insert(pfpost)
+        #pfpost = {} 
+        #pfpost['proc_date'] = date.isoformat(date.today())
+        #pfpost['_id'] = file
+        #pfpost['status'] = 'processing'
+        lines = 0
+        lines = os.popen('cat '+LOGS_DIR+"/"+file+' | wc -l').read().strip()
+        proc_files.update({"_id":file},{'$set':{'proc_date':date.isoformat(date.today()),'status':'processing','lines': lines}},True)
         print "processing "+file
         count=0
+        linecount=0
         for line in fileloaded:
+            linecount=linecount+1
+            proc_files.update({"_id":file},{'$set':{'line':linecount}},True)
             if "GET /scielo.php?script=" in line:
                 count=count+1
                 p = apachelog.parser(APACHE_LOG_FORMAT)
@@ -120,6 +126,7 @@ for file in logfiles:
                         error_log.update({"file":file},{url:par,'type':'script'})
             #if count == 20:
                 #break
+        proc_files.update({"_id":file},{'$set':{'status':'processed'}},True)
     else:
         print file+" was already processed"
 
