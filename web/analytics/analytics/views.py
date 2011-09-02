@@ -1,4 +1,4 @@
-from pymongo import Connection
+from pyramid.response import Response
 
-def chat_site(request):
-    return {'project':'analytics'}
+def chart_site(request):
+    return Response('Hello world!')
