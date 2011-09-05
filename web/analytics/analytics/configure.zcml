@@ -2,8 +2,10 @@
 
   <include package="pyramid_zcml" />
 
-  <view
-    view="analytics.views.chart_site"
-   />
+  <route
+    name="site"
+    pattern="/analytics/index/site/option/{instance}/output/{output}"
+    view="analytics.views.site"
+  />
 
 </configure>
