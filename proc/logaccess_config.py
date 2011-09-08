@@ -18,17 +18,17 @@ MONTH_DICT = {
     'DEC':'12',
 }
 ALLOWED_SCRIPTS = [
-    'SCI_ARTTEXT',
-    'SCI_SERIAL',
-    'SCI_ISSUES',
-    'SCI_HOME',
-    'SCI_ABSTRACT',
-    'SCI_ISSUETOC',
-    'SCI_ALPHABETIC',
-    'SCI_PDF'
+    'sci_arttext',
+    'sci_serial',
+    'sci_issues',
+    'sci_home',
+    'sci_abstract',
+    'sci_issuetoc',
+    'sci_alphabetic',
+    'sci_pdf'
 ]
 
-ALLOWED_LANGUAGES = ['PT','ES','EN','IT','FR','GR']
+ALLOWED_LANGUAGES = ['PT','ES','EN','IT','FR','DE','AF','AR']
 
 REGEX_ISSN    = "^[0-9]{4}-[0-9]{3}[0-9xX]$"
 REGEX_ISSUE   = "^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}$"
