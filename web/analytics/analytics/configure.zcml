@@ -2,8 +2,33 @@
 
   <include package="pyramid_zcml" />
 
-  <view
-    view="analytics.views.chart_site"
-   />
+<!--route site-->
+
+  <route
+    name="site"
+    pattern="/analytics/site/{instance}/{output}"
+    view="analytics.views.site"
+  />
+
+  <route
+    name="site_option"
+    pattern="/analytics/site/{instance}/{option}/{output}"
+    view="analytics.views.site_option"
+  />
+
+  <route
+    name="site_key"
+    pattern="/analytics/site/{instance}/{option}/{key}/{output}"
+    view="analytics.views.site_key"
+  />
+
+  <route
+    name="site_option_range"
+    pattern="/analytics/site/{instance}/{option}/range/{range}/{output}"
+    view="analytics.views.site_option_range"
+  />
+
+<!--route site-->
+
 
 </configure>
