@@ -5,14 +5,11 @@ from pymongo import Connection
 import sys
 import os
 import re
-#from lib.ip2country.ip2country import IP2Country
 from datetime import date
 from urlparse import urlparse
+from datetime import date
 
-
-def validate_pid(script, pid):
-    validate = False
-    
+def validate_pid(script, pid):   
     if script == "sci_issuetoc":
         if re.search(REGEX_ISSUE,pid):
             return True
@@ -31,10 +28,15 @@ def validate_pid(script, pid):
     elif script == "sci_issues":
         if re.search(REGEX_ISSN,pid):
             return True
-        
     return False
 
-
+def validate_date(dat):
+    if len(str(dat)) == 6:
+        if int(dat[0:4]) <= int(date.today().year) and (int(dat[4:6]) >= 1 and int(dat[4:6]) <= 12):
+            return True
+    return False
+    
+    
 conn = Connection('localhost', 27017)
 
 db = conn.accesslog
@@ -76,20 +78,14 @@ for file in logfiles:
                 except:
                     sys.stderr.write("Unable to parse %s" % line)
 
+                month=""
                 if MONTH_DICT.has_key(data['%t'][4:7].upper()):
                     month = MONTH_DICT[data['%t'][4:7].upper()]
-                else:
-                    continue
-                
+                    
                 dat = data['%t'][8:12]+month
                 url = data['%r'].split(' ')[1]
                 ip = data['%h']
-                
-                #i2pc = IP2Country(verbose=False)
-                #cc, country = i2pc.lookup(ip)
-                #country = "country_"+str(cc)
-                #print str(cc)+" "+ip
-                
+
                 params = urlparse(url).query.split('&')
                 par = {}
                 
@@ -97,8 +93,7 @@ for file in logfiles:
                     tmp = param.split('=')
                     if len(tmp) == 2:
                         par[tmp[0]] = tmp[1]
-                par['date'] = dat
-                #print par
+
                 language = ""
                 if par.has_key('tlng'):
                     if par['tlng'].upper() in ALLOWED_LANGUAGES:
@@ -107,36 +102,38 @@ for file in logfiles:
                         language='default'
                 else:
                     language='default'
-                    
-                if par.has_key('script'):
-                    
-                    script = par['script'].upper()
-                    
-                    if par['script'].upper() in ALLOWED_SCRIPTS:
-                        script=par['script'].lower()
-                        analytics.update({"site":"www.scielo.br"}, {"$inc":{script:1,'total':1,"dat_"+par['date']:1}},True)
-                        if par.has_key('pid'):
-                            pid = par['pid'].replace('S','').replace('s','').strip()
-                            if validate_pid(script,pid):
-                                # CREATING SERIAL LOG DOCS
-                                analytics.update({"serial":str(pid).replace('S','')[0:9]}, {"$inc":{'total':1,script:1,par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
-                                if script == "sci_issuetoc":
-                                    analytics.update({"issuetoc":pid}, {"$set":{'page':script,'issn':pid[0:9]},"$inc":{'total':1,"dat_"+par['date']:1}},True)
-                                elif script == "sci_abstract":
-                                    analytics.update({"abstract":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
-                                elif script == "sci_arttext":
-                                    analytics.update({"arttext":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
-                                    analytics.update({"site":"www.scielo.br"}, {"$inc":{"art_"+par['date']:1,'art_'+par['date']+'_'+language:1}},True)
-                                elif script == "sci_pdf":
-                                    analytics.update({"pdf":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+par['date']:1,'lng_'+par['date']+'_'+language:1}},True)
-                                    analytics.update({"site":"www.scielo.br"}, {"$inc":{"pdf_"+par['date']:1,'pdf_'+par['date']+'_'+language:1}},True)
+
+                if par.has_key('script'): #Validating if has script
+                    script = par['script'].lower()
+                    if script in ALLOWED_SCRIPTS: #Validation if the script is allowed
+                        if validate_date(dat):
+                            analytics.update({"site":"www.scielo.br"}, {"$inc":{script:1,'total':1,"dat_"+dat:1}},True)
+                            if par.has_key('pid'):
+                                pid = par['pid'].replace('S','').replace('s','').strip()
+                                if validate_pid(script,pid):
+                                    # CREATING SERIAL LOG DOCS
+                                    analytics.update({"serial":str(pid).replace('S','')[0:9]}, {"$inc":{'total':1,script:1,dat:1,'lng_'+dat+'_'+language:1}},True)
+                                    if script == "sci_issuetoc":
+                                        analytics.update({"issuetoc":pid}, {"$set":{'page':script,'issn':pid[0:9]},"$inc":{'total':1,"dat_"+dat:1}},True)
+                                    elif script == "sci_abstract":
+                                        analytics.update({"abstract":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                    elif script == "sci_arttext":
+                                        analytics.update({"arttext":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                        analytics.update({"site":"www.scielo.br"}, {"$inc":{"art_"+dat:1,'art_'+dat+'_'+language:1}},True)
+                                    elif script == "sci_pdf":
+                                        analytics.update({"pdf":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                        analytics.update({"site":"www.scielo.br"}, {"$inc":{"pdf_"+dat:1,'pdf_'+dat+'_'+language:1}},True)
+                                else:
+                                    #print str(validate_pid(script,pid))+" "+script+" "+pid
+                                    analytics.update({"site":"www.scielo.br"}, {"$inc":{'err_total':1,'err_pid':1}},True)
+                                    error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_pid':1}},True)
                             else:
-                                print str(validate_pid(script,pid))+" "+script+" "+pid
-                                analytics.update({"site":"www.scielo.br"}, {"$inc":{'err_total':1,'err_pid':1}},True)
-                                error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_pid':1}},True)
+                                analytics.update({"site":"www.scielo.br"}, {"$inc":{'err_total':1,'err_empty_pid':1}},True)
+                                error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_empty_pid':1}},True)
                         else:
-                            analytics.update({"site":"www.scielo.br"}, {"$inc":{'err_total':1,'err_empty_pid':1}},True)
-                            error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_empty_pid':1}},True)                            
+                            #print str(linecount)+" "+str(dat)+" "+str(validate_date(dat))
+                            analytics.update({"site":"www.scielo.br"}, {"$inc":{'err_total':1,'err_date_pid':1}},True)
+                            error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_date':1}},True)
                     else:
                         analytics.update({"site":"www.scielo.br"},{"$inc":{'err_total':1,'err_script':1}},True)
                         error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_script':1}},True)
