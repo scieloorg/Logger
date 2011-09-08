@@ -9,7 +9,6 @@ import pyramid_zcml
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    print settings
     config = Configurator()
     config.begin()
     
