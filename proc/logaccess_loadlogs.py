@@ -5,7 +5,6 @@ from pymongo import Connection
 import sys
 import os
 import re
-from datetime import date
 from urlparse import urlparse
 from datetime import date
 
@@ -37,12 +36,12 @@ def validate_date(dat):
     return False
     
     
-conn = Connection('localhost', 27017)
+conn = Connection(MONGODB_DOMAIN, MONGODB_PORT)
 
-db = conn.accesslog
-proc_files = db.processed_files
-error_log = db.error_log
-analytics = db.analytics
+db = conn[COLLECTION_CODE+"_accesslog"]
+proc_files = db[COLLECTION_CODE+"_processed_files"]
+error_log = db[COLLECTION_CODE+"_error_log"]
+analytics = db[COLLECTION_CODE+"_analytics"]
 analytics.ensure_index('site')
 analytics.ensure_index('serial')
 analytics.ensure_index('issuetoc')
@@ -107,7 +106,7 @@ for file in logfiles:
                     script = par['script'].lower()
                     if script in ALLOWED_SCRIPTS: #Validation if the script is allowed
                         if validate_date(dat):
-                            analytics.update({"site":"www.scielo.br"}, {"$inc":{script:1,'total':1,"dat_"+dat:1}},True)
+                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{script:1,'total':1,"dat_"+dat:1}},True)
                             if par.has_key('pid'):
                                 pid = par['pid'].replace('S','').replace('s','').strip()
                                 if validate_pid(script,pid):
@@ -119,26 +118,26 @@ for file in logfiles:
                                         analytics.update({"abstract":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
                                     elif script == "sci_arttext":
                                         analytics.update({"arttext":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
-                                        analytics.update({"site":"www.scielo.br"}, {"$inc":{"art_"+dat:1,'art_'+dat+'_'+language:1}},True)
+                                        analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"art_"+dat:1,'art_'+dat+'_'+language:1}},True)
                                     elif script == "sci_pdf":
                                         analytics.update({"pdf":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
-                                        analytics.update({"site":"www.scielo.br"}, {"$inc":{"pdf_"+dat:1,'pdf_'+dat+'_'+language:1}},True)
+                                        analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"pdf_"+dat:1,'pdf_'+dat+'_'+language:1}},True)
                                 else:
                                     #print str(validate_pid(script,pid))+" "+script+" "+pid
-                                    analytics.update({"site":"www.scielo.br"}, {"$inc":{'err_total':1,'err_pid':1}},True)
+                                    analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_pid':1}},True)
                                     error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_pid':1}},True)
                             else:
-                                analytics.update({"site":"www.scielo.br"}, {"$inc":{'err_total':1,'err_empty_pid':1}},True)
+                                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_empty_pid':1}},True)
                                 error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_empty_pid':1}},True)
                         else:
                             #print str(linecount)+" "+str(dat)+" "+str(validate_date(dat))
-                            analytics.update({"site":"www.scielo.br"}, {"$inc":{'err_total':1,'err_date_pid':1}},True)
+                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_date_pid':1}},True)
                             error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_date':1}},True)
                     else:
-                        analytics.update({"site":"www.scielo.br"},{"$inc":{'err_total':1,'err_script':1}},True)
+                        analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_script':1}},True)
                         error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_script':1}},True)
                 else:
-                    analytics.update({"site":"www.scielo.br"}, {"$inc":{'err_total':1,'err_empty_script':1}},True)
+                    analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_empty_script':1}},True)
                     error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_empty_script':1}},True)
         proc_files.update({"_id":file},{'$set':{'status':'processed'}},True)
     else:
