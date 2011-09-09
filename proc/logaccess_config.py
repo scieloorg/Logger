@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
+MONGODB_DOMAIN="localhost"
+MONGODB_PORT=27017
+COLLECTION_CODE="scl"
+COLLECTION_DOMAIN="www.scielo.br"
+
 LOGS_DIR = '../data/logs'
+
 APACHE_LOG_FORMAT= r'%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"'
+
 MONTH_DICT = {
     'JAN':'01',
     'FEB':'02',
