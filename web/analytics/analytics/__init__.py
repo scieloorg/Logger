@@ -19,9 +19,9 @@ def main(global_config, **settings):
     config.registry.settings['db_name'] = settings['db_name']
     config.add_subscriber(add_mongo_db, NewRequest)
 
-    #config.include('pyramid_zcml')
-    #config.load_zcml('configure.zcml')
-    #config.end()
+    config.include('pyramid_zcml')
+    config.load_zcml('configure.zcml')
+    config.end()
     
     config.add_renderer('jsonp', JSONP(param_name='callback'))
     
@@ -40,7 +40,7 @@ def main(global_config, **settings):
     #site_option_range
     config.add_route('site_option_range', '/analytics/site/{instance}/{option}/range/{range}/{output}')
     config.add_view('analytics.views.site_option_range', route_name='site_option_range', renderer='jsonp')
-
+    
     return config.make_wsgi_app()
 
 def add_mongo_db(event):
