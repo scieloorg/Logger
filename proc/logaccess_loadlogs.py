@@ -69,7 +69,7 @@ for file in logfiles:
         for line in fileloaded:
             linecount=linecount+1
             proc_files.update({"_id":file},{'$set':{'line':linecount}},True)
-            if "GET /scielo.php?script=" in line:
+            if "GET /scielo.php" in line and "script" in line and "pid" in line:
                 count=count+1
                 p = apachelog.parser(APACHE_LOG_FORMAT)
                 try:
@@ -131,7 +131,7 @@ for file in logfiles:
                                 error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_empty_pid':1}},True)
                         else:
                             #print str(linecount)+" "+str(dat)+" "+str(validate_date(dat))
-                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_date_pid':1}},True)
+                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_date':1}},True)
                             error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_date':1}},True)
                     else:
                         analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_script':1}},True)
