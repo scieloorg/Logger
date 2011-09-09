@@ -28,6 +28,12 @@
     view="analytics.views.site_option_range"
   />
 
+  <route
+    name="site_test_chart"
+    pattern="/analytics/test_chart"
+    view="analytics.views.site_test_chart"
+  />
+
 <!--route site-->
 
 
