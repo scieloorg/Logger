@@ -22,25 +22,11 @@ def main(global_config, **settings):
     config.include('pyramid_zcml')
     config.load_zcml('configure.zcml')
     config.end()
-    
+
+    #add renderer
+    #Fixme: try to insert this on zcml file 
     config.add_renderer('jsonp', JSONP(param_name='callback'))
-    
-    #site
-    config.add_route('site', '/analytics/site/{instance}/{output}')
-    config.add_view('analytics.views.site', route_name='site', renderer='jsonp')
-
-    #site_option
-    config.add_route('site_option', '/analytics/site/{instance}/{option}/{output}')
-    config.add_view('analytics.views.site_option', route_name='site_option', renderer='jsonp')
-
-    #site_key
-    config.add_route('site_key', '/analytics/site/{instance}/{option}/{key}/{output}')
-    config.add_view('analytics.views.site_key', route_name='site_key', renderer='jsonp')
-
-    #site_option_range
-    config.add_route('site_option_range', '/analytics/site/{instance}/{option}/range/{range}/{output}')
-    config.add_view('analytics.views.site_option_range', route_name='site_option_range', renderer='jsonp')
-    
+      
     return config.make_wsgi_app()
 
 def add_mongo_db(event):
