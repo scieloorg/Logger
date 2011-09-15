@@ -4,7 +4,7 @@
 
 <!--route site-->
 
-  <route
+  <!--route
     name="site"
     pattern="/analytics/site/{instance}/{output}"
     view="analytics.views.site"
@@ -32,6 +32,12 @@
     name="site_test_chart"
     pattern="/analytics/test_chart"
     view="analytics.views.site_test_chart"
+  /-->
+
+  <route
+    name="site_client"
+    pattern="/analytics/client/site/{instance}"
+    view="analytics.client.views.site_client"
   />
 
 <!--route site-->
