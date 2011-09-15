@@ -64,18 +64,39 @@ for file in logfiles:
         lines = os.popen('cat '+LOGS_DIR+"/"+file+' | wc -l').read().strip()
         proc_files.update({"_id":file},{'$set':{'proc_date':date.isoformat(date.today()),'status':'processing','lines': lines}},True)
         print "processing "+file
-        count=0
         linecount=0
         for line in fileloaded:
             linecount=linecount+1
             proc_files.update({"_id":file},{'$set':{'line':linecount}},True)
-            if "GET /scielo.php" in line and "script" in line and "pid" in line:
-                count=count+1
+            #PDF FILES DOWNLOAD
+            if "GET" in line and ".pdf" in line:
                 p = apachelog.parser(APACHE_LOG_FORMAT)
                 try:
                     data = p.parse(line)
                 except:
                     sys.stderr.write("Unable to parse %s" % line)
+                    analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_unabletoparser':1}},True)
+                    error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_unabletoparser':1}},True)
+                    continue
+
+                month=""
+                if MONTH_DICT.has_key(data['%t'][4:7].upper()):
+                    month = MONTH_DICT[data['%t'][4:7].upper()]
+                    
+                dat = data['%t'][8:12]+month
+
+                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn_':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
+
+            #PAGES PATTERN
+            if "GET /scielo.php" in line and "script" in line and "pid" in line:
+                p = apachelog.parser(APACHE_LOG_FORMAT)
+                try:
+                    data = p.parse(line)
+                except:
+                    sys.stderr.write("Unable to parse %s" % line)
+                    analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_unabletoparser':1}},True)
+                    error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_unabletoparser':1}},True)
+                    continue
 
                 month=""
                 if MONTH_DICT.has_key(data['%t'][4:7].upper()):
@@ -83,7 +104,6 @@ for file in logfiles:
                     
                 dat = data['%t'][8:12]+month
                 url = data['%r'].split(' ')[1]
-                ip = data['%h']
 
                 params = urlparse(url).query.split('&')
                 par = {}
@@ -125,20 +145,20 @@ for file in logfiles:
                                 else:
                                     #print str(validate_pid(script,pid))+" "+script+" "+pid
                                     analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_pid':1}},True)
-                                    error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_pid':1}},True)
+                                    error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_pid':1}},True)
                             else:
                                 analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_empty_pid':1}},True)
-                                error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_empty_pid':1}},True)
+                                error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_empty_pid':1}},True)
                         else:
                             #print str(linecount)+" "+str(dat)+" "+str(validate_date(dat))
                             analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_date':1}},True)
-                            error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_date':1}},True)
+                            error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_date':1}},True)
                     else:
                         analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_script':1}},True)
-                        error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_script':1}},True)
+                        error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_script':1}},True)
                 else:
                     analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_empty_script':1}},True)
-                    error_log.update({"file":file},{"$set":{'lines':lines},"$inc":{'err_empty_script':1}},True)
+                    error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_empty_script':1}},True)
         proc_files.update({"_id":file},{'$set':{'status':'processed'}},True)
     else:
         print file+" was already processed"
