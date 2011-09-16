@@ -14,8 +14,10 @@ def main(global_config, **settings):
     config.begin()
     
     db_uri = settings['db_uri']
+    server_url = settings['server_url']
     conn = Connection(db_uri)
     config.registry.settings['db_conn'] = conn
+    config.registry.settings['server_url'] = server_url
     config.registry.settings['db_name'] = settings['db_name']
     config.add_subscriber(add_mongo_db, NewRequest)
 
