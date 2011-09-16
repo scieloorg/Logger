@@ -1,8 +1,7 @@
-from pyramid.view import view_config
+from pyramid.response import Response
 import tool
 import json
 
-@view_config(renderer='jsonp')
 def site(request):
 
     db = request.db
@@ -15,7 +14,6 @@ def site(request):
     
     return json.dumps(dictmon)
 
-@view_config(renderer='jsonp')
 def site_key(request):
 
     db = request.db
@@ -29,7 +27,6 @@ def site_key(request):
     return json.dumps(tool.dict_by_key(tool.dict_by_acron(dictmon,
         request.matchdict['option']),request.matchdict['key']))
 
-@view_config(renderer='jsonp')
 def site_option(request):
 
     db = request.db
@@ -42,7 +39,6 @@ def site_option(request):
 
     return json.dumps(tool.dict_by_acron(dictmon, request.matchdict['option']))
 
-@view_config(renderer='jsonp')
 def site_option_range(request):
 
     db = request.db

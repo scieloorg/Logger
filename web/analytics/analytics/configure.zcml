@@ -4,43 +4,45 @@
 
 <!--route site-->
 
-  <!--route
+
+  <!--Server APP-->
+  <route
     name="site"
     pattern="/analytics/site/{instance}/{output}"
     view="analytics.views.site"
+    renderer="jsonp"
   />
 
   <route
     name="site_option"
     pattern="/analytics/site/{instance}/{option}/{output}"
     view="analytics.views.site_option"
+    renderer="jsonp"
   />
 
   <route
     name="site_key"
     pattern="/analytics/site/{instance}/{option}/{key}/{output}"
     view="analytics.views.site_key"
+    renderer="jsonp"
   />
 
   <route
     name="site_option_range"
     pattern="/analytics/site/{instance}/{option}/range/{range}/{output}"
     view="analytics.views.site_option_range"
+    renderer="jsonp"
   />
+  <!--Server APP-->
 
-  <route
-    name="site_test_chart"
-    pattern="/analytics/test_chart"
-    view="analytics.views.site_test_chart"
-  /-->
 
+  <!--Client APP -->
   <route
     name="site_client"
     pattern="/analytics/client/site/{instance}"
     view="analytics.client.views.site_client"
   />
-
-<!--route site-->
+  <!--client APP -->
 
 
 </configure>
