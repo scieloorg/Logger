@@ -54,7 +54,4 @@ Client APP
     view="analytics.client.views.site_client_range"
   />
 
-
-
-
 </configure>
