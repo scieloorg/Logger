@@ -68,6 +68,8 @@ for file in logfiles:
         for line in fileloaded:
             linecount=linecount+1
             proc_files.update({"_id":file},{'$set':{'line':linecount}},True)
+            
+            
             #PDF FILES DOWNLOAD
             if "GET" in line and ".pdf" in line:
                 p = apachelog.parser(APACHE_LOG_FORMAT)
@@ -82,10 +84,11 @@ for file in logfiles:
                 month=""
                 if MONTH_DICT.has_key(data['%t'][4:7].upper()):
                     month = MONTH_DICT[data['%t'][4:7].upper()]
-                    
-                dat = data['%t'][8:12]+month
 
-                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn_':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
+                dat = data['%t'][8:12]+month
+                
+                if validate_date(dat):
+                    analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
 
             #PAGES PATTERN
             if "GET /scielo.php" in line and "script" in line and "pid" in line:
