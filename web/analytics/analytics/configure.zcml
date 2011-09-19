@@ -2,10 +2,12 @@
 
   <include package="pyramid_zcml" />
 
-<!--route site-->
+<!--
+*********************************
+Server APP
+*********************************
+-->
 
-
-  <!--Server APP-->
   <route
     name="site"
     pattern="/analytics/site/{instance}/{output}"
@@ -15,34 +17,41 @@
 
   <route
     name="site_option"
-    pattern="/analytics/site/{instance}/{option}/{output}"
+    pattern="/analytics/site/{instance}/{option:[a-z]{3}}/{output}"
     view="analytics.views.site_option"
     renderer="jsonp"
   />
 
   <route
     name="site_key"
-    pattern="/analytics/site/{instance}/{option}/{key}/{output}"
+    pattern="/analytics/site/{instance}/{option:[a-z]{3}}/{key:[a-zA-Z0-9]+}/{output}"
     view="analytics.views.site_key"
     renderer="jsonp"
   />
 
   <route
     name="site_option_range"
-    pattern="/analytics/site/{instance}/{option}/range/{range}/{output}"
+    pattern="/analytics/site/{instance}/{option:[a-z]{3}}/{start_range:\d+}-{end_range:\d+}/{output}"
     view="analytics.views.site_option_range"
     renderer="jsonp"
   />
-  <!--Server APP-->
 
+<!--
+*********************************
+Client APP
+*********************************
+-->
 
-  <!--Client APP -->
   <route
     name="site_client"
-    pattern="/analytics/client/site/{instance}"
+    pattern="/analytics/client/site/{instance}/{index:[a-z]{3}}/{chart:[a-zA-Z]+}/{options:.*}"
     view="analytics.client.views.site_client"
   />
-  <!--client APP -->
 
+  <route
+    name="site_client_range"
+    pattern="/analytics/client/site/{instance}/{index:[a-z]{3}}/{start_range:\d+}-{end_range:\d+}/{chart:[a-zA-Z]+}/{options:.*}"
+    view="analytics.client.views.site_client_range"
+  />
 
 </configure>
