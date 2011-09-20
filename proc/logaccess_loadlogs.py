@@ -57,10 +57,9 @@ for logdir in LOG_DIRS:
     
     print "listing log files at: "+logdir
     
-    logfiles = os.listdir(logdir)
-    
+    logfiles = os.popen('ls '+logdir+'/*access.log')
     for file in logfiles:
-        filepath=logdir+"/"+file
+        filepath=file.strip()
         fileloaded = open(filepath, 'r')
         if proc_files.find({'_id':filepath}).count() == 0:
             lines = 0
