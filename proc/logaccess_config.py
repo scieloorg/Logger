@@ -3,10 +3,14 @@
 
 MONGODB_DOMAIN="localhost"
 MONGODB_PORT=27017
-COLLECTION_CODE="sza"
-COLLECTION_DOMAIN="www.scielo.org.za"
+COLLECTION_CODE="scl"
+COLLECTION_DOMAIN="www.scielo.br"
 
-LOGS_DIR = '../data/logs'
+LOG_DIRS = ['../data/logs/scielo21',
+            '../data/logs/scielo31',
+            '../data/logs/scielo32',
+            '../data/logs/scielo33',
+            '../data/logs/scielo34']
 
 APACHE_LOG_FORMAT= r'%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"'
 
