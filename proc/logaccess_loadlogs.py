@@ -53,115 +53,118 @@ analytics.ensure_index('issn')
 analytics.ensure_index('issue')
 error_log.ensure_index('file')
 
-print "listing log files at: "+LOGS_DIR
-
-logfiles = os.listdir(LOGS_DIR)
-
-for file in logfiles:
-    fileloaded = open(LOGS_DIR+"/"+file, 'r')
-    if proc_files.find({'_id':file}).count() == 0:
-        lines = 0
-        lines = os.popen('cat '+LOGS_DIR+"/"+file+' | wc -l').read().strip()
-        proc_files.update({"_id":file},{'$set':{'proc_date':date.isoformat(date.today()),'status':'processing','lines': lines}},True)
-        print "processing "+file
-        linecount=0
-        for line in fileloaded:
-            linecount=linecount+1
-            proc_files.update({"_id":file},{'$set':{'line':linecount}},True)
-            
-            
-            #PDF FILES DOWNLOAD
-            if "GET" in line and ".pdf" in line:
-                p = apachelog.parser(APACHE_LOG_FORMAT)
-                try:
-                    data = p.parse(line)
-                except:
-                    sys.stderr.write("Unable to parse %s" % line)
-                    analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_unabletoparser':1}},True)
-                    error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_unabletoparser':1}},True)
-                    continue
-
-                month=""
-                if MONTH_DICT.has_key(data['%t'][4:7].upper()):
-                    month = MONTH_DICT[data['%t'][4:7].upper()]
-
-                dat = data['%t'][8:12]+month
+for logdir in LOG_DIRS:
+    
+    print "listing log files at: "+logdir
+    
+    logfiles = os.listdir(logdir)
+    
+    for file in logfiles:
+        filepath=logdir+"/"+file
+        fileloaded = open(filepath, 'r')
+        if proc_files.find({'_id':filepath}).count() == 0:
+            lines = 0
+            lines = os.popen('cat '+filepath+' | wc -l').read().strip()
+            proc_files.update({"_id":filepath},{'$set':{'proc_date':date.isoformat(date.today()),'status':'processing','lines': lines}},True)
+            print "processing "+filepath
+            linecount=0
+            for line in fileloaded:
+                linecount=linecount+1
+                proc_files.update({"_id":filepath},{'$set':{'line':linecount}},True)
                 
-                if validate_date(dat):
-                    analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
-
-            #PAGES PATTERN
-            if "GET /scielo.php" in line and "script" in line and "pid" in line:
-                p = apachelog.parser(APACHE_LOG_FORMAT)
-                try:
-                    data = p.parse(line)
-                except:
-                    sys.stderr.write("Unable to parse %s" % line)
-                    analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_unabletoparser':1}},True)
-                    error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_unabletoparser':1}},True)
-                    continue
-
-                month=""
-                if MONTH_DICT.has_key(data['%t'][4:7].upper()):
-                    month = MONTH_DICT[data['%t'][4:7].upper()]
+                
+                #PDF FILES DOWNLOAD
+                if "GET" in line and ".pdf" in line:
+                    p = apachelog.parser(APACHE_LOG_FORMAT)
+                    try:
+                        data = p.parse(line)
+                    except:
+                        sys.stderr.write("Unable to parse %s" % line)
+                        analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_unabletoparser':1}},True)
+                        error_log.update({"file":filepath},{"$set":{'lines':linecount},"$inc":{'err_unabletoparser':1}},True)
+                        continue
+    
+                    month=""
+                    if MONTH_DICT.has_key(data['%t'][4:7].upper()):
+                        month = MONTH_DICT[data['%t'][4:7].upper()]
+    
+                    dat = data['%t'][8:12]+month
                     
-                dat = data['%t'][8:12]+month
-                url = data['%r'].split(' ')[1]
-
-                params = urlparse(url).query.split('&')
-                par = {}
-                
-                for param in params:
-                    tmp = param.split('=')
-                    if len(tmp) == 2:
-                        par[tmp[0]] = tmp[1]
-
-                language = ""
-                if par.has_key('tlng'):
-                    if par['tlng'].upper() in ALLOWED_LANGUAGES:
-                        language=par['tlng'].lower()
+                    if validate_date(dat):
+                        analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
+    
+                #PAGES PATTERN
+                if "GET /scielo.php" in line and "script" in line and "pid" in line:
+                    p = apachelog.parser(APACHE_LOG_FORMAT)
+                    try:
+                        data = p.parse(line)
+                    except:
+                        sys.stderr.write("Unable to parse %s" % line)
+                        analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_unabletoparser':1}},True)
+                        error_log.update({"file":filepath},{"$set":{'lines':linecount},"$inc":{'err_unabletoparser':1}},True)
+                        continue
+    
+                    month=""
+                    if MONTH_DICT.has_key(data['%t'][4:7].upper()):
+                        month = MONTH_DICT[data['%t'][4:7].upper()]
+                        
+                    dat = data['%t'][8:12]+month
+                    url = data['%r'].split(' ')[1]
+    
+                    params = urlparse(url).query.split('&')
+                    par = {}
+                    
+                    for param in params:
+                        tmp = param.split('=')
+                        if len(tmp) == 2:
+                            par[tmp[0]] = tmp[1]
+    
+                    language = ""
+                    if par.has_key('tlng'):
+                        if par['tlng'].upper() in ALLOWED_LANGUAGES:
+                            language=par['tlng'].lower()
+                        else:
+                            language='default'
                     else:
                         language='default'
-                else:
-                    language='default'
-
-                if par.has_key('script'): #Validating if has script
-                    script = par['script'].lower()
-                    if script in ALLOWED_SCRIPTS: #Validation if the script is allowed
-                        if validate_date(dat):
-                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{script:1,'total':1,"dat_"+dat:1}},True)
-                            if par.has_key('pid'):
-                                pid = par['pid'].replace('S','').replace('s','').strip()
-                                if validate_pid(script,pid):
-                                    # CREATING SERIAL LOG DOCS
-                                    analytics.update({"serial":str(pid).replace('S','')[0:9]}, {"$inc":{'total':1,script:1,dat:1,'lng_'+dat+'_'+language:1}},True)
-                                    if script == "sci_issuetoc":
-                                        analytics.update({"issuetoc":pid}, {"$set":{'page':script,'issn':pid[0:9]},"$inc":{'total':1,"dat_"+dat:1}},True)
-                                    elif script == "sci_abstract":
-                                        analytics.update({"abstract":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
-                                    elif script == "sci_arttext":
-                                        analytics.update({"arttext":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
-                                        analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"art_"+dat:1,'art_'+dat+'_'+language:1}},True)
-                                    elif script == "sci_pdf":
-                                        analytics.update({"pdf":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
-                                        analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"pdf_"+dat:1,'pdf_'+dat+'_'+language:1}},True)
+    
+                    if par.has_key('script'): #Validating if has script
+                        script = par['script'].lower()
+                        if script in ALLOWED_SCRIPTS: #Validation if the script is allowed
+                            if validate_date(dat):
+                                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{script:1,'total':1,"dat_"+dat:1}},True)
+                                if par.has_key('pid'):
+                                    pid = par['pid'].replace('S','').replace('s','').strip()
+                                    if validate_pid(script,pid):
+                                        # CREATING SERIAL LOG DOCS
+                                        analytics.update({"serial":str(pid).replace('S','')[0:9]}, {"$inc":{'total':1,script:1,dat:1,'lng_'+dat+'_'+language:1}},True)
+                                        if script == "sci_issuetoc":
+                                            analytics.update({"issuetoc":pid}, {"$set":{'page':script,'issn':pid[0:9]},"$inc":{'total':1,"dat_"+dat:1}},True)
+                                        elif script == "sci_abstract":
+                                            analytics.update({"abstract":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                        elif script == "sci_arttext":
+                                            analytics.update({"arttext":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"art_"+dat:1,'art_'+dat+'_'+language:1}},True)
+                                        elif script == "sci_pdf":
+                                            analytics.update({"pdf":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"pdf_"+dat:1,'pdf_'+dat+'_'+language:1}},True)
+                                    else:
+                                        #print str(validate_pid(script,pid))+" "+script+" "+pid
+                                        analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_pid':1}},True)
+                                        error_log.update({"file":filepath},{"$set":{'lines':linecount},"$inc":{'err_pid':1}},True)
                                 else:
-                                    #print str(validate_pid(script,pid))+" "+script+" "+pid
-                                    analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_pid':1}},True)
-                                    error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_pid':1}},True)
+                                    analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_empty_pid':1}},True)
+                                    error_log.update({"file":filepath},{"$set":{'lines':linecount},"$inc":{'err_empty_pid':1}},True)
                             else:
-                                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_empty_pid':1}},True)
-                                error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_empty_pid':1}},True)
+                                #print str(linecount)+" "+str(dat)+" "+str(validate_date(dat))
+                                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_date':1}},True)
+                                error_log.update({"file":filepath},{"$set":{'lines':linecount},"$inc":{'err_date':1}},True)
                         else:
-                            #print str(linecount)+" "+str(dat)+" "+str(validate_date(dat))
-                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_date':1}},True)
-                            error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_date':1}},True)
+                            analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_script':1}},True)
+                            error_log.update({"file":filepath},{"$set":{'lines':linecount},"$inc":{'err_script':1}},True)
                     else:
-                        analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_script':1}},True)
-                        error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_script':1}},True)
-                else:
-                    analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_empty_script':1}},True)
-                    error_log.update({"file":file},{"$set":{'lines':linecount},"$inc":{'err_empty_script':1}},True)
-        proc_files.update({"_id":file},{'$set':{'status':'processed'}},True)
-    else:
-        print file+" was already processed"
+                        analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_empty_script':1}},True)
+                        error_log.update({"file":filepath},{"$set":{'lines':linecount},"$inc":{'err_empty_script':1}},True)
+            proc_files.update({"_id":filepath},{'$set':{'status':'processed'}},True)
+        else:
+            print filepath+" was already processed"
