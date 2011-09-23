@@ -27,7 +27,7 @@ def site_key(request):
     else:
         language = False
             
-    return json.dumps(tool.dict_order_by_key(tool.dict_by_key(tool.dict_by_acron(dictmon,
+    return json.dumps(tool.dict_order_by_key(tool.dict_by_key(tool.dict_by_index(dictmon,
                       request.matchdict['option'], language), request.matchdict['key'])))
 
 def site_option(request):
@@ -44,7 +44,7 @@ def site_option(request):
     else:
         language = False
 
-    return json.dumps(tool.dict_order_by_key(tool.dict_by_acron(dictmon,
+    return json.dumps(tool.dict_order_by_key(tool.dict_by_index(dictmon,
                       request.matchdict['option'], language)))
 
 def site_option_range(request):
@@ -63,6 +63,6 @@ def site_option_range(request):
     else:
         language = False
 
-    return json.dumps(tool.dict_order_by_key(tool.dict_slice_key(tool.dict_by_acron(dictmon,
+    return json.dumps(tool.dict_order_by_key(tool.dict_slice_key(tool.dict_by_index(dictmon,
                       request.matchdict['option'], language), request.matchdict['start_range'],
                       request.matchdict['end_range'])))

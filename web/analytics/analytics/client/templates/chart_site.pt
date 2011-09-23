@@ -1,0 +1,37 @@
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.3/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+<script>
+
+    jQuery.getJSON("${server_url}/analytics/site/${instance}/${index}" + "?callback=?", function(data) {
+        pjson = $.parseJSON(data);
+    });
+
+    // Load the Visualization API and the piechart package.
+    google.load('visualization', '1.0', {'packages':['corechart']});
+
+    // Set a callback to run when the Google Visualization API is loaded.
+    google.setOnLoadCallback(drawChart);
+
+    // Callback that creates and populates a data table,
+    // instantiates the pie chart, passes in the data and
+    // draws it.
+    function drawChart() {
+
+    // Create the data table.
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', '${index}');
+    data.addColumn('number', 'Acess');
+
+    $.each(pjson, function(key, val) {
+         data.addRow([key.substr(0,4) + "/" + key.substr(4,6), val]);
+      });
+
+    // Instantiate and draw our chart, passing in some options.
+    var chart = new google.visualization.${chart}(document.getElementById('chart_div'));
+    chart.draw(data, ${options});
+    }
+
+</script>
+
+<div id="chart_div"></div>

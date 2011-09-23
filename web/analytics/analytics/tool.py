@@ -1,25 +1,24 @@
 #Tools for dictionary
 from collections import OrderedDict
 
-def dict_by_acron(dictmon, acron, language=False):
+def dict_by_index(dictmon, index, language=False):
     dictacron = {}
 
     for k, v in dictmon.iteritems():
         acron_split = k.split('_')
 
         if not language:
-            if(acron_split[0] == acron and len(acron_split) == 2):
+            if(acron_split[0] == index and len(acron_split) == 2):
                 dictacron[acron_split[1]] = v
 
         if language:
-            if(acron_split[0] == acron and len(acron_split) == 3):
+            if(acron_split[0] == index and len(acron_split) == 3):
                 
                 if(acron_split[2] == language):
                     dictacron[acron_split[1] + "-" + language] = v
                     
                 if(language == 'all' and len(acron_split) == 3):
                     dictacron[acron_split[1] + acron_split[2]] = v
-                    
     return dictacron
 
 def dict_by_key(dictmon, key):
