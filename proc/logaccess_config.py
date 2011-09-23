@@ -3,7 +3,7 @@
 
 MONGODB_DOMAIN="localhost"
 MONGODB_PORT=27017
-COLLECTION_CODE="scl"
+COLLECTION_CODE="bra"
 COLLECTION_DOMAIN="www.scielo.br"
 
 LOG_DIRS = ['../data/logs/scielo21',

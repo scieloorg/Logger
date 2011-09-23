@@ -29,6 +29,14 @@ def validate_pid(script, pid):
             return True
     return False
 
+def validate_pdf(filepath):
+    pdf_spl = filepath.split("/")
+    if len(pdf_spl) > 2:
+        if pdf_spl[1] == 'pdf':
+            if pdf_spl[2] != '':
+                return True
+    return False
+    
 def validate_date(dat):
     if len(str(dat)) == 6:
         if int(dat[0:4]) <= int(date.today().year) and (int(dat[4:6]) >= 1 and int(dat[4:6]) <= 12):
@@ -48,6 +56,8 @@ analytics.ensure_index('issuetoc')
 analytics.ensure_index('arttext')
 analytics.ensure_index('abstract')
 analytics.ensure_index('pdf')
+analytics.ensure_index('dwn')
+analytics.ensure_index('acron')
 analytics.ensure_index('page')
 analytics.ensure_index('issn')
 analytics.ensure_index('issue')
@@ -91,7 +101,14 @@ for logdir in LOG_DIRS:
                     
                     if validate_date(dat):
                         analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
-    
+                        pdfid = data['%r'][4:data['%r'].find('.pdf')]
+                        if validate_pdf(pdfid):
+                            pdf_spl = pdfid.split("/")
+                            analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download','acron':pdf_spl[2]},"$inc":{'total':1,"dat_"+dat:1}},True)
+                        else:
+                            analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download'},"$inc":{"err":1}},True)
+                            analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_dwn':1}},True)
+                            
                 #PAGES PATTERN
                 if "GET /scielo.php" in line and "script" in line and "pid" in line:
                     p = apachelog.parser(APACHE_LOG_FORMAT)
