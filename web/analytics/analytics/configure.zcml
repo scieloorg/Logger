@@ -23,6 +23,13 @@ Server APP
   />
 
   <route
+    name="site_option_year"
+    pattern="/analytics/site/{instance}/{option:[a-z]{3}}/{year1:\d+},{year2:\d+}"
+    view="analytics.views.site_option_year"
+    renderer="jsonp"
+  />
+
+  <route
     name="site_key"
     pattern="/analytics/site/{instance}/{option:[a-z]{3}}/{key:[a-zA-Z0-9]+}"
     view="analytics.views.site_key"
@@ -46,6 +53,12 @@ Client APP
     name="site_client"
     pattern="/analytics/client/site/{instance}/{index:[a-z]{3}}/{chart:[a-zA-Z]+}/{options:.*}"
     view="analytics.client.views.site_client"
+  />
+
+  <route
+    name="site_client_year"
+    pattern="/analytics/client/site/{instance}/{index:[a-z]{3}}/{year1:\d+},{year2:\d+}/{chart:[a-zA-Z]+}/{options:.*}"
+    view="analytics.client.views.site_client_year"
   />
 
   <route
