@@ -32,6 +32,21 @@ def site_option(request):
 
     return json.dumps(list_ret)
 
+def site_option_range(request):
+    db = request.db
+    analytics = db.scl_analytics
+
+    dictmon = analytics.find_one({'site': request.matchdict['instance']})
+
+    #remove the key '_id'
+    del dictmon['_id']
+
+    list_ret = tool.list_month_access_range(dictmon, request.matchdict['option'],
+        request.matchdict['start_range'], request.matchdict['end_range'])
+
+    return json.dumps(list_ret)
+
+
 def site_option_two_year(request):
     db = request.db
     analytics = db.scl_analytics
@@ -59,19 +74,5 @@ def site_option_two_index(request):
 
     list_ret = tool.list_two_index(dictmon, request.matchdict['year'],
         request.matchdict['index1'], request.matchdict['index2'])
-
-    return json.dumps(list_ret)
-
-def site_option_range(request):
-    db = request.db
-    analytics = db.scl_analytics
-
-    dictmon = analytics.find_one({'site': request.matchdict['instance']})
-    
-    #remove the key '_id'
-    del dictmon['_id']
-    
-    list_ret = tool.list_month_access_range(dictmon, request.matchdict['option'],
-        request.matchdict['start_range'], request.matchdict['end_range'])
 
     return json.dumps(list_ret)
