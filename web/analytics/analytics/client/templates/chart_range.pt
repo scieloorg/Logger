@@ -23,9 +23,9 @@
     data.addColumn('string', 'Pages');
     data.addColumn('number', 'Acess');
 
-    $.each(pjson, function(key, val) {
-         data.addRow([key.substr(0,4) + "/" + key.substr(4,6), val]);
-      });
+    for(var i=0; i<pjson.length; i++){
+        data.addRow(pjson[i]);
+    }
 
     // Instantiate and draw our chart, passing in some options.
     var chart = new google.visualization.${chart}(document.getElementById('chart_div'));

@@ -17,7 +17,7 @@ Server APP
 
   <route
     name="site_option"
-    pattern="/analytics/site/{instance}/{option:[a-z]{3}}"
+    pattern="/analytics/site/{instance}/{option:[a-z]{3}}/{year:\d+}"
     view="analytics.views.site_option"
     renderer="jsonp"
   />
@@ -25,14 +25,14 @@ Server APP
   <route
     name="site_option_year"
     pattern="/analytics/site/{instance}/{option:[a-z]{3}}/{year1:\d+},{year2:\d+}"
-    view="analytics.views.site_option_year"
+    view="analytics.views.site_option_two_year"
     renderer="jsonp"
   />
 
   <route
-    name="site_key"
-    pattern="/analytics/site/{instance}/{option:[a-z]{3}}/{key:[a-zA-Z0-9]+}"
-    view="analytics.views.site_key"
+    name="site_option_index"
+    pattern="/analytics/site/{instance}/{year:\d+}/{index1:[a-z]{3}},{index2:[a-z]{3}}"
+    view="analytics.views.site_option_two_index"
     renderer="jsonp"
   />
 
@@ -51,7 +51,7 @@ Client APP
 
   <route
     name="site_client"
-    pattern="/analytics/client/site/{instance}/{index:[a-z]{3}}/{chart:[a-zA-Z]+}/{options:.*}"
+    pattern="/analytics/client/site/{instance}/{index:[a-z]{3}}/{year:\d+}/{chart:[a-zA-Z]+}/{options:.*}"
     view="analytics.client.views.site_client"
   />
 
@@ -59,6 +59,12 @@ Client APP
     name="site_client_year"
     pattern="/analytics/client/site/{instance}/{index:[a-z]{3}}/{year1:\d+},{year2:\d+}/{chart:[a-zA-Z]+}/{options:.*}"
     view="analytics.client.views.site_client_year"
+  />
+
+  <route
+    name="site_client_index"
+    pattern="/analytics/client/site/{instance}/{year:\d+}/{index1:[a-z]{3}},{index2:[a-z]{3}}/{chart:[a-zA-Z]+}/{options:.*}"
+    view="analytics.client.views.site_client_index"
   />
 
   <route

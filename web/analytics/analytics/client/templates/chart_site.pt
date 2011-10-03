@@ -3,7 +3,7 @@
 
 <script>
 
-    jQuery.getJSON("${server_url}/analytics/site/${instance}/${index}" + "?callback=?", function(data) {
+    jQuery.getJSON("${server_url}/analytics/site/${instance}/${index}/${y}" + "?callback=?", function(data) {
         pjson = $.parseJSON(data);
     });
 
@@ -21,11 +21,11 @@
     // Create the data table.
     var data = new google.visualization.DataTable();
     data.addColumn('string', '${index}');
-    data.addColumn('number', 'Acess');
+    data.addColumn('number', 'Access');
 
-    $.each(pjson, function(key, val) {
-         data.addRow([key.substr(0,4) + "/" + key.substr(4,6), val]);
-      });
+    for(var i=0; i<pjson.length; i++){
+        data.addRow([pjson[i][0], pjson[i][1]]);
+    }
 
     // Instantiate and draw our chart, passing in some options.
     var chart = new google.visualization.${chart}(document.getElementById('chart_div'));
