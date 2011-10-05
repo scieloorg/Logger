@@ -1,5 +1,11 @@
 #Tools for dictionary
-from collections import OrderedDict
+from OrderedDict import *
+
+def dict_order_by_key(dictparam):
+    return OrderedDict((k, dictparam[k]) for k in sorted(dictparam))
+
+def dict_slice_key(dictmon, start_key, end_key):
+    return dict((k, v) for k, v in dictmon.iteritems() if start_key <= k <= end_key)
 
 def get_months(month):
     dict_months = {'1': 'jan',
@@ -124,8 +130,3 @@ def list_two_index(dictmon, year, index1, index2):
 
 ################################################################################
 
-def dict_order_by_key(dictparam):
-    return OrderedDict((k, dictparam[k]) for k in sorted(dictparam))
-
-def dict_slice_key(dictmon, start_key, end_key):
-    return dict((k, v) for k, v in dictmon.iteritems() if start_key <= k <= end_key)
