@@ -1,5 +1,8 @@
 #Tools for dictionary
-from OrderedDict import *
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ..utils.OrderedDict import *
 
 def dict_order_by_key(dictparam):
     return OrderedDict((k, dictparam[k]) for k in sorted(dictparam))
