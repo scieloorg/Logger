@@ -1,5 +1,5 @@
 import json
-import tool
+from ..utils.functions import *
 
 def site(request):
     db = request.db
@@ -10,7 +10,7 @@ def site(request):
     #remove the key '_id'
     del dictmon['_id']
     
-    return json.dumps(tool.dict_order_by_key(dictmon))
+    return json.dumps(dict_order_by_key(dictmon))
 
 def site_option(request):
     db = request.db
@@ -24,10 +24,10 @@ def site_option(request):
 
     #swith between pages and dates
     if(request.matchdict['option'] != 'sci'):
-        list_ret =  tool.list_month_access(dictmon, request.matchdict['option'],
+        list_ret =  list_month_access(dictmon, request.matchdict['option'],
             request.matchdict['year'])
     else:
-        list_ret =  tool.list_pages_access(dictmon, request.matchdict['option'])
+        list_ret =  list_pages_access(dictmon, request.matchdict['option'])
 
     return json.dumps(list_ret)
 
@@ -40,7 +40,7 @@ def site_option_range(request):
     #remove the key '_id'
     del dictmon['_id']
 
-    list_ret = tool.list_month_access_range(dictmon, request.matchdict['option'],
+    list_ret = list_month_access_range(dictmon, request.matchdict['option'],
         request.matchdict['start_range'], request.matchdict['end_range'])
 
     return json.dumps(list_ret)
@@ -56,7 +56,7 @@ def site_option_two_year(request):
     #remove the key '_id'
     del dictmon['_id']
         
-    list_ret = tool.list_two_year(dictmon, request.matchdict['option'],
+    list_ret = list_two_year(dictmon, request.matchdict['option'],
         request.matchdict['year1'], request.matchdict['year2'])
     
     return json.dumps(list_ret)
@@ -71,7 +71,7 @@ def site_option_two_index(request):
     #remove the key '_id'
     del dictmon['_id']
 
-    list_ret = tool.list_two_index(dictmon, request.matchdict['year'],
+    list_ret = list_two_index(dictmon, request.matchdict['year'],
         request.matchdict['index1'], request.matchdict['index2'])
 
     return json.dumps(list_ret)
