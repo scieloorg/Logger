@@ -1,5 +1,5 @@
 import json
-from tool import *
+from ..utils.functions import *
 
 def site(request):
     db = request.db
