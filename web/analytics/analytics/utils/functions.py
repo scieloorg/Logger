@@ -11,15 +11,15 @@ def dict_slice_key(dictmon, start_key, end_key):
     return dict((k, v) for k, v in dictmon.iteritems() if start_key <= k <= end_key)
 
 def get_months(month):
-    dict_months = {'1': 'jan',
-                   '2': 'fev',
-                   '3': 'mar',
-                   '4': 'abr',
-                   '5': 'mai',
-                   '6': 'jun',
-                   '7': 'jul',
-                   '8': 'ago',
-                   '9': 'set',
+    dict_months = {'01': 'jan',
+                   '02': 'fev',
+                   '03': 'mar',
+                   '04': 'abr',
+                   '05': 'mai',
+                   '06': 'jun',
+                   '07': 'jul',
+                   '08': 'ago',
+                   '09': 'set',
                    '10': 'out',
                    '11': 'nov',
                    '12': 'dez',
@@ -38,12 +38,12 @@ def list_month_access(dictmon, index, year):
     for k, v in dictmon.iteritems():
         split = k.split('_')
         if(split[0] == index and len(split) == 2 and split[1][0:4] == year):
-            dict_index[split[1][4:6][1]] = v
-    
+            dict_index[split[1][4:6]] = v
+        
     #loop on dict to return list
     for k, v in dict_order_by_key(dict_index).iteritems():
         list_ret.append([get_months(str(k)), v])
-        
+
     return list_ret
 
 def list_month_access_range(dictmon, index, start_range, end_range):
@@ -99,7 +99,6 @@ def list_access(dictmon, index, year):
     for k, v in dict_order_by_key(dict_ret).iteritems():
         list_ret.append(v)
 
-    #return dict_ret
     return list_ret
 
 def list_two_year(dictmon, index, year1, year2):
@@ -111,9 +110,8 @@ def list_two_year(dictmon, index, year1, year2):
     
     for i, (access_y1,access_y2) in enumerate(zip(y1, y2)):
         i = i+1
-        list_ret.append([get_months(str(i)), access_y1, access_y2])
+        list_ret.append([get_months(str(i).zfill(2)), access_y1, access_y2])
    
-    #return dict_ret
     return list_ret
 
 
@@ -126,10 +124,6 @@ def list_two_index(dictmon, year, index1, index2):
 
     for i, (index_i1,index_i2) in enumerate(zip(i1, i2)):
         i = i+1
-        list_ret.append([get_months(str(i)), index_i1, index_i2])
+        list_ret.append([get_months(str(i).zfill(2)), index_i1, index_i2])
 
-    #return dict_ret
     return list_ret
-
-################################################################################
-

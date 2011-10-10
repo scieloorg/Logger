@@ -28,7 +28,7 @@ def site_option(request):
             request.matchdict['year'])
     else:
         list_ret =  list_pages_access(dictmon, request.matchdict['option'])
-
+        
     return json.dumps(list_ret)
 
 def site_option_range(request):
