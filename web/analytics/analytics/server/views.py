@@ -1,5 +1,5 @@
 import json
-from ..utils.functions import *
+from analytics.utils.functions import *
 
 def site(request):
     db = request.db
