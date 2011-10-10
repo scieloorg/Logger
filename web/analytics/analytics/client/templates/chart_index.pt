@@ -8,15 +8,15 @@
     });
 
     // Load the Visualization API and the piechart package.
-    google.load('visualization', '1.0', {'packages':['corechart']});
+    google.load('visualization', '1.0', {'packages':['corechart','table']});
 
     // Set a callback to run when the Google Visualization API is loaded.
-    google.setOnLoadCallback(drawChart);
+    google.setOnLoadCallback(draw);
 
     // Callback that creates and populates a data table,
     // instantiates the pie chart, passes in the data and
     // draws it.
-    function drawChart() {
+    function draw() {
 
     // Create the data table.
     var data = new google.visualization.DataTable();
@@ -29,11 +29,11 @@
     }
 
     // Instantiate and draw our chart, passing in some options.
-    var chart = new google.visualization.${chart}(document.getElementById('chart_div'));
-    chart.draw(data, ${options});
+    var v = new google.visualization.${chart}(document.getElementById('v_div'));
+    v.draw(data, ${options});
     }
 
 </script>
 
-<div id="chart_div"></div>
+<div id="v_div"></div>
 
