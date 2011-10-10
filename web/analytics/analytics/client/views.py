@@ -6,7 +6,7 @@ def site_client(request):
     if not request.matchdict['options']:
         return Response('Set chart options')
    
-    return render_to_response('templates/chart_site.pt',
+    return render_to_response('templates/site.pt',
                               {'server_url': request.registry.settings['server_url'],
                               'instance':request.matchdict['instance'],
                               'index':request.matchdict['index'],
@@ -21,7 +21,7 @@ def site_client_year(request):
     if not request.matchdict['options']:
         return Response('Set chart options')
 
-    return render_to_response('templates/chart_year.pt',
+    return render_to_response('templates/site_two_year.pt',
                               {'server_url': request.registry.settings['server_url'],
                               'instance':request.matchdict['instance'],
                               'index':request.matchdict['index'],
@@ -36,7 +36,7 @@ def site_client_index(request):
     if not request.matchdict['options']:
         return Response('Set chart options')
 
-    return render_to_response('templates/chart_index.pt',
+    return render_to_response('templates/site_two_index.pt',
                               {'server_url': request.registry.settings['server_url'],
                               'instance':request.matchdict['instance'],
                               'chart':request.matchdict['chart'],
@@ -52,7 +52,7 @@ def site_client_range(request):
     if not request.matchdict['options']:
         return Response('Set chart options')
 
-    return render_to_response('templates/chart_range.pt',
+    return render_to_response('templates/site_two_range.pt',
                               {'server_url': request.registry.settings['server_url'],
                               'instance':request.matchdict['instance'],
                               'index':request.matchdict['index'],
@@ -61,4 +61,3 @@ def site_client_range(request):
                               'end_key':request.matchdict['end_range'],
                               'options':request.matchdict['options']},
                               request=request)
-
