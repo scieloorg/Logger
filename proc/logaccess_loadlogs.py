@@ -104,10 +104,10 @@ for logdir in LOG_DIRS:
                         pdfid = data['%r'][4:data['%r'].find('.pdf')]
                         if validate_pdf(pdfid):
                             pdf_spl = pdfid.split("/")
-                            analytics.update({"dwn":pdfid[2]}, {"$inc":{'total':1,"dat_"+dat:1}},True)
+                            analytics.update({"dwn":pdf_spl[2]}, {"$inc":{'total':1,"dat_"+dat:1}},True)
                             analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download','acron':pdf_spl[2]},"$inc":{'total':1,"dat_"+dat:1}},True)
                         else:
-                            analytics.update({"dwn":pdfid[2]}, {"$inc":{"err":1}},True)
+                            analytics.update({"dwn":pdf_spl[2]}, {"$inc":{"err":1}},True)
                             analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download'},"$inc":{"err":1}},True)
                             analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_dwn':1}},True)
                             
