@@ -5,6 +5,8 @@ from pymongo import Connection
 import sys
 import os
 import re
+import json
+import urllib2
 from urlparse import urlparse
 from datetime import date
 
