@@ -50,7 +50,7 @@ def validate_pdf(filepath,acronDict):
     if len(pdf_spl) > 2:
         if pdf_spl[1] == 'pdf':
             if pdf_spl[2] != '':
-                if pdf_spl[2] in acronDict;
+                if pdf_spl[2] in acronDict:
                     return True
     return False
     
@@ -175,11 +175,11 @@ if ( acronDict != False):
                             script = par['script'].lower()
                             if script in ALLOWED_SCRIPTS: #Validation if the script is allowed
                                 if validate_date(dat):
-                                    analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{script:1,'total':1,"dat_"+dat:1}},True)
                                     if par.has_key('pid'):
                                         pid = par['pid'].replace('S','').replace('s','').strip()
                                         if validate_pid(script,pid):
                                             # CREATING SERIAL LOG DOCS
+                                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{script:1,'total':1,"dat_"+dat:1}},True)
                                             analytics.update({"serial":str(pid).replace('S','')[0:9]}, {"$inc":{'total':1,script:1,dat:1,'lng_'+dat+'_'+language:1}},True)
                                             if script == "sci_issuetoc":
                                                 analytics.update({"issuetoc":pid}, {"$set":{'page':script,'issn':pid[0:9]},"$inc":{'total':1,"dat_"+dat:1}},True)
