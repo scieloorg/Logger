@@ -100,10 +100,13 @@ for logdir in LOG_DIRS:
                     dat = data['%t'][8:12]+month
                     
                     if validate_date(dat):
-                        analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
                         pdfid = data['%r'][4:data['%r'].find('.pdf')]
+                        #cleaning // and %0D/
+                        pdfid = pdfid.replace("//","/")
+                        pdfid = pdfid.replace("%0D/","")
                         if validate_pdf(pdfid):
                             pdf_spl = pdfid.split("/")
+                            analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
                             analytics.update({"dwn":pdf_spl[2]}, {"$inc":{'total':1,"dwn_"+dat:1}},True)
                             analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download','acron':pdf_spl[2]},"$inc":{'total':1,"dwn_"+dat:1}},True)
                         else:
