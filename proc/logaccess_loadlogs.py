@@ -104,8 +104,8 @@ for logdir in LOG_DIRS:
                         pdfid = data['%r'][4:data['%r'].find('.pdf')]
                         if validate_pdf(pdfid):
                             pdf_spl = pdfid.split("/")
-                            analytics.update({"dwn":pdf_spl[2]}, {"$inc":{'total':1,"dat_"+dat:1}},True)
-                            analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download','acron':pdf_spl[2]},"$inc":{'total':1,"dat_"+dat:1}},True)
+                            analytics.update({"dwn":pdf_spl[2]}, {"$inc":{'total':1,"dwn_"+dat:1}},True)
+                            analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download','acron':pdf_spl[2]},"$inc":{'total':1,"dwn_"+dat:1}},True)
                         else:
                             analytics.update({"dwn":pdf_spl[2]}, {"$inc":{"err":1}},True)
                             analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download'},"$inc":{"err":1}},True)
@@ -162,6 +162,7 @@ for logdir in LOG_DIRS:
                                             analytics.update({"abstract":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
                                         elif script == "sci_arttext":
                                             analytics.update({"arttext":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                            analytics.update({"serial":str(pid).replace('S','')[0:9]}, {"$inc":{'art_'+dat:1}},True)
                                             analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"art_"+dat:1,'art_'+dat+'_'+language:1}},True)
                                         elif script == "sci_pdf":
                                             analytics.update({"pdf":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
