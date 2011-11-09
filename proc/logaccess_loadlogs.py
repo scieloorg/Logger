@@ -12,7 +12,7 @@ from datetime import date
 
 def getTitles():
     try:
-        query = urllib2.urlopen(COUCHDB_DATABASE+"/"+COUCHDB_TITLE_QUERY+"?include_docs=true")
+        query = urllib2.urlopen(COUCHDB_DATABASE+"/"+COUCHDB_TITLE_QUERY)
     except:
         return False
 
@@ -180,17 +180,17 @@ if ( acronDict != False):
                                         if validate_pid(script,pid):
                                             # CREATING SERIAL LOG DOCS
                                             analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{script:1,'total':1,"dat_"+dat:1}},True)
-                                            analytics.update({"serial":str(pid).replace('S','')[0:9]}, {"$inc":{'total':1,script:1,dat:1,'lng_'+dat+'_'+language:1}},True)
+                                            analytics.update({"serial":pid[0:9]}, {"$inc":{'total':1,script:1,dat:1,'lng_'+dat+'_'+language:1}},True)
                                             if script == "sci_issuetoc":
                                                 analytics.update({"issuetoc":pid}, {"$set":{'page':script,'issn':pid[0:9]},"$inc":{'total':1,"dat_"+dat:1}},True)
                                             elif script == "sci_abstract":
-                                                analytics.update({"abstract":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                                analytics.update({"abstract":pid}, {"$set":{'page':script,'issn':pid[0:9],'issue':pid[0:17]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
                                             elif script == "sci_arttext":
-                                                analytics.update({"arttext":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
-                                                analytics.update({"serial":str(pid).replace('S','')[0:9]}, {"$inc":{'art_'+dat:1}},True)
+                                                analytics.update({"arttext":pid}, {"$set":{'page':script,'issn':pid[0:9],'issue':pid[0:17]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                                analytics.update({"serial":pid[0:9]}, {"$inc":{'art_'+dat:1}},True)
                                                 analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"art_"+dat:1,'art_'+dat+'_'+language:1}},True)
                                             elif script == "sci_pdf":
-                                                analytics.update({"pdf":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[1:18]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                                analytics.update({"pdf":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[0:17]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
                                                 analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"pdf_"+dat:1,'pdf_'+dat+'_'+language:1}},True)
                                         else:
                                             #print str(validate_pid(script,pid))+" "+script+" "+pid
