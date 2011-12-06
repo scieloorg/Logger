@@ -183,15 +183,26 @@ if ( acronDict != False):
                                             analytics.update({"serial":pid[0:9]}, {"$inc":{'total':1,script:1,dat:1,'lng_'+dat+'_'+language:1}},True)
                                             if script == "sci_issuetoc":
                                                 analytics.update({"issuetoc":pid}, {"$set":{'page':script,'issn':pid[0:9]},"$inc":{'total':1,"dat_"+dat:1}},True)
+                                                analytics.update({"serial":pid[0:9]}, {"$inc":{'toc_'+dat:1}},True)
+                                                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"toc_"+dat:1}},True)
                                             elif script == "sci_abstract":
                                                 analytics.update({"abstract":pid}, {"$set":{'page':script,'issn':pid[0:9],'issue':pid[0:17]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                                analytics.update({"serial":pid[0:9]}, {"$inc":{'abs_'+dat:1}},True)
+                                                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"abs_"+dat:1}},True)
                                             elif script == "sci_arttext":
                                                 analytics.update({"arttext":pid}, {"$set":{'page':script,'issn':pid[0:9],'issue':pid[0:17]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
                                                 analytics.update({"serial":pid[0:9]}, {"$inc":{'art_'+dat:1}},True)
                                                 analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"art_"+dat:1,'art_'+dat+'_'+language:1}},True)
                                             elif script == "sci_pdf":
                                                 analytics.update({"pdf":pid}, {"$set":{'page':script,'issn':pid[1:10],'issue':pid[0:17]},"$inc":{'total':1,"dat_"+dat:1,'lng_'+dat+'_'+language:1}},True)
+                                                analytics.update({"serial":pid[0:9]}, {"$inc":{'pdf_'+dat:1}},True)
                                                 analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"pdf_"+dat:1,'pdf_'+dat+'_'+language:1}},True)
+                                            elif script == "sci_home":
+                                                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"hom_"+dat:1}},True)
+                                            elif script == "sci_issues":
+                                                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"iss_"+dat:1}},True)
+                                            elif script == "sci_alphabetic":
+                                                analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"alp_"+dat:1}},True)
                                         else:
                                             #print str(validate_pid(script,pid))+" "+script+" "+pid
                                             analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'err_total':1,'err_pid':1}},True)
