@@ -40,8 +40,6 @@ ALLOWED_SCRIPTS = [
     'sci_pdf'
 ]
 
-ALLOWED_LANGUAGES = ['PT','ES','EN','IT','FR','DE','AF','AR']
-
 REGEX_ISSN    = "^[0-9]{4}-[0-9]{3}[0-9xX]$"
 REGEX_ISSUE   = "^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}$"
 REGEX_ARTICLE = "^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}[0-9]{5}$"
