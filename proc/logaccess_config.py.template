@@ -13,6 +13,8 @@ COLLECTION_DOMAIN="www.scielo.br"
 
 LOG_DIRS = ['../data/logs']
 
+STOP_WORDS = ['googleBot','yahooBot']
+
 APACHE_LOG_FORMAT= r'%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"'
 
 MONTH_DICT = {
