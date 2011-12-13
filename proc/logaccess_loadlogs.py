@@ -121,10 +121,14 @@ if ( acronDict != False):
                         
                         if validate_date(dat):
 
+                            stopwordflag = False
                             for stopword in STOP_WORDS:
                                 if stopword in line:
-                                    analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+dat:1}},True)
-                                    continue
+                                    analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+dat:1,'bot_total':1}},True)
+                                    stopwordflag = True
+
+                            if stopword == True:
+                                continue
 
                             pdfid = data['%r'][4:data['%r'].find('.pdf')]
                             #cleaning // and %0D/
@@ -137,7 +141,6 @@ if ( acronDict != False):
                                 analytics.update({"serial":issn}, {"$inc":{'total':1,"dwn_"+dat:1}},True)
                                 analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download','issn':issn},"$inc":{'total':1,"dwn_"+dat:1}},True)
                             else:
-                                analytics.update({"serial":issn}, {"$inc":{"err":1,"err_dwn":1}},True)
                                 analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download'},"$inc":{"err":1}},True)
                                 analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_dwn':1}},True)
                                 
@@ -174,8 +177,11 @@ if ( acronDict != False):
 
                                     for stopword in STOP_WORDS:
                                         if stopword in line:
-                                            analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+dat:1}},True)
-                                            continue
+                                            analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+dat:1,'bot_total':1}},True)
+                                            stopwordflag = True
+
+                                    if stopword == True:
+                                        continue
 
                                     if par.has_key('pid'):
                                         pid = par['pid'].replace('S','').replace('s','').strip()
