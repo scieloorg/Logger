@@ -13,6 +13,8 @@ COLLECTION_DOMAIN="www.scielo.br"
 
 LOG_DIRS = ['../data/logs']
 
+STOP_WORDS = ['Googlebot','bingbot','msnbot']
+
 APACHE_LOG_FORMAT= r'%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"'
 
 MONTH_DICT = {
@@ -29,6 +31,7 @@ MONTH_DICT = {
     'NOV':'11',
     'DEC':'12',
 }
+
 ALLOWED_SCRIPTS = [
     'sci_arttext',
     'sci_serial',

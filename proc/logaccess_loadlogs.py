@@ -100,9 +100,8 @@ if ( acronDict != False):
                 linecount=0
                 for line in fileloaded:
                     linecount=linecount+1
-                    proc_files.update({"_id":filepath},{'$set':{'line':linecount}},True)
-                    
-                    
+                    proc_files.update({"_id":filepath},{'$set':{'line':linecount}},True)                    
+
                     #PDF FILES DOWNLOAD
                     if "GET" in line and ".pdf" in line:
                         p = apachelog.parser(APACHE_LOG_FORMAT)
@@ -121,6 +120,16 @@ if ( acronDict != False):
                         dat = data['%t'][8:12]+month
                         
                         if validate_date(dat):
+
+                            stopwordflag = False
+                            for stopword in STOP_WORDS:
+                                if stopword in line:
+                                    analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+dat:1,'bot_total':1}},True)
+                                    stopwordflag = True
+
+                            if stopword == True:
+                                continue
+
                             pdfid = data['%r'][4:data['%r'].find('.pdf')]
                             #cleaning // and %0D/
                             pdfid = pdfid.replace("//","/")
@@ -132,7 +141,6 @@ if ( acronDict != False):
                                 analytics.update({"serial":issn}, {"$inc":{'total':1,"dwn_"+dat:1}},True)
                                 analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download','issn':issn},"$inc":{'total':1,"dwn_"+dat:1}},True)
                             else:
-                                analytics.update({"serial":issn}, {"$inc":{"err":1,"err_dwn":1}},True)
                                 analytics.update({"dwn":pdfid}, {"$set":{'page':'pdf_download'},"$inc":{"err":1}},True)
                                 analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_dwn':1}},True)
                                 
@@ -166,6 +174,15 @@ if ( acronDict != False):
                             script = par['script'].lower()
                             if script in ALLOWED_SCRIPTS: #Validation if the script is allowed
                                 if validate_date(dat):
+
+                                    for stopword in STOP_WORDS:
+                                        if stopword in line:
+                                            analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+dat:1,'bot_total':1}},True)
+                                            stopwordflag = True
+
+                                    if stopword == True:
+                                        continue
+
                                     if par.has_key('pid'):
                                         pid = par['pid'].replace('S','').replace('s','').strip()
                                         if validate_pid(script,pid):
@@ -191,6 +208,7 @@ if ( acronDict != False):
                                             elif script == "sci_home":
                                                 analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"hom_"+dat:1}},True)
                                             elif script == "sci_issues":
+                                                analytics.update({"serial":pid[0:9]}, {"$inc":{'iss_'+dat:1}},True)
                                                 analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"iss_"+dat:1}},True)
                                             elif script == "sci_alphabetic":
                                                 analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{"alp_"+dat:1}},True)
