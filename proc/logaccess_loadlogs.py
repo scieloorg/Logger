@@ -127,8 +127,8 @@ if ( acronDict != False):
                                     analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+dat:1,'bot_total':1}},True)
                                     stopwordflag = True
 
-                            if stopword == True:
-                                continue
+                            if stopwordflag == True:
+                                continue #register as a bot access and skip apachelog lines
 
                             pdfid = data['%r'][4:data['%r'].find('.pdf')]
                             #cleaning // and %0D/
@@ -153,7 +153,7 @@ if ( acronDict != False):
                             sys.stderr.write("Unable to parse %s" % line)
                             analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'err_total':1,'err_unabletoparser':1}},True)
                             error_log.update({"file":filepath},{"$set":{'lines':linecount},"$inc":{'err_unabletoparser':1}},True)
-                            continue
+                            continue #register as a bot access and skip apachelog line
         
                         month=""
                         if MONTH_DICT.has_key(data['%t'][4:7].upper()):
@@ -180,8 +180,8 @@ if ( acronDict != False):
                                             analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+dat:1,'bot_total':1}},True)
                                             stopwordflag = True
 
-                                    if stopword == True:
-                                        continue
+                                    if stopwordflag == True:
+                                        continue #register as a bot access and skip apachelog line
 
                                     if par.has_key('pid'):
                                         pid = par['pid'].replace('S','').replace('s','').strip()
