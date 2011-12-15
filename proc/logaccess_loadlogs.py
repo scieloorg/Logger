@@ -175,6 +175,7 @@ if ( acronDict != False):
                             if script in ALLOWED_SCRIPTS: #Validation if the script is allowed
                                 if validate_date(dat):
 
+                                    stopwordflag = False
                                     for stopword in STOP_WORDS:
                                         if stopword in line:
                                             analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+dat:1,'bot_total':1}},True)
