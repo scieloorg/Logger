@@ -1,0 +1,162 @@
+Fri Jun  1 17:25:01 [initandlisten] MongoDB starting : pid=11230 port=27017 dbpath=/Users/fabiobatalha/Trabalho/analytics/data/db 64-bit host=FabioBatalha.local
+Fri Jun  1 17:25:01 [initandlisten] db version v2.0.1, pdfile version 4.5
+Fri Jun  1 17:25:01 [initandlisten] git version: 3a5cf0e2134a830d38d2d1aae7e88cac31bdd684
+Fri Jun  1 17:25:01 [initandlisten] build info: Darwin erh2.10gen.cc 9.6.0 Darwin Kernel Version 9.6.0: Mon Nov 24 17:37:00 PST 2008; root:xnu-1228.9.59~1/RELEASE_I386 i386 BOOST_LIB_VERSION=1_40
+Fri Jun  1 17:25:01 [initandlisten] options: { dbpath: "/Users/fabiobatalha/Trabalho/analytics/data/db" }
+Fri Jun  1 17:25:01 [initandlisten] journal dir=/Users/fabiobatalha/Trabalho/analytics/data/db/journal
+Fri Jun  1 17:25:01 [initandlisten] recover : no journal files present, no recovery needed
+Fri Jun  1 17:25:01 [websvr] admin web console waiting for connections on port 28017
+Fri Jun  1 17:25:01 [initandlisten] waiting for connections on port 27017
+Fri Jun  1 17:26:01 [clientcursormon] mem (MB) res:14 virt:2426 mapped:0
+Fri Jun  1 17:28:00 [initandlisten] connection accepted from 127.0.0.1:54797 #1
+Fri Jun  1 17:29:32 [initandlisten] connection accepted from 127.0.0.1:54799 #2
+Fri Jun  1 17:29:32 [conn2] end connection 127.0.0.1:54799
+Fri Jun  1 17:31:01 [clientcursormon] mem (MB) res:14 virt:2426 mapped:0
+Fri Jun  1 17:31:26 [conn1] end connection 127.0.0.1:54797
+Fri Jun  1 17:36:01 [clientcursormon] mem (MB) res:14 virt:2426 mapped:0
+Fri Jun  1 17:38:45 [initandlisten] connection accepted from 127.0.0.1:54815 #3
+Fri Jun  1 17:38:45 [FileAllocator] allocating new datafile /Users/fabiobatalha/Trabalho/analytics/data/db/bks_accesslog.ns, filling with zeroes...
+Fri Jun  1 17:38:45 [FileAllocator] creating directory /Users/fabiobatalha/Trabalho/analytics/data/db/_tmp
+Fri Jun  1 17:38:45 [FileAllocator] done allocating datafile /Users/fabiobatalha/Trabalho/analytics/data/db/bks_accesslog.ns, size: 16MB,  took 0.054 secs
+Fri Jun  1 17:38:45 [FileAllocator] allocating new datafile /Users/fabiobatalha/Trabalho/analytics/data/db/bks_accesslog.0, filling with zeroes...
+Fri Jun  1 17:38:45 [FileAllocator] done allocating datafile /Users/fabiobatalha/Trabalho/analytics/data/db/bks_accesslog.0, size: 64MB,  took 0.64 secs
+Fri Jun  1 17:38:46 [FileAllocator] allocating new datafile /Users/fabiobatalha/Trabalho/analytics/data/db/bks_accesslog.1, filling with zeroes...
+Fri Jun  1 17:38:46 [conn3] build index bks_accesslog.bks_analytics { _id: 1 }
+Fri Jun  1 17:38:46 [conn3] build index done 0 records 0.001 secs
+Fri Jun  1 17:38:46 [conn3] info: creating collection bks_accesslog.bks_analytics on add index
+Fri Jun  1 17:38:46 [conn3] build index bks_accesslog.bks_analytics { download: 1 }
+Fri Jun  1 17:38:46 [conn3] build index done 0 records 0 secs
+Fri Jun  1 17:38:46 [conn3] insert bks_accesslog.system.indexes 1090ms
+Fri Jun  1 17:38:46 [conn3] build index bks_accesslog.bks_analytics { article: 1 }
+Fri Jun  1 17:38:46 [conn3] build index done 0 records 0.001 secs
+Fri Jun  1 17:38:46 [conn3] build index bks_accesslog.bks_analytics { journal: 1 }
+Fri Jun  1 17:38:46 [conn3] build index done 0 records 0.001 secs
+Fri Jun  1 17:38:46 [conn3] build index bks_accesslog.bks_analytics { issue: 1 }
+Fri Jun  1 17:38:46 [conn3] build index done 0 records 0.001 secs
+Fri Jun  1 17:38:48 [FileAllocator] done allocating datafile /Users/fabiobatalha/Trabalho/analytics/data/db/bks_accesslog.1, size: 128MB,  took 2.15 secs
+Fri Jun  1 17:38:49 [conn3] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 17:38:49 [conn3] build index done 0 records 0.001 secs
+Fri Jun  1 17:38:49 [conn3] end connection 127.0.0.1:54815
+Fri Jun  1 17:39:02 [clientcursormon] mem (MB) res:20 virt:2626 mapped:80
+Fri Jun  1 17:44:02 [clientcursormon] mem (MB) res:20 virt:2626 mapped:80
+Fri Jun  1 17:49:02 [clientcursormon] mem (MB) res:20 virt:2626 mapped:80
+Fri Jun  1 17:54:02 [clientcursormon] mem (MB) res:20 virt:2626 mapped:80
+Fri Jun  1 17:56:04 [initandlisten] connection accepted from 127.0.0.1:54837 #4
+Fri Jun  1 17:56:04 [conn4] end connection 127.0.0.1:54837
+Fri Jun  1 17:56:47 [initandlisten] connection accepted from 127.0.0.1:54838 #5
+Fri Jun  1 17:58:21 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 17:58:29 [initandlisten] connection accepted from 127.0.0.1:54845 #6
+Fri Jun  1 17:58:29 [conn6] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 17:58:29 [conn6] build index done 0 records 0 secs
+Fri Jun  1 17:58:29 [conn6] end connection 127.0.0.1:54845
+Fri Jun  1 17:58:39 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 17:59:02 [clientcursormon] mem (MB) res:19 virt:2626 mapped:80
+Fri Jun  1 17:59:06 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:04:02 [clientcursormon] mem (MB) res:19 virt:2626 mapped:80
+Fri Jun  1 18:09:02 [clientcursormon] mem (MB) res:19 virt:2626 mapped:80
+Fri Jun  1 18:11:51 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:14:02 [clientcursormon] mem (MB) res:19 virt:2626 mapped:80
+Fri Jun  1 18:16:26 [initandlisten] connection accepted from 127.0.0.1:54946 #7
+Fri Jun  1 18:16:26 [conn7] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:16:27 [conn7] build index done 0 records 0.027 secs
+Fri Jun  1 18:16:27 [conn7] end connection 127.0.0.1:54946
+Fri Jun  1 18:16:40 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:16:43 [initandlisten] connection accepted from 127.0.0.1:54947 #8
+Fri Jun  1 18:16:43 [conn8] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:16:43 [conn8] build index done 0 records 0 secs
+Fri Jun  1 18:16:43 [conn8] end connection 127.0.0.1:54947
+Fri Jun  1 18:17:02 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:17:05 [initandlisten] connection accepted from 127.0.0.1:54948 #9
+Fri Jun  1 18:17:05 [conn9] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:17:05 [conn9] build index done 0 records 0 secs
+Fri Jun  1 18:17:05 [conn9] end connection 127.0.0.1:54948
+Fri Jun  1 18:19:02 [clientcursormon] mem (MB) res:16 virt:2626 mapped:80
+Fri Jun  1 18:20:14 [initandlisten] connection accepted from 127.0.0.1:54954 #10
+Fri Jun  1 18:20:14 [conn10] end connection 127.0.0.1:54954
+Fri Jun  1 18:20:17 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:20:19 [initandlisten] connection accepted from 127.0.0.1:54955 #11
+Fri Jun  1 18:20:19 [conn11] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:20:19 [conn11] build index done 0 records 0 secs
+Fri Jun  1 18:20:20 [conn11] end connection 127.0.0.1:54955
+Fri Jun  1 18:21:07 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:21:09 [initandlisten] connection accepted from 127.0.0.1:54959 #12
+Fri Jun  1 18:21:10 [conn12] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:21:10 [conn12] build index done 0 records 0 secs
+Fri Jun  1 18:21:10 [conn12] end connection 127.0.0.1:54959
+Fri Jun  1 18:22:02 [clientcursormon] mem (MB) res:19 virt:2626 mapped:80
+Fri Jun  1 18:25:52 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:25:54 [initandlisten] connection accepted from 127.0.0.1:54980 #13
+Fri Jun  1 18:25:55 [conn13] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:25:55 [conn13] build index done 0 records 0 secs
+Fri Jun  1 18:25:55 [conn13] end connection 127.0.0.1:54980
+Fri Jun  1 18:27:02 [clientcursormon] mem (MB) res:19 virt:2626 mapped:80
+Fri Jun  1 18:29:55 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:29:57 [initandlisten] connection accepted from 127.0.0.1:54986 #14
+Fri Jun  1 18:29:57 [conn14] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:29:57 [conn14] build index done 0 records 0 secs
+Fri Jun  1 18:29:57 [conn14] end connection 127.0.0.1:54986
+Fri Jun  1 18:31:08 [initandlisten] connection accepted from 127.0.0.1:54989 #15
+Fri Jun  1 18:31:08 [conn15] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:31:08 [conn15] end connection 127.0.0.1:54989
+Fri Jun  1 18:31:13 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:31:23 [initandlisten] connection accepted from 127.0.0.1:54990 #16
+Fri Jun  1 18:31:23 [conn16] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:31:23 [conn16] build index done 0 records 0 secs
+Fri Jun  1 18:31:23 [conn16] end connection 127.0.0.1:54990
+Fri Jun  1 18:32:02 [clientcursormon] mem (MB) res:19 virt:2626 mapped:80
+Fri Jun  1 18:32:40 [initandlisten] connection accepted from 127.0.0.1:54993 #17
+Fri Jun  1 18:32:40 [conn17] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:32:40 [conn17] end connection 127.0.0.1:54993
+Fri Jun  1 18:32:42 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:32:44 [initandlisten] connection accepted from 127.0.0.1:54994 #18
+Fri Jun  1 18:32:44 [conn18] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:32:44 [conn18] build index done 0 records 0 secs
+Fri Jun  1 18:32:45 [conn18] end connection 127.0.0.1:54994
+Fri Jun  1 18:33:12 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:33:15 [initandlisten] connection accepted from 127.0.0.1:54995 #19
+Fri Jun  1 18:33:15 [conn19] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:33:15 [conn19] build index done 0 records 0 secs
+Fri Jun  1 18:33:16 [conn19] end connection 127.0.0.1:54995
+Fri Jun  1 18:34:20 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:34:22 [initandlisten] connection accepted from 127.0.0.1:54997 #20
+Fri Jun  1 18:34:22 [conn20] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:34:22 [conn20] build index done 0 records 0 secs
+Fri Jun  1 18:34:23 [conn20] end connection 127.0.0.1:54997
+Fri Jun  1 18:34:42 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:34:44 [initandlisten] connection accepted from 127.0.0.1:54998 #21
+Fri Jun  1 18:34:44 [conn21] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:34:44 [conn21] build index done 0 records 0 secs
+Fri Jun  1 18:34:45 [conn21] end connection 127.0.0.1:54998
+Fri Jun  1 18:37:02 [clientcursormon] mem (MB) res:16 virt:2626 mapped:80
+Fri Jun  1 18:37:52 [initandlisten] connection accepted from 127.0.0.1:55001 #22
+Fri Jun  1 18:37:52 [conn22] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:37:52 [conn22] end connection 127.0.0.1:55001
+Fri Jun  1 18:37:55 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:37:58 [initandlisten] connection accepted from 127.0.0.1:55002 #23
+Fri Jun  1 18:37:58 [conn23] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:37:58 [conn23] build index done 0 records 0 secs
+Fri Jun  1 18:37:58 [conn23] end connection 127.0.0.1:55002
+Fri Jun  1 18:38:02 [clientcursormon] mem (MB) res:19 virt:2626 mapped:80
+Fri Jun  1 18:38:04 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:38:06 [initandlisten] connection accepted from 127.0.0.1:55003 #24
+Fri Jun  1 18:38:06 [conn24] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:38:06 [conn24] build index done 0 records 0 secs
+Fri Jun  1 18:38:06 [conn24] end connection 127.0.0.1:55003
+Fri Jun  1 18:38:19 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:38:21 [initandlisten] connection accepted from 127.0.0.1:55008 #25
+Fri Jun  1 18:38:21 [conn25] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:38:21 [conn25] build index done 0 records 0 secs
+Fri Jun  1 18:38:21 [conn25] end connection 127.0.0.1:55008
+Fri Jun  1 18:38:46 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:38:48 [initandlisten] connection accepted from 127.0.0.1:55010 #26
+Fri Jun  1 18:38:48 [conn26] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:38:48 [conn26] build index done 0 records 0 secs
+Fri Jun  1 18:38:49 [conn26] end connection 127.0.0.1:55010
+Fri Jun  1 18:39:23 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:39:27 [initandlisten] connection accepted from 127.0.0.1:55013 #27
+Fri Jun  1 18:39:27 [conn27] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:39:27 [conn27] build index done 0 records 0 secs
+Fri Jun  1 18:40:34 [conn27] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:40:34 [conn27] end connection 127.0.0.1:55013
+Fri Jun  1 18:43:03 [clientcursormon] mem (MB) res:17 virt:2626 mapped:80
+Fri Jun  1 18:48:03 [clientcursormon] mem (MB) res:17 virt:2626 mapped:80
