@@ -1,2 +1,4 @@
 *.pyc
 nbproject
+analytics-env/
+logaccess_config.py
