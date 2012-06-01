@@ -11,23 +11,44 @@ from urlparse import urlparse
 from datetime import date
   
 def validate_date(data):
+  """
+    Simple validate each log line date.
+    The year must be minor then the actual year
+    The month must be between 1 and 12
+    Both must be a valid number
+  """
+
+  allowed_month = range(1,13)
+  today_year = date.today().year
+
   month=""
   if MONTH_DICT.has_key(data['%t'][4:7].upper()):
     month = MONTH_DICT[data['%t'][4:7].upper()]
 
   dat = data['%t'][8:12]+month
-
-  today_year = date.today().year
+  
   if len(str(dat)) == 6:
-    if int(dat[0:4]) <= int(today_year) and (int(dat[4:6]) >= 1 and int(dat[4:6]) <= 12):
+    if int(dat[0:4]) <= int(today_year) and (int(dat[4:6]) in allowed_month):
       return dat
+ 
   return False
 
 def is_bot(line, date_log):
+  """
+    Simple validate each log line against the STOP_WORDS defined in the conf file.
+  """
   for stopword in STOP_WORDS:
     if stopword in line:
       return True
   return False
+
+def registering_log(page_type, date, collection):
+  """
+    Register the log access acording to the ALLOWED_PATTERNS
+  """
+  analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
+  analytics.update({"serial":issn}, {"$inc":{'total':1,"dwn_"+dat:1}},True)
+
  
 conn = Connection(MONGODB_DOMAIN, MONGODB_PORT)
 
@@ -35,6 +56,7 @@ db = conn[COLLECTION_CODE+"_accesslog"]
 proc_files = db[COLLECTION_CODE+"_processed_files"]
 error_log = db[COLLECTION_CODE+"_error_log"]
 analytics = db[COLLECTION_CODE+"_analytics"]
+analytics.ensure_index('site')
 
 # Creating Index according to Allowed Urls defined in the conf file
 for index in ALLOWED_PATTERNS:
@@ -68,20 +90,20 @@ for logdir in LOG_DIRS:
           error_log.update({"file":filepath},{"$set":{'lines':linecount},"$inc":{'err_unabletoparser':1}},True)
           continue
         
+        #Validating the log date
         valid_date = validate_date(data)
         if not valid_date:
-          print "Data Errada!"
           continue
 
-        # REGISTERING LOGS
+        # Validating Agains Bot List
         if is_bot(line,data):
-          print "AAAAHHHH eh um BOT"
           analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'bot_'+valid_date:1,'bot_total':1}},True)
           continue
+
+        # Registering Log
+        registering_log(page_type,date,collection)
 
       #Changing the status of the log file to processed after all lines was parsed
       proc_files.update({"_id":filepath},{'$set':{'status':'processed'}},True)
     else:
       print filepath+" was already processed"
-
-proc_files.drop()

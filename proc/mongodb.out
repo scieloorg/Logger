@@ -160,3 +160,27 @@ Fri Jun  1 18:40:34 [conn27] CMD: drop bks_accesslog.bks_processed_files
 Fri Jun  1 18:40:34 [conn27] end connection 127.0.0.1:55013
 Fri Jun  1 18:43:03 [clientcursormon] mem (MB) res:17 virt:2626 mapped:80
 Fri Jun  1 18:48:03 [clientcursormon] mem (MB) res:17 virt:2626 mapped:80
+Fri Jun  1 18:52:25 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:52:36 [initandlisten] connection accepted from 127.0.0.1:55022 #28
+Fri Jun  1 18:52:36 [conn28] build index bks_accesslog.bks_analytics { site: 1 }
+Fri Jun  1 18:52:36 [conn28] build index done 1 records 0 secs
+Fri Jun  1 18:52:36 [conn28] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:52:36 [conn28] build index done 0 records 0 secs
+Fri Jun  1 18:52:52 [conn28] end connection 127.0.0.1:55022
+Fri Jun  1 18:53:03 [clientcursormon] mem (MB) res:16 virt:2626 mapped:80
+Fri Jun  1 18:53:12 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:53:15 [initandlisten] connection accepted from 127.0.0.1:55023 #29
+Fri Jun  1 18:53:15 [conn29] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 18:53:15 [conn29] build index done 0 records 0 secs
+Fri Jun  1 18:54:23 [conn29] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 18:54:23 [conn29] end connection 127.0.0.1:55023
+Fri Jun  1 18:55:03 [clientcursormon] mem (MB) res:18 virt:2626 mapped:80
+Fri Jun  1 19:00:03 [clientcursormon] mem (MB) res:18 virt:2626 mapped:80
+Fri Jun  1 19:05:03 [clientcursormon] mem (MB) res:18 virt:2626 mapped:80
+Fri Jun  1 19:10:03 [clientcursormon] mem (MB) res:18 virt:2626 mapped:80
+Fri Jun  1 19:15:03 [clientcursormon] mem (MB) res:18 virt:2626 mapped:80
+Fri Jun  1 19:15:52 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 19:15:57 [initandlisten] connection accepted from 127.0.0.1:55053 #30
+Fri Jun  1 19:15:57 [conn30] end connection 127.0.0.1:55053
+Fri Jun  1 19:16:40 [initandlisten] connection accepted from 127.0.0.1:55056 #31
+Fri Jun  1 19:16:40 [conn31] end connection 127.0.0.1:55056
