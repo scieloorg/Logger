@@ -184,3 +184,18 @@ Fri Jun  1 19:15:57 [initandlisten] connection accepted from 127.0.0.1:55053 #30
 Fri Jun  1 19:15:57 [conn30] end connection 127.0.0.1:55053
 Fri Jun  1 19:16:40 [initandlisten] connection accepted from 127.0.0.1:55056 #31
 Fri Jun  1 19:16:40 [conn31] end connection 127.0.0.1:55056
+Fri Jun  1 19:18:30 [initandlisten] connection accepted from 127.0.0.1:55061 #32
+Fri Jun  1 19:18:30 [conn32] end connection 127.0.0.1:55061
+Fri Jun  1 19:19:31 [initandlisten] connection accepted from 127.0.0.1:55062 #33
+Fri Jun  1 19:19:31 [conn33] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 19:19:31 [conn33] build index done 0 records 0.001 secs
+Fri Jun  1 19:19:31 [conn33] end connection 127.0.0.1:55062
+Fri Jun  1 19:19:51 [initandlisten] connection accepted from 127.0.0.1:55063 #34
+Fri Jun  1 19:19:51 [conn34] end connection 127.0.0.1:55063
+Fri Jun  1 19:19:55 [conn5] CMD: drop bks_accesslog.bks_processed_files
+Fri Jun  1 19:19:57 [initandlisten] connection accepted from 127.0.0.1:55064 #35
+Fri Jun  1 19:19:57 [conn35] build index bks_accesslog.bks_processed_files { _id: 1 }
+Fri Jun  1 19:19:57 [conn35] build index done 0 records 0 secs
+Fri Jun  1 19:20:03 [clientcursormon] mem (MB) res:16 virt:2627 mapped:80
+Fri Jun  1 19:21:06 [conn35] end connection 127.0.0.1:55064
+Fri Jun  1 19:25:03 [clientcursormon] mem (MB) res:16 virt:2626 mapped:80

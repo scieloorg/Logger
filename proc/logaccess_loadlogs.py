@@ -17,7 +17,6 @@ def validate_date(data):
     The month must be between 1 and 12
     Both must be a valid number
   """
-
   allowed_month = range(1,13)
   today_year = date.today().year
 
@@ -42,12 +41,15 @@ def is_bot(line, date_log):
       return True
   return False
 
-def registering_log(page_type, date, collection):
+def registering_log(line,date):
   """
     Register the log access acording to the ALLOWED_PATTERNS
   """
-  analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
-  analytics.update({"serial":issn}, {"$inc":{'total':1,"dwn_"+dat:1}},True)
+
+  for allowed in ALLOWED_PATTERNS:
+
+    #analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
+    #analytics.update({"serial":issn}, {"$inc":{'total':1,"dwn_"+dat:1}},True)
 
  
 conn = Connection(MONGODB_DOMAIN, MONGODB_PORT)
@@ -101,7 +103,7 @@ for logdir in LOG_DIRS:
           continue
 
         # Registering Log
-        registering_log(page_type,date,collection)
+        #registering_log(page_type,date,collection)
 
       #Changing the status of the log file to processed after all lines was parsed
       proc_files.update({"_id":filepath},{'$set':{'status':'processed'}},True)
