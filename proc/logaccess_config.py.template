@@ -8,8 +8,8 @@ COUCHDB_TITLE_QUERY="_design/couchdb/_view/title_id"
 #Access Log Database MONGO DB
 MONGODB_DOMAIN="localhost"
 MONGODB_PORT=27017
-COLLECTION_CODE="scl"
-COLLECTION_DOMAIN="www.scielo.br"
+COLLECTION_CODE="bks"
+COLLECTION_DOMAIN="books.scielo.org"
 
 LOG_DIRS = ['../data/logs']
 
@@ -32,18 +32,9 @@ MONTH_DICT = {
     'DEC':'12',
 }
 
-ALLOWED_SCRIPTS = [
-    'sci_arttext',
-    'sci_serial',
-    'sci_issues',
-    'sci_home',
-    'sci_abstract',
-    'sci_issuetoc',
-    'sci_alphabetic',
-    'sci_pdf'
-]
-
-REGEX_ISSN    = "^[0-9]{4}-[0-9]{3}[0-9xX]$"
-REGEX_ISSUE   = "^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}$"
-REGEX_ARTICLE = "^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}[0-9]{5}$"
-REGEX_FBPE    = "^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$"
+ALLOWED_PATTERNS = {
+    'journal':['REGEX','REGEX'],
+    'issue':['REGEX','REGEX'],
+    'article':['REGEX','REGEX'],
+    'articled':['REGEX','REGEX'],
+}

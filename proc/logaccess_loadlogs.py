@@ -41,17 +41,18 @@ def is_bot(line, date_log):
       return True
   return False
 
-def registering_log(line,date):
+def registering_log(line,date_log):
   """
     Register the log access acording to the ALLOWED_PATTERNS
   """
-
-  for allowed in ALLOWED_PATTERNS:
-
-    #analytics.update({"site":COLLECTION_DOMAIN}, {"$inc":{'dwn':1,'dwn_'+dat:1,'total':1,"dat_"+dat:1}},True)
+  finded = re.findall('GET \/scielobooks\/[a-z]*\/pdf',line)
+  if finded:
+    code = finded[0].replace('GET /scielobooks/','').replace('/pdf','')
+    print code
+    analytics.update({"site":COLLECTION_DOMAIN},{"$inc":{'dwn_'+date_log:1,'dwn_total':1}},True)
+    analytics.update({"code":code}, {"$set":{'type':'book'},"$inc":{'dwn':1,'dwn_'+date_log:1}},True)
     #analytics.update({"serial":issn}, {"$inc":{'total':1,"dwn_"+dat:1}},True)
 
- 
 conn = Connection(MONGODB_DOMAIN, MONGODB_PORT)
 
 db = conn[COLLECTION_CODE+"_accesslog"]
@@ -59,6 +60,8 @@ proc_files = db[COLLECTION_CODE+"_processed_files"]
 error_log = db[COLLECTION_CODE+"_error_log"]
 analytics = db[COLLECTION_CODE+"_analytics"]
 analytics.ensure_index('site')
+analytics.ensure_index('book')
+analytics.ensure_index('type')
 
 # Creating Index according to Allowed Urls defined in the conf file
 for index in ALLOWED_PATTERNS:
@@ -82,7 +85,6 @@ for logdir in LOG_DIRS:
       for line in fileloaded:
         linecount=linecount+1
         proc_files.update({"_id":filepath},{'$set':{'line':linecount}},True)                    
-
         p = apachelog.parser(APACHE_LOG_FORMAT)
         try:
           data = p.parse(line)
@@ -103,7 +105,7 @@ for logdir in LOG_DIRS:
           continue
 
         # Registering Log
-        #registering_log(page_type,date,collection)
+        registering_log(line,valid_date)
 
       #Changing the status of the log file to processed after all lines was parsed
       proc_files.update({"_id":filepath},{'$set':{'status':'processed'}},True)
