@@ -13,16 +13,12 @@ class AccessDatabase(object):
         self._collection = self._db[collection]
 
     def getcollection():
-        
         return self._collection
 
 class LogInspector(object):
 
     def __init__(self, allowed_patterns = logaccess_config.ALLOWED_PATTERNS, collection = AccessDatabase):
         self._allowed_patterns = allowed_patterns
-
-        import pdb
-        pdb.set_trace()
 
         self._collection = collection
 
