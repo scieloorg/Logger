@@ -1,13 +1,19 @@
 #!/usr/bin/env python
-from logaccess_config import *
-from pymongo import Connection
+import os
 import urllib2
 import json
 import argparse
 
+from pymongo import Connection
+
 
 def get_books(api_host='localhost', api_port='5984'):
-    query1 = urllib2.urlopen('http://{0}:{1}/scielobooks_1a/_design/scielobooks/_view/books'.format(api_host, api_port))
+    try:
+        query1 = urllib2.urlopen('http://{0}:{1}/scielobooks_1a/_design/scielobooks/_view/books'.format(api_host, api_port))
+    except urllib2.URLError:
+        print "Connection refused, please check the script configurations running ./{0} -h".format(os.path.basename(__file__))
+        exit()
+
     jsondocs = json.loads(query1.read())
 
     books = {}
