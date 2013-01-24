@@ -20,6 +20,14 @@ def get_books(api_host='localhost', api_port='5984'):
     for reg in jsondocs['rows']:  # rows e uma array (lista) de registros no JSON
         book = books.setdefault(reg['id'], {})
         book['editor'] = reg['value']['publisher']
+        book['title'] = reg['value']['title']
+
+        creators = []
+        if 'creators' in reg['value']:
+            for creator in reg['value']['creators']:
+                creators.append(creator[1][1])
+        book['creators'] = '; '.join(creators)
+
         book['year'] = 'not defined'
         if 'year' in reg['value']:
             book['year'] = reg['value']['year'][0:10]
@@ -80,6 +88,7 @@ def main(*args, **xargs):
     analytics = get_collection(mongodb_host=xargs['mongodb_host'],
                                mongodb_port=int(xargs['mongodb_port']))
 
+    report = open(xargs['output_file'], 'w')
     books_stats = analytics.find({'context': 'book'})
 
     stats_dict = {}
@@ -87,24 +96,28 @@ def main(*args, **xargs):
         book_code = stat['code'].lower()
         stats_dict[book_code] = sumarize_by_month(stat)
 
-    print "code|publicated at|created at|editor|access type|month access|accesses"
+    report.write(u"code|title|authors|publicated at|created at|editor|access type|month access|accesses\r\n")
+
     for book_code, doc_types in stats_dict.items():
         if book_code in books:
             for doc_type, months in doc_types.items():
                 for month, accesses in months.items():
-                    print u"{0}|{1}|{2}|{3}|{4}|{5}|{6}".format(book_code,
+                    report.write(u"{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}\r\n".format(book_code,
+                                                            books[book_code]['title'],
+                                                            books[book_code]['creators'],
                                                             books[book_code]['year'],
                                                             books[book_code]['creation_date'],
                                                             books[book_code]['editor'],
                                                             doc_type,
                                                             month,
-                                                            accesses).encode("utf-8")
+                                                            accesses).encode("utf-8"))
 
 parser = argparse.ArgumentParser(description="Create an access report")
 parser.add_argument('--api_host', default='localhost', help='The CouchDB API hostname')
 parser.add_argument('--api_port', default='5984', help='The CouchDB API port')
 parser.add_argument('--mongodb_host', default='localhost', help='The MongoDB accesslog database hostname')
 parser.add_argument('--mongodb_port', default='27017', help='The MongoDB accesslog database port')
+parser.add_argument('--output_file', default='report.txt', help='File name where the report will be stored')
 
 args = parser.parse_args()
 
@@ -112,4 +125,5 @@ if __name__ == "__main__":
     main(api_host=args.api_host,
          api_port=args.api_port,
          mongodb_host=args.mongodb_host,
-         mongodb_port=args.mongodb_port)
+         mongodb_port=args.mongodb_port,
+         output_file=args.output_file)
