@@ -102,15 +102,17 @@ def main(*args, **xargs):
         if book_code in books:
             for doc_type, months in doc_types.items():
                 for month, accesses in months.items():
-                    report.write(u"{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}\r\n".format(book_code,
-                                                            books[book_code]['title'],
-                                                            books[book_code]['creators'],
-                                                            books[book_code]['year'],
-                                                            books[book_code]['creation_date'],
-                                                            books[book_code]['editor'],
-                                                            doc_type,
-                                                            month,
-                                                            accesses).encode("utf-8"))
+                    line = u"{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}\r\n".format(book_code,
+                                                        books[book_code]['title'],
+                                                        books[book_code]['creators'],
+                                                        books[book_code]['year'],
+                                                        books[book_code]['creation_date'],
+                                                        books[book_code]['editor'],
+                                                        doc_type,
+                                                        month,
+                                                        accesses).encode(xargs['charset_standard'], 'replace')
+                    report.write(line)
+
 
 parser = argparse.ArgumentParser(description="Create an access report")
 parser.add_argument('--api_host', default='localhost', help='The CouchDB API hostname')
@@ -118,7 +120,7 @@ parser.add_argument('--api_port', default='5984', help='The CouchDB API port')
 parser.add_argument('--mongodb_host', default='localhost', help='The MongoDB accesslog database hostname')
 parser.add_argument('--mongodb_port', default='27017', help='The MongoDB accesslog database port')
 parser.add_argument('--output_file', default='report.txt', help='File name where the report will be stored')
-
+parser.add_argument('--charset_standard', default='UTF-8', help='Charset standart for the report')
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -126,4 +128,5 @@ if __name__ == "__main__":
          api_port=args.api_port,
          mongodb_host=args.mongodb_host,
          mongodb_port=args.mongodb_port,
-         output_file=args.output_file)
+         output_file=args.output_file,
+         charset_standard=args.charset_standard)
