@@ -11,8 +11,7 @@ def get_books(api_host='localhost', api_port='5984'):
     try:
         query1 = urllib2.urlopen('http://{0}:{1}/scielobooks_1a/_design/scielobooks/_view/books'.format(api_host, api_port))
     except urllib2.URLError:
-        print "API connection refused, please check the script configurations running ./{0} -h".format(os.path.basename(__file__))
-        raise
+        exit("API connection refused, please check the script configurations running ./{0} -h".format(os.path.basename(__file__)))
 
     jsondocs = json.loads(query1.read())
 
@@ -71,8 +70,7 @@ def get_collection(mongodb_host='localhost',
     try:
         conn = pymongo.Connection(mongodb_host, mongodb_port)
     except pymongo.errors.AutoReconnect:
-        print "MongoDB connection refused, please check the script configurations running ./{0} -h".format(os.path.basename(__file__))
-        raise
+        exit("MongoDB connection refused, please check the script configurations running ./{0} -h".format(os.path.basename(__file__)))
 
     db = conn[mongodb_database + "_accesslog"]
     coll = db[mongodb_collection + "_analytics"]
