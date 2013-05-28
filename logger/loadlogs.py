@@ -42,59 +42,24 @@ if acrondict:
                         if kind_of_access == "HTML":
                             if is_allowed_query(parsed_line['query_string'], allowed_issns):
                                 script = parsed_line['query_string']['script'][0]
-                                pid = parsed_line['query_string']['pid'][0]
-                                # CREATING SERIAL LOG DOCS
+                                pid = parsed_line['query_string']['pid'][0][1:]
+
+                                print "script: {0}, pid: {1}".format(script, pid)
                                 if script == "sci_serial":
-                                    register_journal_page_access(pid, parsed_line['iso_date'])
+                                    register_journal_access(pid, parsed_line['iso_date'])
                                 elif script == "sci_abstract":
-                                    # ARTICLE ACCESS
-                                    qrs = "code={0}&journal={1}&issue={2}&access_date={3}".format(pid, pid[0:9], pid[0:17], parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/article", qrs)
-                                    urllib2.urlopen(req)
-                                    qrs = "code=www.scielosp.org&page=sci_abstract&access_date={0}".format(parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
-                                    qrs = "code={0}&page=sci_abstract&access_date={1}".format(pid[0:9], parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
+                                    register_abstract_access(pid, parsed_line['iso_date'])
                                 elif script == "sci_issuetoc":
-                                    # ISSUE ACCESS
-                                    qrs = "code={0}&journal={1}&access_date={2}".format(pid, pid[0:9], parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/issue", qrs)
-                                    urllib2.urlopen(req)
-                                    qrs = "code=www.scielosp.org&page=sci_issuetoc&access_date={0}".format(parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
-                                    qrs = "code={0}&page=sci_issuetoc&access_date={1}".format(pid[0:9], parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
+                                    register_toc_access(pid, parsed_line['iso_date'])
                                 elif script == "sci_arttext":
-                                    print "artigo"
-                                    register_article_page_access(pid, parsed_line['iso_date'])
+                                    register_article_access(pid, parsed_line['iso_date'])
                                 elif script == "sci_pdf":
-                                    qrs = "code={0}&journal={1}&issue={2}&access_date={3}".format(pid, pid[0:9], pid[0:17], parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/pdf", qrs)
-                                    urllib2.urlopen(req)
-                                    qrs = "code=www.scielosp.org&page=sci_pdf&access_date={0}".format(parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
-                                    qrs = "code={0}&page=sci_pdf&access_date={1}".format(pid[0:9], parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
+                                    register_pdf_access(pid, parsed_line['iso_date'])
                                 elif script == "sci_home":
-                                    qrs = "code=www.scielosp.org&page=sci_home&access_date={0}".format(parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
+                                    register_home_access(pid, parsed_line['iso_date'])
                                 elif script == "sci_issues":
-                                    qrs = "code=www.scielosp.org&page=sci_issues&access_date={0}".format(parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
-                                    qrs = "code={0}&page=sci_issues&access_date={1}".format(pid[0:9], parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
+                                    register_issues_access(pid, parsed_line['iso_date'])
                                 elif script == "sci_alphabetic":
-                                    qrs = "code=www.scielosp.org&page=sci_alphabetic&access_date={0}".format(parsed_line['iso_date'])
-                                    req = urllib2.Request("http://200.136.72.14:8860/api/v1/general", qrs)
-                                    urllib2.urlopen(req)
+                                    register_alpha_access(pid, parsed_line['iso_date'])
 else:
     print "Connection to CouchDB Fail"
