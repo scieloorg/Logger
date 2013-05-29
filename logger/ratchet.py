@@ -29,6 +29,16 @@ def ratchet_post(**kwargs):
     urllib2.urlopen(req)
 
 
+def register_download_access(code, issn, access_date):
+    page = 'download'
+    # Register PDF direct download access
+    ratchet_post(endpoint='general', code=code, access_date=access_date)
+    # Register PDF direct download access for a specific journal register
+    ratchet_post(endpoint='general', code=issn, access_date=access_date, page=page)
+    # Register PDF direct download access for a collection register
+    ratchet_post(endpoint='general', code=site_domain, access_date=access_date, page=page)
+
+
 def register_journal_access(code, access_date):
     page = 'journal'
     # Register access for a specific journal

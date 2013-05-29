@@ -102,7 +102,29 @@ def log_line_triage(line):
 
     return None
 
-def parse_apache_line(line):
+
+def get_pdf_path(data_r):
+    """
+        Clean the GET request to bring just the pdf path.
+        receive: GET /pdf/bjb/v62n2/10867.pdf HTTP/1.0
+        return: /pdf/bjb/v62n2/10867
+    """
+    pdf_path = data_r[4:data_r.find('.pdf')]
+    pdf_path = pdf_path.replace("//", "/")
+    pdf_path = pdf_path.replace("%0D/", "")
+
+    if not pdf_path:
+        return None
+
+    return pdf_path
+
+
+def parse_apache_line(line, acrondict=None):
+    kind_of_access = log_line_triage(line)
+    #Checking if the apache log line seams to be a valid HTML access or PDF donwload.
+    if not kind_of_access:
+        return None
+
     p = apachelog.parser(APACHE_LOG_FORMAT)
     try:
         data = p.parse(line)
@@ -111,6 +133,7 @@ def parse_apache_line(line):
         return None
 
     line = {}
+    line['access_type'] = kind_of_access
     line['day'] = data['%t'][1:3]
     line['year'] = data['%t'][8:12]
     line['month'] = ""
@@ -128,6 +151,13 @@ def parse_apache_line(line):
 
     url = data['%r'].split(' ')[1]
     line['query_string'] = urlparse.parse_qs(urlparse.urlparse(url).query)
+
+    if kind_of_access.upper() == 'PDF':
+        line['pdf_path'] = get_pdf_path(data['%r'])
+        if validate_pdf(line['pdf_path'], acrondict):
+            line['pdf_issn'] = acrondict[line['pdf_path'].split('/')[2]]
+        else:
+            return None
 
     return line
 
