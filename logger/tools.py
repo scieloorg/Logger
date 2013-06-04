@@ -11,7 +11,7 @@ import urlparse
 
 def getTitles():
     query_url = COUCHDB_DATABASE + "/" + COUCHDB_TITLE_QUERY
-
+    print query_url
     try:
         query = urllib2.urlopen(query_url)
     except urllib2.URLError:
