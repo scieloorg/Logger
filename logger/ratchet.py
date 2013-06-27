@@ -1,6 +1,7 @@
 from logaccess_config import *
 import gevent
 from gevent import monkey
+from gevent.pool import Pool
 monkey.patch_all()
 import urllib2
 
@@ -12,16 +13,15 @@ class RatchetQueue(object):
 
     def __init__(self, limit=10):
         self._queue = []
-        self._queue_size = 0
-        self._queue_limit = limit
+        self._pool = Pool(limit)
 
     def _request(self, url):
         qrs = url.split('?')
         req = urllib2.Request("{0}".format(qrs[0]), qrs[1])
         urllib2.urlopen(req)
 
-    def _send(self):
-        gevent.joinall(self._queue)
+    def send(self):
+        self._pool.join()
 
     def add_url(self, **kwargs):
 
@@ -44,12 +44,7 @@ class RatchetQueue(object):
         qrs = "&".join(qs)
         url = "{0}api/v1/{1}?{2}".format(api_url, kwargs['endpoint'], qrs)
 
-        self._queue.append(gevent.spawn(self._request, url))
-        if self._queue_size > self._queue_limit:
-            self._queue_size = 0
-            self._send()
-        else:
-            self._queue_size += 1
+        self._pool.spawn(self._request, url)
 
     def register_download_access(self, code, issn, access_date):
         page = 'download'
