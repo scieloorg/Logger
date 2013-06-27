@@ -2,14 +2,13 @@
 # -*- encoding: utf-8 -*-
 
 #SciELO Database CouchDB
-COUCHDB_DATABASE = "http://webservices.scielo.org/scieloscl"
-COUCHDB_TITLE_QUERY = "_design/couchdb/_view/title_id?include_docs=true"
+COUCHDB_DATABASE = "http://webservices.scielo.org/scieloorg"
+COUCHDB_TITLE_QUERY = '_design/couchdb/_view/title_collectionstitle_keys?startkey=["scl",{}]&endkey=["scl"]&descending=true&limit=2000&include_docs=true'
 
 #Access Log Database MONGO DB
-MONGODB_DOMAIN = "localhost"
-MONGODB_PORT = 27017
-COLLECTION_CODE = "bra"
-COLLECTION_DOMAIN = "www.scielo.br"
+RATCHET_DOMAIN = "localhost"
+RATCHET_PORT = 8870
+SITE_DOMAIN = "sitedomain"
 
 LOG_DIRS = ['data/logs']
 

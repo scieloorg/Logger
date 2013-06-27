@@ -1,10 +1,8 @@
 from logaccess_config import *
 import gevent
 from gevent import monkey
-
-import urllib2
-
 monkey.patch_all()
+import urllib2
 
 api_url = "http://{0}:{1}/".format(RATCHET_DOMAIN, RATCHET_PORT)
 site_domain = SITE_DOMAIN
@@ -12,16 +10,17 @@ site_domain = SITE_DOMAIN
 
 class RatchetQueue(object):
 
-    def __init__(self):
+    def __init__(self, limit=10):
         self._queue = []
+        self._queue_size = 0
+        self._queue_limit = limit
 
     def _request(self, url):
-        print url
         qrs = url.split('?')
         req = urllib2.Request("{0}".format(qrs[0]), qrs[1])
         urllib2.urlopen(req)
 
-    def send(self):
+    def _send(self):
         gevent.joinall(self._queue)
 
     def add_url(self, **kwargs):
@@ -46,6 +45,11 @@ class RatchetQueue(object):
         url = "{0}api/v1/{1}?{2}".format(api_url, kwargs['endpoint'], qrs)
 
         self._queue.append(gevent.spawn(self._request, url))
+        if self._queue_size > self._queue_limit:
+            self._queue_size = 0
+            self._send()
+        else:
+            self._queue_size += 1
 
     def register_download_access(self, code, issn, access_date):
         page = 'download'

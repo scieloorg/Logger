@@ -2,6 +2,7 @@ from logaccess_config import *
 
 import os
 import re
+import sys
 import json
 import urllib2
 from datetime import date
@@ -29,22 +30,22 @@ def getTitles():
 def validate_pid(script, pid, allowed_issns):
 
     if pid[0:9] in allowed_issns:
-        if script == "sci_issuetoc":
+        if script == u"sci_issuetoc":
             if re.search(REGEX_ISSUE, pid):
                 return True
-        elif script == "sci_abstract" or re.search(REGEX_FBPE, pid):
+        elif script == u"sci_abstract" or re.search(REGEX_FBPE, pid):
             if re.search(REGEX_ARTICLE, pid):
                 return True
-        elif script == "sci_arttext":
+        elif script == u"sci_arttext":
             if re.search(REGEX_ARTICLE, pid) or re.search(REGEX_FBPE, pid):
                 return True
-        elif script == "sci_pdf":
+        elif script == u"sci_pdf":
             if re.search(REGEX_ARTICLE, pid) or re.search(REGEX_FBPE, pid):
                 return True
-        elif script == "sci_serial":
+        elif script == u"sci_serial":
             if re.search(REGEX_ISSN, pid):
                 return True
-        elif script == "sci_issues":
+        elif script == u"sci_issues":
             if re.search(REGEX_ISSN, pid):
                 return True
 
@@ -54,7 +55,7 @@ def validate_pid(script, pid, allowed_issns):
 def validate_pdf(filepath, acronDict):
     pdf_spl = filepath.split("/")
     if len(pdf_spl) > 2:
-        if pdf_spl[1] == 'pdf':
+        if pdf_spl[1] == u'pdf':
             if pdf_spl[2] != '':
                 if pdf_spl[2] in acronDict:
                     return True
@@ -122,6 +123,7 @@ def get_pdf_path(data_r):
 def parse_apache_line(line, acrondict=None):
     kind_of_access = log_line_triage(line)
     #Checking if the apache log line seams to be a valid HTML access or PDF donwload.
+
     if not kind_of_access:
         return None
 
@@ -129,7 +131,7 @@ def parse_apache_line(line, acrondict=None):
     try:
         data = p.parse(line)
     except:
-        sys.stderr.write("Unable to parse %s" % line)
+        sys.stderr.write(u"Unable to parse %s" % line)
         return None
 
     line = {}
@@ -167,6 +169,7 @@ def is_allowed_query(query_string, allowed_issns):
     Check if the query string have the necessary aguments to represent a valid access.
     The query_string must have the both parameters "pid, script"
     """
+
     if not 'script' in query_string:
         return None
 
