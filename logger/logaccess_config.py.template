@@ -5,6 +5,11 @@
 COUCHDB_DATABASE = "http://webservices.scielo.org/scieloorg"
 COUCHDB_TITLE_QUERY = '_design/couchdb/_view/title_collectionstitle_keys?startkey=["scl",{}]&endkey=["scl"]&descending=true&limit=2000&include_docs=true'
 
+#Logger Controlling Database MONGODB
+LOGGER_DATABASE_DOMAIN = '127.0.0.1'
+LOGGER_DATABASE_PORT = 27017
+LOGGER_DATABASE_COLLECTION = 'xxx' # Collection identifier
+
 #Access Log Database MONGO DB
 RATCHET_DOMAIN = "localhost"
 RATCHET_PORT = 8870

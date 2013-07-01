@@ -8,6 +8,26 @@ import urllib2
 from datetime import date
 import apachelog
 import urlparse
+from pymongo import Connection
+
+
+def get_proc_collection():
+    conn = Connection(LOGGER_DATABASE_DOMAIN, LOGGER_DATABASE_PORT)
+    db = conn['proc_files']
+    coll = db[LOGGER_DATABASE_COLLECTION]
+    coll.ensure_index('file_name')
+
+    return coll
+
+
+def reg_logfile(coll, file_name):
+    coll.insert({'file_name': file_name})
+
+
+def log_was_processed(coll, file_name):
+
+    if coll.find({'file_name': file_name}).count() > 0:
+        return True
 
 
 def getTitles():
