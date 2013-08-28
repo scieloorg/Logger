@@ -21,7 +21,7 @@ if acrondict:
             else:
                 print "processing: {0}".format(logfile)
                 reg_logfile(proc_coll, logfile)
-            rq = RatchetQueue(limit=100)
+            rq = RatchetQueue(limit=5)
             for line in get_file_lines(logfile):
                 parsed_line = parse_apache_line(line, acrondict)
                 if parsed_line:
