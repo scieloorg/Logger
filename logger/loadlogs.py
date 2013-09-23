@@ -15,13 +15,13 @@ for key, issn in acrondict.items():
 if acrondict:
     for logdir in get_logdirs():
         print "listing log files at: " + logdir
+        rq = RatchetQueue(limit=100)
         for logfile in get_files_in_logdir(logdir):
             if log_was_processed(proc_coll, logfile):
                 continue
             else:
                 print "processing: {0}".format(logfile)
                 reg_logfile(proc_coll, logfile)
-            rq = RatchetQueue(limit=100)
             for line in get_file_lines(logfile):
                 parsed_line = parse_apache_line(line, acrondict)
                 if parsed_line:
