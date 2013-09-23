@@ -73,12 +73,13 @@ def validate_pid(script, pid, allowed_issns):
 
 
 def validate_pdf(filepath, acronDict):
-    pdf_spl = filepath.split("/")
-    if len(pdf_spl) > 2:
-        if pdf_spl[1] == u'pdf':
-            if pdf_spl[2] != '':
-                if pdf_spl[2] in acronDict:
-                    return True
+    if filepath:
+        pdf_spl = filepath.split("/")
+        if len(pdf_spl) > 2:
+            if pdf_spl[1] == u'pdf':
+                if pdf_spl[2] != '':
+                    if pdf_spl[2] in acronDict:
+                        return True
     return None
 
 
@@ -118,7 +119,7 @@ def log_line_triage(line):
     if "GET" in line and ".pdf" in line:
         return "PDF"
 
-    if "GET /scielo.php" in line and "script" in line and "pid" in line:
+    if "GET" in line and "scielo.php" in line and "script" in line and "pid" in line:
         return "HTML"
 
     return None
@@ -130,9 +131,12 @@ def get_pdf_path(data_r):
         receive: GET /pdf/bjb/v62n2/10867.pdf HTTP/1.0
         return: /pdf/bjb/v62n2/10867
     """
-    pdf_path = data_r[4:data_r.find('.pdf')]
-    pdf_path = pdf_path.replace("//", "/")
-    pdf_path = pdf_path.replace("%0D/", "")
+    pdf_path = None
+    find = re.findall('/pdf.*\.pdf', data_r)
+    if len(find) == 1:
+        pdf_path = find[0][0:-4]
+        pdf_path = pdf_path.replace("//", "/")
+        pdf_path = pdf_path.replace("%0D/", "")
 
     if not pdf_path:
         return None
@@ -151,7 +155,7 @@ def parse_apache_line(line, acrondict=None):
     try:
         data = p.parse(line)
     except:
-        sys.stderr.write(u"Unable to parse %s" % line)
+        sys.stderr.write(u"Unable to parse %s" % unicode(line, errors='ignore'))
         return None
 
     line = {}
