@@ -1,54 +1,64 @@
 #!/usr/bin/env python
+import argparse
+
 from tools import *
 from ratchet import *
 from logaccess_config import *
 
-# Retrieving from CouchDB a Title dictionary as: dict['bjmbr']=XXXX-XXXX
-acrondict = getTitles()
+def main(*args, **xargs):
+    acrondict = getTitles()
+    proc_coll = get_proc_collection()
+    proc_robots_coll = get_proc_robots_collection()
 
-proc_coll = get_proc_collection()
+    if xargs['ttl']:
+        proc_ttl_coll = get_proc_ttl_collection()
+    else:
+        proc_ttl_coll = None
 
-allowed_issns = []
-for key, issn in acrondict.items():
-    allowed_issns.append(issn)
+    allowed_issns = []
+    for key, issn in acrondict.items():
+        allowed_issns.append(issn)
 
-if acrondict:
-    for logdir in get_logdirs():
-        print "listing log files at: " + logdir
-        rq = RatchetQueue(limit=100)
-        for logfile in get_files_in_logdir(logdir):
-            if log_was_processed(proc_coll, logfile):
-                continue
-            else:
-                print "processing: {0}".format(logfile)
-                reg_logfile(proc_coll, logfile)
-            for line in get_file_lines(logfile):
-                parsed_line = parse_apache_line(line, acrondict)
-                if parsed_line:
-                    if parsed_line['access_type'] == "PDF":
-                        pdfid = parsed_line['pdf_path']
-                        issn = parsed_line['pdf_issn']
-                        rq.register_download_access(pdfid, issn, parsed_line['iso_date'])
-                    if parsed_line['access_type'] == "HTML":
-                        if is_allowed_query(parsed_line['query_string'], allowed_issns):
-                            script = parsed_line['query_string']['script'][0]
-                            pid = parsed_line['query_string']['pid'][0].upper().replace('S', '')
-                            if script == "sci_serial":
-                                rq.register_journal_access(pid, parsed_line['iso_date'])
-                            elif script == "sci_abstract":
-                                rq.register_abstract_access(pid, parsed_line['iso_date'])
-                            elif script == "sci_issuetoc":
-                                rq.register_toc_access(pid, parsed_line['iso_date'])
-                            elif script == "sci_arttext":
-                                rq.register_article_access(pid, parsed_line['iso_date'])
-                            elif script == "sci_pdf":
-                                rq.register_pdf_access(pid, parsed_line['iso_date'])
-                            elif script == "sci_home":
-                                rq.register_home_access(pid, parsed_line['iso_date'])
-                            elif script == "sci_issues":
-                                rq.register_issues_access(pid, parsed_line['iso_date'])
-                            elif script == "sci_alphabetic":
-                                rq.register_alpha_access(pid, parsed_line['iso_date'])
-        rq.send()
-else:
-    print "Connection to CouchDB Fail"
+    if acrondict:
+        for logdir in get_logdirs():
+            print "listing log files at: " + logdir
+            rq = RatchetQueue(limit=100)
+            for logfile in get_files_in_logdir(logdir):
+
+                if log_was_processed(proc_coll, logfile):
+                    continue
+                else:
+                    print "processing: {0}".format(logfile)
+                    reg_logfile(proc_coll, logfile)
+
+                for line in get_file_lines(logfile):
+                    parsed_line = parse_apache_line(line, proc_robots_coll, acrondict)
+
+                    if parsed_line:
+
+                        if parsed_line['access_type'] == "PDF":
+                            pdfid = parsed_line['pdf_path']
+                            issn = parsed_line['pdf_issn']
+                            register_pdf_download_accesses(rq, issn, pdfid, parsed_line['iso_date'], parsed_line['ip'], ttl_coll=proc_ttl_coll)
+
+                        if parsed_line['access_type'] == "HTML":
+                            if is_allowed_query(parsed_line['query_string'], allowed_issns):
+                                script = parsed_line['query_string']['script'][0]
+                                pid = parsed_line['query_string']['pid'][0].upper().replace('S', '')
+                                register_html_accesses(rq, script, pid, parsed_line['iso_date'], parsed_line['ip'], ttl_coll=proc_ttl_coll)
+
+                rq.send()
+    else:
+        print "Connection to CouchDB Fail"
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Run the processing to read the access log files and register accesses into Ratchet")
+    parser.add_argument('--ttl', default=None, help='Indicates if the processing will use a lock database to control the acccesses according to Counter Project')
+    args = parser.parse_args()
+
+    main(ttl=args.ttl)
+
+
+
