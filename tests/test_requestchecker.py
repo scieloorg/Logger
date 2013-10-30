@@ -68,7 +68,7 @@ class AccessCheckerTests(MockerTestCase):
 
         self.mocker.replay()
 
-        self.assertEqual(AccessChecker(collection='scl').allowed_issns, {u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.assertEqual(AccessChecker(collection='scl').allowed_issns, set([u'1234-4321', u'1984-4670']))
 
     def test_instanciatingAccessChecker_allowed_issns_exception(self):
         mock_urllib2 = self.mocker.replace("urllib2")
@@ -89,7 +89,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result(['scl', 'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -107,7 +107,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result(['scl', 'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -125,7 +125,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -143,7 +143,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -185,7 +185,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -199,7 +199,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -213,7 +213,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -227,7 +227,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -241,7 +241,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -255,7 +255,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -269,7 +269,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -287,7 +287,7 @@ class AccessCheckerTests(MockerTestCase):
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
@@ -297,19 +297,175 @@ class AccessCheckerTests(MockerTestCase):
         self.assertEqual(ac.query_string(url), None)
 
 
-    def test_parsed_access_with_invalid_line(self):
+    def test_pid_is_valid_not_allowed_issn(self):
         accesschecker = self.mocker.patch(AccessChecker)
         accesschecker._allowed_collections()
         self.mocker.result([u'scl', u'arg'])
         accesschecker._allowed_issns()
-        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
-
-        line = u''
         
-        self.assertEqual(ac.parsed_access(line), None)
+        self.assertEqual(ac.is_valid_html_request('sci_arttext', 'XXXX-XXXX2012000100001'), None)
+
+    def test_pid_is_valid_script_sci_arttext_invalid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_arttext', '123443212012000100001'), None)
+
+    def test_pid_is_valid_script_sci_arttext_valid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_arttext', '1234-43212012000100001'), True)
+
+    def test_pid_is_valid_script_sci_arttext_valid_pid_fbpe(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_arttext', '1234-4321(12)00100001'), True)
+
+    def test_pid_is_valid_script_sci_abstract_invalid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_abstract', '1234-4321201200100001'), None)
+
+    def test_pid_is_valid_script_sci_abstract_valid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_abstract', '1234-43212012000100001'), True)
+
+    def test_pid_is_valid_script_sci_abstract_valid_pid_fbpe(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_abstract', '1234-4321(12)00100001'), True)
+
+    def test_pid_is_valid_script_sci_pdf_invalid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_pdf', '1234-43219012000100001'), None)
+
+    def test_pid_is_valid_script_sci_pdf_valid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_pdf', '1234-43212012000100001'), True)
+
+    def test_pid_is_valid_script_sci_pdf_valid_pid_fbpe(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_pdf', '1234-4321(12)00100001'), True)
+
+    def test_pid_is_valid_script_sci_serial_valid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_serial', '1234-4321'), True)
+
+    def test_pid_is_valid_script_sci_issuetoc_valid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_issuetoc', '1234-432120120001'), True)
+
+    def test_pid_is_valid_script_sci_issuetoc_invalid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_issuetoc', '1234432120120001'), None)
+
+
+    def test_pid_is_valid_script_sci_issues_valid_pid(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._allowed_issns()
+        self.mocker.result(set([u'1234-4321', u'1984-4670']))
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+        
+        self.assertEqual(ac.is_valid_html_request('sci_issues', '1234-4321'), True)
+
 
 
 

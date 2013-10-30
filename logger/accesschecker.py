@@ -2,7 +2,7 @@ import urllib2
 import json
 import datetime
 import urlparse
-
+import re
 from logaccess_config import *
 import apachelog
 
@@ -20,6 +20,13 @@ MONTH_DICT = {
     'NOV': '11',
     'DEC': '12',
 }
+
+
+COMPILED_ROBOTS = [re.compile(i.lower()) for i in STOP_WORDS]
+REGEX_ISSN = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]$")
+REGEX_ISSUE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}$")
+REGEX_ARTICLE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}[0-9]{5}$")
+REGEX_FBPE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$")
 
 class AccessChecker(object):
 
@@ -57,9 +64,9 @@ class AccessChecker(object):
 
         titles = json.loads(titles_json)
 
-        title_dict = {}
+        title_dict = set()
         for title in titles['rows']:
-            title_dict[title['doc']['v68'][0]['_']] = title['doc']['v400'][0]['_']
+            title_dict.add(title['doc']['v400'][0]['_'])
 
         return title_dict
 
@@ -115,6 +122,31 @@ class AccessChecker(object):
 
         return None
 
+    def is_valid_html_request(self, script, pid):
+
+        if not pid[0:9] in self.allowed_issns:
+            return None
+
+        if script == u"sci_arttext" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
+            return True
+
+        if script == u"sci_abstract" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
+            return True
+
+        if script == u"sci_pdf" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
+            return True
+
+        if script == u"sci_serial" and REGEX_ISSN.search(pid):
+            return True
+
+        if script == u"sci_issuetoc" and REGEX_ISSUE.search(pid):
+            return True
+
+        if script == u"sci_issues" and REGEX_ISSN.search(pid):
+            return True
+
+    def is_valid_pdf_request(self):
+        pass
 
     def parsed_access(self, raw_line):
 
@@ -127,8 +159,20 @@ class AccessChecker(object):
         access_type = self.pdf_or_html_access(parsed_line['%r'])
         query_string = self.query_string(parsed_line['%r'])
 
-        if access_type == u'HTML' and access_date and valid_html_request(query_string):
+        if not access_date:
+            return None
+
+        if access_type == u'HTML': 
+                        
+            if not 'script' in query_string or 'pid' in query_string:
+                return None
+
+            if not valid_html_request(query_string['script'], query_string['pid']):
+                return None
+
             pass
 
         if access_type == u'PDF' and valid_pdf_request(parsed_line['%r']):
+
             pass
+
