@@ -38,7 +38,8 @@ class AccessChecker(object):
             raise ValueError('Invalid collection id, you must select one of these %s' % str(allowed_collections)) 
 
         self.collection = collection
-        self.allowed_issns = self._allowed_issns()
+        self.acronym_to_issn_dict = self._acronym_to_issn_dict()
+        self.allowed_issns = set([v for k,v in self.acronym_to_issn_dict.items()])
 
     def _allowed_collections(self):        
         allowed_collections = []
@@ -54,7 +55,7 @@ class AccessChecker(object):
         
         return allowed_collections
 
-    def _allowed_issns(self):        
+    def _acronym_to_issn_dict(self):        
         query_url = 'http://webservices.scielo.org/scieloorg/_design/couchdb/_view/title_collectionstitle_keys?startkey=["%s",{}]&endkey=["%s"]&descending=true&limit=2000&include_docs=true' % (self.collection, self.collection)
 
         try:
@@ -64,11 +65,18 @@ class AccessChecker(object):
 
         titles = json.loads(titles_json)
 
-        title_dict = set()
+        title_dict = {}
         for title in titles['rows']:
-            title_dict.add(title['doc']['v400'][0]['_'])
+            title_dict[title['doc']['v68'][0]['_']] = title['doc']['v400'][0]['_']
 
         return title_dict
+
+    def _allowed_issns(self, acronym_to_issn):
+        issns = set()
+        for issn in acronym_to_issn:
+            issns.add(issn)
+
+        return issns
 
     def _parse_line(self, raw_line):
         try:
@@ -145,8 +153,21 @@ class AccessChecker(object):
         if script == u"sci_issues" and REGEX_ISSN.search(pid):
             return True
 
-    def is_valid_pdf_request(self):
-        pass
+    def is_valid_pdf_request(self, filepath):
+
+        if not filepath.strip():
+            return None
+
+        url = filepath.split(" ")[1]
+        path = urlparse.urlparse(url).path
+
+        if not path[-3:].lower() == 'pdf':
+            return None
+
+        if not path.split('/')[2] in self.acronym_to_issn_dict:
+            return None
+
+        return True
 
     def parsed_access(self, raw_line):
 
