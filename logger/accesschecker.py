@@ -84,7 +84,7 @@ class AccessChecker(object):
         except:
             return None
 
-    def query_string(self, url):
+    def _query_string(self, url):
         """
         Given a request from a access log line in these formats: 
             'GET /scielo.php?script=sci_nlinks&ref=000144&pid=S0103-4014200000020001300010&lng=pt HTTP/1.1'
@@ -102,7 +102,7 @@ class AccessChecker(object):
         if len(qs) > 0:
             return qs
 
-    def access_date(self, access_date):
+    def _access_date(self, access_date):
         """
         Given a date from a access log line in this format: [30/Dec/2012:23:59:57 -0200]
         The method must retrieve a valid iso date 2012-12-30 or None
@@ -121,7 +121,7 @@ class AccessChecker(object):
 
         return datetime.date(year, month, day).isoformat()
 
-    def pdf_or_html_access(self, get):
+    def _pdf_or_html_access(self, get):
         if "GET" in get and ".pdf" in get:
             return "PDF"
 
@@ -130,7 +130,9 @@ class AccessChecker(object):
 
         return None
 
-    def is_valid_html_request(self, script, pid):
+    def _is_valid_html_request(self, script, pid):
+
+        pid = pid.replace('S','')
 
         if not pid[0:9] in self.allowed_issns:
             return None
@@ -153,21 +155,28 @@ class AccessChecker(object):
         if script == u"sci_issues" and REGEX_ISSN.search(pid):
             return True
 
-    def is_valid_pdf_request(self, filepath):
+    def _is_valid_pdf_request(self, filepath):
+        """
+        This method checks if the pdf path represents a valid pdf request. If it is valid, this
+        methof will retrieve a dictionary with the filepath and the journal issn.
+        """
+        data = {}
 
         if not filepath.strip():
             return None
 
         url = filepath.split(" ")[1]
-        path = urlparse.urlparse(url).path
+        data['pdf_path'] = urlparse.urlparse(url).path
 
-        if not path[-3:].lower() == 'pdf':
+        if not data['pdf_path'][-3:].lower() == 'pdf':
             return None
 
-        if not path.split('/')[2] in self.acronym_to_issn_dict:
+        try:
+            data['pdf_issn'] = self.acronym_to_issn_dict[data['pdf_path'].split('/')[2]]
+        except KeyError:
             return None
 
-        return True
+        return data
 
     def parsed_access(self, raw_line):
 
@@ -176,24 +185,34 @@ class AccessChecker(object):
         if not parsed_line:
             return None
 
-        access_date = self.access_date(parsed_line['%t'])
-        access_type = self.pdf_or_html_access(parsed_line['%r'])
-        query_string = self.query_string(parsed_line['%r'])
+        data = {}
+        data['ip'] = parsed_line['%h'].strip()
+        data['access_type'] = self._pdf_or_html_access(parsed_line['%r'])
+        data['iso_date'] = self._access_date(parsed_line['%t'])
+        data['query_string'] = self._query_string(parsed_line['%r'])
+        data['day'] = data['iso_date'][8:10]
+        data['month'] = data['iso_date'][5:7]
+        data['year'] = data['iso_date'][0:4]
 
-        if not access_date:
+        if not data['access_type']:
             return None
 
-        if access_type == u'HTML': 
-                        
-            if not 'script' in query_string or 'pid' in query_string:
+        if not data['iso_date']:
+            return None
+
+        if data['access_type'] == u'HTML': 
+
+            if not 'script' in data['query_string'] and not 'pid' in data['query_string']:
                 return None
 
-            if not valid_html_request(query_string['script'], query_string['pid']):
+            if not self._is_valid_html_request(data['query_string']['script'], data['query_string']['pid']):
                 return None
 
-            pass
+        pdf_request = self._is_valid_pdf_request(parsed_line['%r'])
+        if data['access_type'] == u'PDF': 
+            if not pdf_request:
+                return None
+        
+            data.update(pdf_request)
 
-        if access_type == u'PDF' and valid_pdf_request(parsed_line['%r']):
-
-            pass
-
+        return data
