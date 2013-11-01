@@ -28,20 +28,20 @@ def main(*args, **xargs):
                 reg_logfile(proc_coll, logfile)
 
             for raw_line in get_file_lines(logfile):
-                parsed_line = ac.parse_access(raw_line)
+                parsed_line = ac.parsed_access(raw_line)
 
-                if parsed_line:
+                if not parsed_line:
+                    continue
 
-                    if parsed_line['access_type'] == "PDF":
-                        pdfid = parsed_line['pdf_path']
-                        issn = parsed_line['pdf_issn']
-                        register_pdf_download_accesses(rq, issn, pdfid, parsed_line['iso_date'], parsed_line['ip'], ttl_coll=proc_ttl_coll)
+                if parsed_line['access_type'] == "PDF":
+                    pdfid = parsed_line['pdf_path']
+                    issn = parsed_line['pdf_issn']
+                    register_pdf_download_accesses(rq, issn, pdfid, parsed_line['iso_date'], parsed_line['ip'], ttl_coll=proc_ttl_coll)
 
-                    if parsed_line['access_type'] == "HTML":
-                        if is_allowed_query(parsed_line['query_string'], ac.allowed_issns):
-                            script = parsed_line['query_string']['script'][0]
-                            pid = parsed_line['query_string']['pid'][0].upper().replace('S', '')
-                            register_html_accesses(rq, script, pid, parsed_line['iso_date'], parsed_line['ip'], ttl_coll=proc_ttl_coll)
+                if parsed_line['access_type'] == "HTML":
+                    script = parsed_line['query_string']['script']
+                    pid = parsed_line['query_string']['pid']
+                    register_html_accesses(rq, script, pid, parsed_line['iso_date'], parsed_line['ip'], ttl_coll=proc_ttl_coll)
 
             rq.send()
 

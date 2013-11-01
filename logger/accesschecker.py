@@ -21,7 +21,6 @@ MONTH_DICT = {
     'DEC': '12',
 }
 
-
 COMPILED_ROBOTS = [re.compile(i.lower()) for i in STOP_WORDS]
 REGEX_ISSN = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]$")
 REGEX_ISSUE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}$")
@@ -132,7 +131,7 @@ class AccessChecker(object):
 
     def _is_valid_html_request(self, script, pid):
 
-        pid = pid.replace('S','')
+        pid = pid.upper().replace('S','')
 
         if not pid[0:9] in self.allowed_issns:
             return None
