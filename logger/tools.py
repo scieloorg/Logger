@@ -1,15 +1,26 @@
-from logaccess_config import *
-
 import os
-import re
-import sys
-import json
-import urllib2
 from datetime import date, datetime
-import apachelog
-import urlparse
 from pymongo import Connection
 
+from logaccess_config import *
+
+class timedset(object):
+    def __init__(self, items=None, expired=None):
+        self.expired = expired or (lambda t0, t1: True)
+        self._items = {}
+ 
+    def _add_or_update(self, item):
+        match = self._items.get(item, None)
+        return True if match is None else self.expired(match, item)
+ 
+    def add(self, item):
+        if self._add_or_update(item):
+            self._items[item] = item
+        else:
+            raise ValueError('the item stills valid')
+ 
+    def __contains__(self, item):
+        return item in self._items
 
 def get_proc_collection():
     """
@@ -20,20 +31,6 @@ def get_proc_collection():
     db = conn['proc_files']
     coll = db[LOGGER_DATABASE_COLLECTION]
     coll.ensure_index('file_name')
-
-    return coll
-
-def get_proc_ttl_collection():
-    """
-    The ttl collection is a mongodb database that keeps an ID with a 10 seconds time to leave
-    record for each url + ip address.
-    """
-    conn = Connection(LOGGER_DATABASE_DOMAIN, LOGGER_DATABASE_PORT)
-    db = conn['proc_ttl']
-    coll = db[LOGGER_DATABASE_COLLECTION]
-    coll.ensure_index('code')
-    coll.ensure_index('date_html', expireAfterSeconds=COUNTER_HTML_TTL)
-    coll.ensure_index('date_pdf', expireAfterSeconds=COUNTER_PDF_TTL)
 
     return coll
 
@@ -49,6 +46,7 @@ def get_proc_robots_collection():
 
     return coll
 
+
 def reg_logfile(coll, file_name):
     coll.insert({'file_name': file_name})
 
@@ -58,14 +56,8 @@ def log_was_processed(coll, file_name):
     if coll.find({'file_name': file_name}).count() > 0:
         return True
 
-
-def get_logdirs():
-    for logdir in LOG_DIRS:
-        yield logdir
-
-
 def get_files_in_logdir(logdir):
-    logfiles = os.popen('ls ' + logdir + '/*access.log')
+    logfiles = os.popen('ls ' + logdir + '/*.log')
     for logfile in logfiles:
         yield logfile
 
@@ -94,20 +86,10 @@ def is_locked(coll, code, doc_type):
         coll.insert({'code': code, 'date_%s' % doc_type: datetime.utcnow()})
         return False
 
-def register_pdf_download_accesses(ratchet_queue, issn, pdfid, date, ip, ttl_coll=None):
-    if ttl_coll:
-        code = "%s_%s" % (ip, pdfid)
-        if is_locked(ttl_coll, code, 'pdf'):
-            return None
-
+def register_pdf_download_accesses(ratchet_queue, issn, pdfid, date, ip):
     ratchet_queue.register_download_access(pdfid, issn, date)
 
-def register_html_accesses(ratchet_queue, script, pid, date, ip, ttl_coll=None):
-
-    if ttl_coll:
-        code = "%s_%s_%s" % (ip, script, pid)
-        if is_locked(ttl_coll, code, 'html'):
-            return None
+def register_html_accesses(ratchet_queue, script, pid, date, ip):
 
     if script == "sci_serial":
         ratchet_queue.register_journal_access(pid, date)

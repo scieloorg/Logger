@@ -575,6 +575,20 @@ class AccessCheckerTests(MockerTestCase):
 
         self.assertEqual(ac.parsed_access(line), None)
 
+    def test_parsed_access_invalid_article_access_without_query_string(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        self.assertEqual(ac.parsed_access(line), None)
+
     def test_parsed_access_valid_pdf_access(self):
         accesschecker = self.mocker.patch(AccessChecker)
         accesschecker._allowed_collections()

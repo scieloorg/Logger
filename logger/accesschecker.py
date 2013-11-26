@@ -29,16 +29,17 @@ REGEX_FBPE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$")
 
 class AccessChecker(object):
 
-    def __init__(self, collection=None):
+    def __init__(self, collection=None, counter_compliant=False):
         self._parser = apachelog.parser(APACHE_LOG_FORMAT)
         allowed_collections = self._allowed_collections()
-        
+
         if not collection in allowed_collections:
-            raise ValueError('Invalid collection id, you must select one of these %s' % str(allowed_collections)) 
+            raise ValueError('Invalid collection id ({0}), you must select one of these {1}'.format(collection, str(allowed_collections)))
 
         self.collection = collection
         self.acronym_to_issn_dict = self._acronym_to_issn_dict()
         self.allowed_issns = set([v for k,v in self.acronym_to_issn_dict.items()])
+        
 
     def _allowed_collections(self):        
         allowed_collections = []
@@ -177,7 +178,15 @@ class AccessChecker(object):
 
         return data
 
+    def is_robot(self, raw_line):
+        for robot in COMPILED_ROBOTS:
+            if robot.search(raw_line):
+                return True
+
     def parsed_access(self, raw_line):
+
+        if self.is_robot(raw_line):
+            return None
 
         parsed_line = self._parse_line(raw_line)
 
@@ -201,7 +210,10 @@ class AccessChecker(object):
 
         if data['access_type'] == u'HTML': 
 
-            if not 'script' in data['query_string'] and not 'pid' in data['query_string']:
+            if not data['query_string']:
+                return None
+
+            if not 'script' in data['query_string'] or not 'pid' in data['query_string']:
                 return None
 
             if not self._is_valid_html_request(data['query_string']['script'], data['query_string']['pid']):
