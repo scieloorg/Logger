@@ -109,17 +109,9 @@ class AccessChecker(object):
         """
 
         try:
-            dt = access_date[1:12].split('/')
-            day = int(dt[0])
-            month = int(MONTH_DICT[dt[1].upper()])
-            year = int(dt[2])
-        except ValueError:
+            return datetime.datetime.strptime(access_date[1:21], '%d/%b/%Y:%H:%M:%S')
+        except:
             return None
-        except KeyError:
-            return None
-
-
-        return datetime.date(year, month, day).isoformat()
 
     def _pdf_or_html_access(self, get):
         if "GET" in get and ".pdf" in get:
@@ -193,10 +185,16 @@ class AccessChecker(object):
         if not parsed_line:
             return None
 
+        access_date = self._access_date(parsed_line['%t'])
+
+        if not access_date:
+            return None
+
         data = {}
         data['ip'] = parsed_line['%h'].strip()
         data['access_type'] = self._pdf_or_html_access(parsed_line['%r'])
-        data['iso_date'] = self._access_date(parsed_line['%t'])
+        data['iso_date'] = access_date.date().isoformat()
+        data['iso_datetime'] = access_date.isoformat()
         data['query_string'] = self._query_string(parsed_line['%r'])
         data['day'] = data['iso_date'][8:10]
         data['month'] = data['iso_date'][5:7]
@@ -227,3 +225,34 @@ class AccessChecker(object):
             data.update(pdf_request)
 
         return data
+
+def checkdatelock(previous_date=None, next_date=None, locktime=10):
+
+    try:
+        pd = datetime.datetime.strptime(previous_date, '%Y-%m-%dT%H:%M:%S')
+        nd = datetime.datetime.strptime(next_date, '%Y-%m-%dT%H:%M:%S')
+    except ValueError:
+        return None
+
+    delta = nd - pd
+
+    if not delta.total_seconds() <= locktime:
+        return nd
+
+class TimedSet(object):
+    def __init__(self, items=None, expired=None):
+        self.expired = expired or (lambda t0, t1: True)
+        self._items = {}
+
+    def _add_or_update(self, item, dt):
+        match = self._items.get(item, None)
+        return True if match is None else self.expired(match, dt)
+
+    def add(self, item, dt):
+        if self._add_or_update(item, dt):
+            self._items[item] = dt
+        else:
+            raise ValueError('the item stills valid')
+
+    def __contains__(self, item):
+        return item in self._items

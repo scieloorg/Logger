@@ -4,23 +4,6 @@ from pymongo import Connection
 
 from logaccess_config import *
 
-class timedset(object):
-    def __init__(self, items=None, expired=None):
-        self.expired = expired or (lambda t0, t1: True)
-        self._items = {}
- 
-    def _add_or_update(self, item):
-        match = self._items.get(item, None)
-        return True if match is None else self.expired(match, item)
- 
-    def add(self, item):
-        if self._add_or_update(item):
-            self._items[item] = item
-        else:
-            raise ValueError('the item stills valid')
- 
-    def __contains__(self, item):
-        return item in self._items
 
 def get_proc_collection():
     """
@@ -33,6 +16,7 @@ def get_proc_collection():
     coll.ensure_index('file_name')
 
     return coll
+
 
 def get_proc_robots_collection():
     """
@@ -51,10 +35,12 @@ def reg_logfile(coll, file_name):
     coll.insert({'file_name': file_name})
 
 
+
 def log_was_processed(coll, file_name):
 
     if coll.find({'file_name': file_name}).count() > 0:
         return True
+
 
 def get_files_in_logdir(logdir):
     logfiles = os.popen('ls ' + logdir + '/*.log')

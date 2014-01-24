@@ -4,8 +4,23 @@ import urllib2
 
 from mocker import ANY, MockerTestCase
 
-from logger.accesschecker import AccessChecker
+from logger.accesschecker import AccessChecker, TimedSet, checkdatelock
 from . import fixtures
+
+
+class TimedSetTests(MockerTestCase):
+    def test_expiration(self):
+        ts = TimedSet(expired=checkdatelock)
+        ts.add('art1', '2013-05-29T00:01:01')
+        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:01'})
+
+        with self.assertRaises(ValueError):
+            ts.add('art1', '2013-05-29T00:01:05')
+        
+        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:01'})
+
+        ts.add('art1', '2013-05-29T00:01:22')
+        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:22'})
 
 class AccessCheckerTests(MockerTestCase):
 
@@ -219,7 +234,21 @@ class AccessCheckerTests(MockerTestCase):
 
         access_date = u'[30/Dec/2012:23:59:57 -0200]'
 
-        self.assertEqual(ac._access_date(access_date), u'2012-12-30')
+        self.assertEqual(ac._access_date(access_date).date().isoformat(), u'2012-12-30')
+
+    def test_access_datetime(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'bjmbr': u'1234-4321', u'zool': u'1984-4670'})
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        access_date = u'[30/Dec/2012:23:59:57 -0200]'
+
+        self.assertEqual(ac._access_date(access_date).isoformat(), u'2012-12-30T23:59:57')
 
     def test_access_date_with_invalid_month(self):
         accesschecker = self.mocker.patch(AccessChecker)
@@ -537,6 +566,7 @@ class AccessCheckerTests(MockerTestCase):
                         'ip': '187.19.211.179',
                         'access_type': 'HTML',
                         'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
                         'year': '2013',
                         'query_string': {
                             'pid': 'S1234-43212000000300007',
@@ -605,6 +635,7 @@ class AccessCheckerTests(MockerTestCase):
                         'ip': '201.14.120.2',
                         'access_type': 'PDF',
                         'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
                         'year': '2013',
                         'day': '30',
                         'month': '05',

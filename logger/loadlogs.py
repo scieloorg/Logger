@@ -25,6 +25,8 @@ def main(*args, **xargs):
 
             if not parsed_line:
                 continue
+            
+            item = parsed_line['ip']
 
             if parsed_line['access_type'] == "PDF":
                 pdfid = parsed_line['pdf_path']
