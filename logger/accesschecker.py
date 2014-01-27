@@ -1,8 +1,10 @@
+import os
 import urllib2
 import json
 import datetime
 import urlparse
 import re
+
 from logaccess_config import *
 import apachelog
 
@@ -21,11 +23,13 @@ MONTH_DICT = {
     'DEC': '12',
 }
 
-COMPILED_ROBOTS = [re.compile(i.lower()) for i in STOP_WORDS]
+ROBOTS = [i.strip() for i in open('/'.join([os.path.dirname(__file__), ROBOTS_FILE]))]
+COMPILED_ROBOTS = [re.compile(i.lower()) for i in ROBOTS]
 REGEX_ISSN = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]$")
 REGEX_ISSUE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}$")
 REGEX_ARTICLE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}[0-9]{5}$")
 REGEX_FBPE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$")
+
 
 class AccessChecker(object):
 
@@ -206,7 +210,7 @@ class AccessChecker(object):
         if not data['iso_date']:
             return None
 
-        if data['access_type'] == u'HTML': 
+        if data['access_type'] == u'HTML':
 
             if not data['query_string']:
                 return None
@@ -214,17 +218,26 @@ class AccessChecker(object):
             if not 'script' in data['query_string'] or not 'pid' in data['query_string']:
                 return None
 
-            if not self._is_valid_html_request(data['query_string']['script'], data['query_string']['pid']):
+            if not self._is_valid_html_request(data['query_string']['script'],
+                                               data['query_string']['pid']):
                 return None
 
+            data['code'] = data['query_string']['pid']
+            data['script'] = data['query_string']['script']
+
         pdf_request = self._is_valid_pdf_request(parsed_line['%r'])
-        if data['access_type'] == u'PDF': 
+
+        if data['access_type'] == u'PDF':
             if not pdf_request:
                 return None
-        
+
+            data['code'] = pdf_request['pdf_path']
+            data['script'] = ''
+
             data.update(pdf_request)
 
         return data
+
 
 def checkdatelock(previous_date=None, next_date=None, locktime=10):
 
@@ -239,17 +252,18 @@ def checkdatelock(previous_date=None, next_date=None, locktime=10):
     if not delta.total_seconds() <= locktime:
         return nd
 
+
 class TimedSet(object):
     def __init__(self, items=None, expired=None):
-        self.expired = expired or (lambda t0, t1: True)
+        self.expired = expired or (lambda t0, t1, t2: True)
         self._items = {}
 
-    def _add_or_update(self, item, dt):
+    def _add_or_update(self, item, dt, locktime):
         match = self._items.get(item, None)
-        return True if match is None else self.expired(match, dt)
+        return True if match is None else self.expired(match, dt, locktime=locktime)
 
-    def add(self, item, dt):
-        if self._add_or_update(item, dt):
+    def add(self, item, dt, locktime=10):
+        if self._add_or_update(item, dt, locktime):
             self._items[item] = dt
         else:
             raise ValueError('the item stills valid')

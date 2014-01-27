@@ -16,11 +16,25 @@ class TimedSetTests(MockerTestCase):
 
         with self.assertRaises(ValueError):
             ts.add('art1', '2013-05-29T00:01:05')
-        
+
         self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:01'})
 
         ts.add('art1', '2013-05-29T00:01:22')
         self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:22'})
+
+    def test_expiration_custom_timeout(self):
+        ts = TimedSet(expired=checkdatelock)
+        ts.add('art1', '2013-05-29T00:01:01', 30)
+        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:01'})
+
+        with self.assertRaises(ValueError):
+            ts.add('art1', '2013-05-29T00:01:031')
+
+        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:01'})
+
+        ts.add('art1', '2013-05-29T00:01:32')
+        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:32'})
+
 
 class AccessCheckerTests(MockerTestCase):
 
@@ -533,7 +547,7 @@ class AccessCheckerTests(MockerTestCase):
         ac = AccessChecker(collection='scl')
 
         request = u''
-        
+
         self.assertEqual(ac._is_valid_pdf_request(request), None)
 
     def test_pid_is_valid_pdf_request_invalid_request_not_allowed_acronym(self):
@@ -547,7 +561,7 @@ class AccessCheckerTests(MockerTestCase):
         ac = AccessChecker(collection='scl')
 
         request = u'GET http://www.scielo.br/pdf/not_allowed_acronym/v96n2/a18v96n2.xxx HTTP/1.1'
-        
+
         self.assertEqual(ac._is_valid_pdf_request(request), None)
 
     def test_parsed_access_valid_html_access(self):
@@ -564,6 +578,7 @@ class AccessCheckerTests(MockerTestCase):
 
         expected = {
                         'ip': '187.19.211.179',
+                        'code': 'S1234-43212000000300007',
                         'access_type': 'HTML',
                         'iso_date': '2013-05-30',
                         'iso_datetime': '2013-05-30T00:01:01',
@@ -573,6 +588,7 @@ class AccessCheckerTests(MockerTestCase):
                             'script': 'sci_arttext'
                         }, 
                         'day': '30',
+                        'script': 'sci_arttext',
                         'month': '05'
                     }
         self.assertEqual(ac.parsed_access(line), expected)
@@ -633,6 +649,7 @@ class AccessCheckerTests(MockerTestCase):
 
         expected = {
                         'ip': '201.14.120.2',
+                        'code': '/pdf/bjmbr/v14n4/03.pdf',
                         'access_type': 'PDF',
                         'iso_date': '2013-05-30',
                         'iso_datetime': '2013-05-30T00:01:01',
@@ -641,6 +658,7 @@ class AccessCheckerTests(MockerTestCase):
                         'month': '05',
                         'query_string': None,
                         'pdf_issn': u'1234-4321',
+                        'script': '',
                         'pdf_path': '/pdf/bjmbr/v14n4/03.pdf'
                     }
 
