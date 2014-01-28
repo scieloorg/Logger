@@ -42,25 +42,24 @@ class AccessChecker(object):
 
         self.collection = collection
         self.acronym_to_issn_dict = self._acronym_to_issn_dict()
-        self.allowed_issns = set([v for k,v in self.acronym_to_issn_dict.items()])
-        
+        self.allowed_issns = self._allowed_issns(self.acronym_to_issn_dict)
 
-    def _allowed_collections(self):        
+    def _allowed_collections(self):
         allowed_collections = []
         try:
-            json_network = urllib2.urlopen('http://webservices.scielo.org/scieloorg/_design/couchdb/_view/network', timeout=3).read()
+            json_network = urllib2.urlopen('{0}/api/v1/collection'.format(ARTICLE_META_URL), timeout=3).read()
         except urllib2.URLError:
-            raise urllib2.URLError('Was not possible to connect to webservices.scielo.org, try again later!')
+            raise urllib2.URLError('Was not possible to connect to articlemeta api, try again later!')
 
         network = json.loads(json_network)
 
-        for collection in network['rows']:
-            allowed_collections.append(collection['id'])
-        
+        for collection in network:
+            allowed_collections.append(collection['acron'])
+
         return allowed_collections
 
-    def _acronym_to_issn_dict(self):        
-        query_url = 'http://webservices.scielo.org/scieloorg/_design/couchdb/_view/title_collectionstitle_keys?startkey=["%s",{}]&endkey=["%s"]&descending=true&limit=2000&include_docs=true' % (self.collection, self.collection)
+    def _acronym_to_issn_dict(self):
+        query_url = '{0}/api/v1/journal?collection={1}'.format(ARTICLE_META_URL, self.collection)
 
         try:
             titles_json = urllib2.urlopen(query_url, timeout=3).read()
@@ -70,15 +69,19 @@ class AccessChecker(object):
         titles = json.loads(titles_json)
 
         title_dict = {}
-        for title in titles['rows']:
-            title_dict[title['doc']['v68'][0]['_']] = title['doc']['v400'][0]['_']
+        for title in titles:
+            title_dict[title['v68'][0]['_']] = set([title['v400'][0]['_']])
+
+            if 'v935' in title:
+                title_dict[title['v68'][0]['_']].add(title['v935'][0]['_'])
 
         return title_dict
 
     def _allowed_issns(self, acronym_to_issn):
         issns = set()
-        for issn in acronym_to_issn:
-            issns.add(issn)
+        for lst_issn in acronym_to_issn.values():
+            for issn in lst_issn:
+                issns.add(issn)
 
         return issns
 
@@ -90,7 +93,7 @@ class AccessChecker(object):
 
     def _query_string(self, url):
         """
-        Given a request from a access log line in these formats: 
+        Given a request from a access log line in these formats:
             'GET /scielo.php?script=sci_nlinks&ref=000144&pid=S0103-4014200000020001300010&lng=pt HTTP/1.1'
             'GET http://www.scielo.br/scielo.php?script=sci_nlinks&ref=000144&pid=S0103-4014200000020001300010&lng=pt HTTP/1.1'
         The method must retrieve the query_string dictionary.
