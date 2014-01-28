@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
+#Article Meta API
+URL = 'http://localhost:7000'
+
 #Logger Controlling Database MONGODB
 LOGGER_DATABASE_DOMAIN = '127.0.0.1'
 LOGGER_DATABASE_PORT = 27017
-LOGGER_DATABASE_COLLECTION = 'xxx' # Collection identifier
+LOGGER_DATABASE_COLLECTION = 'xxx'  # Collection identifier
 
 #Access Log Database MONGO DB
 RATCHET_DOMAIN = "localhost"
 RATCHET_PORT = 8870
 SITE_DOMAIN = "sitedomain"
 
-LOG_DIR = 'data/logs'
+LOG_DIR = '../data/logs'
 
-STOP_WORDS = ['bot', 'lib', 'yahoo']
+ROBOTS_FILE = 'robots.txt'
 
 APACHE_LOG_FORMAT = r'%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"'
