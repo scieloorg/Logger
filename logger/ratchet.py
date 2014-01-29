@@ -1,9 +1,8 @@
+# coding: utf-8
+
 from logaccess_config import *
-import gevent
-from gevent import monkey
-from gevent.pool import Pool
-monkey.patch_all()
-import urllib2
+import requests
+import datetime
 
 api_url = "http://{0}:{1}/".format(RATCHET_DOMAIN, RATCHET_PORT)
 site_domain = SITE_DOMAIN
@@ -11,19 +10,17 @@ site_domain = SITE_DOMAIN
 
 class RatchetQueue(object):
 
-    def __init__(self, limit=10):
-        self._queue = []
-        self._pool = Pool(limit)
+    def __init__(self, error_log_file=None):
+        self._error_log_file = open(error_log_file or '%s_error.log' % datetime.datetime.today().isoformat()[0:10], 'a')
 
     def _request(self, url):
-        qrs = url.split('?')
-        req = urllib2.Request("{0}".format(qrs[0]), qrs[1])
-        urllib2.urlopen(req)
+        try:
+            x = requests.post(url)
+            x.close()
+        except:
+            self._error_log_file.write("{0}\r\n".format(url))
 
-    def send(self):
-        self._pool.join()
-
-    def add_url(self, **kwargs):
+    def _prepare_url(self, **kwargs):
 
         qs = []
         if 'code' in kwargs:
@@ -35,6 +32,9 @@ class RatchetQueue(object):
         if 'page' in kwargs:
             qs.append("page={0}".format(kwargs['page']))
 
+        if 'type_doc' in kwargs:
+            qs.append("type_doc={0}".format(kwargs['type_doc']))
+
         if 'journal' in kwargs:
             qs.append("journal={0}".format(kwargs['journal']))
 
@@ -44,75 +44,73 @@ class RatchetQueue(object):
         qrs = "&".join(qs)
         url = "{0}api/v1/{1}?{2}".format(api_url, kwargs['endpoint'], qrs)
 
-        self._pool.spawn(self._request, url)
+        self._request(url)
 
     def register_download_access(self, code, issn, access_date):
         page = 'download'
         # Register PDF direct download access
-        self.add_url(endpoint='general', code=code, access_date=access_date)
+        self._prepare_url(endpoint='general', code=code, access_date=access_date, page=page, type_doc='download')
         # Register PDF direct download access for a specific journal register
-        self.add_url(endpoint='general', code=issn, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=issn, access_date=access_date, page=page, type_doc='journal')
         # Register PDF direct download access for a collection register
-        self.add_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
 
     def register_journal_access(self, code, access_date):
         page = 'journal'
-        # Register access for a specific journal
-        self.add_url(endpoint='journal', code=code, access_date=access_date)
         # Register access for journal page
-        self.add_url(endpoint='general', code=code, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=code, access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_serial
-        self.add_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
 
     def register_article_access(self, code, access_date):
         page = 'fulltext'
         # Register access for a specific article
-        self.add_url(endpoint='article', code=code, access_date=access_date, journal=code[0:9], issue=code[0:17])
+        self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[0:9], issue=code[0:17], page=page, type_doc='article')
         # Register access inside journal record for page sci_arttext
-        self.add_url(endpoint='general', code=code[0:9], access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_arttext
-        self.add_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
 
     def register_abstract_access(self, code, access_date):
         page = 'abstract'
         # Register access for a specific article
-        self.add_url(endpoint='article', code=code, access_date=access_date, journal=code[0:9], issue=code[0:17])
+        self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[0:9], issue=code[0:17], page=page, type_doc='article')
         # Register access inside journal record for page sci_abstract
-        self.add_url(endpoint='general', code=code[0:9], access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_abstract
-        self.add_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
 
     def register_pdf_access(self, code, access_date):
         page = 'pdf'
         # Register access for a specific article
-        self.add_url(endpoint='pdf', code=code, access_date=access_date, journal=code[0:9], issue=code[0:17])
+        self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[0:9], issue=code[0:17], page=page, type_doc='article')
         # Register access inside journal record for page pdf
-        self.add_url(endpoint='general', code=code[0:9], access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page pdf
-        self.add_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
 
     def register_toc_access(self, code, access_date):
         page = 'toc'
         # Register access for a specific issue
-        self.add_url(endpoint='issue', code=code, access_date=access_date, journal=code[0:9])
+        self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[0:9], page=page, type_doc='toc')
         # Register access inside journal record for page sci_issuetoc
-        self.add_url(endpoint='general', code=code[0:9], access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_issuetoc
-        self.add_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
 
     def register_home_access(self, code, access_date):
         page = 'home'
         # Register access inside collection record for page sci_home
-        self.add_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
 
     def register_issues_access(self, code, access_date):
         page = 'issues'
         # Register access inside journal record for page issues
-        self.add_url(endpoint='general', code=code[0:9], access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page issues
-        self.add_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
 
     def register_alpha_access(self, code, access_date):
         page = 'alpha'
         # Register access inside collection record for page alphabetic list
-        self.add_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)

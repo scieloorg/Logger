@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import os
 import urllib2
 import json
@@ -171,7 +173,7 @@ class AccessChecker(object):
             return None
 
         try:
-            data['pdf_issn'] = self.acronym_to_issn_dict[data['pdf_path'].split('/')[2]]
+            data['pdf_issn'] = list(self.acronym_to_issn_dict[data['pdf_path'].split('/')[2]])
         except KeyError:
             return None
 

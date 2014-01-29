@@ -1,10 +1,12 @@
 # coding: utf-8
 
 import urllib2
+import datetime
 
 from mocker import ANY, MockerTestCase
 
 from logger.accesschecker import AccessChecker, TimedSet, checkdatelock
+from logger.ratchet import RatchetQueue
 from . import fixtures
 
 
@@ -34,6 +36,23 @@ class TimedSetTests(MockerTestCase):
 
         ts.add('art1', '2013-05-29T00:01:32')
         self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:32'})
+
+
+class AccessQueueTests(MockerTestCase):
+
+    def test_instanciating_accessqueue_without_logfile(self):
+
+        rq = RatchetQueue()
+
+        expected = '%s_error.log' % datetime.datetime.today().isoformat()[0:10]
+
+        self.assertEqual(rq._error_log_file.name, expected)
+
+    def test_instanciating_accessqueue_logfile(self):
+
+        rq = RatchetQueue(error_log_file='test.log')
+
+        self.assertEqual(rq._error_log_file.name, 'test.log')
 
 
 class AccessCheckerTests(MockerTestCase):
@@ -494,7 +513,7 @@ class AccessCheckerTests(MockerTestCase):
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
-        
+
         self.assertEqual(ac._is_valid_html_request('sci_serial', '1414-431X'), True)
 
     def test_pid_is_valid_script_sci_issuetoc_valid_pid(self):
@@ -506,7 +525,7 @@ class AccessCheckerTests(MockerTestCase):
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
-        
+
         self.assertEqual(ac._is_valid_html_request('sci_issuetoc', '1414-431X20120001'), True)
 
     def test_pid_is_valid_script_sci_issuetoc_invalid_pid(self):
@@ -518,9 +537,8 @@ class AccessCheckerTests(MockerTestCase):
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
-        
-        self.assertEqual(ac._is_valid_html_request('sci_issuetoc', '1234432120120001'), None)
 
+        self.assertEqual(ac._is_valid_html_request('sci_issuetoc', '1234432120120001'), None)
 
     def test_pid_is_valid_script_sci_issues_valid_pid(self):
         accesschecker = self.mocker.patch(AccessChecker)
@@ -531,7 +549,6 @@ class AccessCheckerTests(MockerTestCase):
         self.mocker.replay()
 
         ac = AccessChecker(collection='scl')
-        
         self.assertEqual(ac._is_valid_html_request('sci_issues', '1414-431X'), True)
 
     def test_pid_is_valid_pdf_request(self):
@@ -545,8 +562,8 @@ class AccessCheckerTests(MockerTestCase):
         ac = AccessChecker(collection='scl')
 
         request = u'GET http://www.scielo.br/pdf/zool/v96n2/a18v96n2.pdf HTTP/1.1'
-        
-        self.assertEqual(ac._is_valid_pdf_request(request), {'pdf_issn': set([u'1984-4670']), 'pdf_path': u'/pdf/zool/v96n2/a18v96n2.pdf'})
+
+        self.assertEqual(ac._is_valid_pdf_request(request), {'pdf_issn': [u'1984-4670'], 'pdf_path': u'/pdf/zool/v96n2/a18v96n2.pdf'})
 
     def test_pid_is_valid_pdf_request_empty_file_path(self):
         accesschecker = self.mocker.patch(AccessChecker)
@@ -670,7 +687,7 @@ class AccessCheckerTests(MockerTestCase):
                         'day': '30',
                         'month': '05',
                         'query_string': None,
-                        'pdf_issn': set([u'0100-879X', u'1414-431X']),
+                        'pdf_issn': [u'1414-431X', u'0100-879X'],
                         'script': '',
                         'pdf_path': '/pdf/bjmbr/v14n4/03.pdf'
                     }
