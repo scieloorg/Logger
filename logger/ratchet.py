@@ -7,8 +7,9 @@ import datetime
 
 class RatchetQueue(object):
 
-    def __init__(self, api_url, error_log_file):
-        self._error_log_file = open(error_log_file or '%s_error.log' % datetime.datetime.today().isoformat()[0:10], 'a')
+    def __init__(self, api_url, error_log_file=None):
+        error_log_file = error_log_file or '%s_error.log' % datetime.datetime.today().isoformat()[0:10]
+        self._error_log_file = open(error_log_file, 'a')
         self._api_url = api_url
 
     def _request(self, url):

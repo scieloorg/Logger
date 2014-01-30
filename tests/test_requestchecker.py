@@ -42,7 +42,7 @@ class AccessQueueTests(MockerTestCase):
 
     def test_instanciating_accessqueue_without_logfile(self):
 
-        rq = RatchetQueue()
+        rq = RatchetQueue('localhost:8000')
 
         expected = '%s_error.log' % datetime.datetime.today().isoformat()[0:10]
 
@@ -50,7 +50,7 @@ class AccessQueueTests(MockerTestCase):
 
     def test_instanciating_accessqueue_logfile(self):
 
-        rq = RatchetQueue(error_log_file='test.log')
+        rq = RatchetQueue('localhost:8000', error_log_file='test.log')
 
         self.assertEqual(rq._error_log_file.name, 'test.log')
 
