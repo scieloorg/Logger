@@ -4,18 +4,16 @@ from logaccess_config import *
 import requests
 import datetime
 
-api_url = "http://{0}:{1}/".format(RATCHET_DOMAIN, RATCHET_PORT)
-site_domain = SITE_DOMAIN
-
 
 class RatchetQueue(object):
 
-    def __init__(self, error_log_file=None):
+    def __init__(self, api_url, error_log_file):
         self._error_log_file = open(error_log_file or '%s_error.log' % datetime.datetime.today().isoformat()[0:10], 'a')
+        self._api_url = api_url
 
     def _request(self, url):
         try:
-            x = requests.post(url)
+            x = requests.post('http://'+url)
             x.close()
         except:
             self._error_log_file.write("{0}\r\n".format(url))
@@ -42,7 +40,7 @@ class RatchetQueue(object):
             qs.append("issue={0}".format(kwargs['issue']))
 
         qrs = "&".join(qs)
-        url = "{0}api/v1/{1}?{2}".format(api_url, kwargs['endpoint'], qrs)
+        url = "{0}/api/v1/{1}?{2}".format(self._api_url, kwargs['endpoint'], qrs)
 
         self._request(url)
 
@@ -53,14 +51,14 @@ class RatchetQueue(object):
         # Register PDF direct download access for a specific journal register
         self._prepare_url(endpoint='general', code=issn, access_date=access_date, page=page, type_doc='journal')
         # Register PDF direct download access for a collection register
-        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code='website', access_date=access_date, page=page)
 
     def register_journal_access(self, code, access_date):
         page = 'journal'
         # Register access for journal page
         self._prepare_url(endpoint='general', code=code, access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_serial
-        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code='website', access_date=access_date, page=page)
 
     def register_article_access(self, code, access_date):
         page = 'fulltext'
@@ -69,7 +67,7 @@ class RatchetQueue(object):
         # Register access inside journal record for page sci_arttext
         self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_arttext
-        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code='website', access_date=access_date, page=page)
 
     def register_abstract_access(self, code, access_date):
         page = 'abstract'
@@ -78,7 +76,7 @@ class RatchetQueue(object):
         # Register access inside journal record for page sci_abstract
         self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_abstract
-        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code='website', access_date=access_date, page=page)
 
     def register_pdf_access(self, code, access_date):
         page = 'pdf'
@@ -87,7 +85,7 @@ class RatchetQueue(object):
         # Register access inside journal record for page pdf
         self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page pdf
-        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code='website', access_date=access_date, page=page)
 
     def register_toc_access(self, code, access_date):
         page = 'toc'
@@ -96,21 +94,21 @@ class RatchetQueue(object):
         # Register access inside journal record for page sci_issuetoc
         self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_issuetoc
-        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code='website', access_date=access_date, page=page)
 
     def register_home_access(self, code, access_date):
         page = 'home'
         # Register access inside collection record for page sci_home
-        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code='website', access_date=access_date, page=page)
 
     def register_issues_access(self, code, access_date):
         page = 'issues'
         # Register access inside journal record for page issues
         self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page issues
-        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code='website', access_date=access_date, page=page)
 
     def register_alpha_access(self, code, access_date):
         page = 'alpha'
         # Register access inside collection record for page alphabetic list
-        self._prepare_url(endpoint='general', code=site_domain, access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code='website', access_date=access_date, page=page)

@@ -2,11 +2,13 @@
 # coding: utf-8
 import os
 import argparse
+import requests
 
 from pymongo import Connection
 
 from ratchet import *
 from accesschecker import AccessChecker, TimedSet, checkdatelock
+
 
 def get_proc_collection():
     """
@@ -58,11 +60,67 @@ def register_html_accesses(ratchet_queue, script, pid, date, ip):
         ratchet_queue.register_alpha_access(pid, date)
 
 
+def ratchet_is_working(url):
+
+    try:
+        response = requests.get('http://'+url)
+    except:
+        return None
+
+    if not response.text == 'Another Ratchet Local Resource':
+        return None
+
+    return True
+
+
+def are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
+
+    if ratchet_api_counter_url.strip() == ratchet_api_url.strip():
+        return None
+
+    if not ratchet_is_working(ratchet_api_counter_url):
+        return None
+
+    if not ratchet_is_working(ratchet_api_url):
+        return None
+
+    return True
+
+
 def main(*args, **xargs):
+    error_log_file = xargs['error_log_file']
+    ratchet_api_counter_url = xargs['ratchet_api_counter_url']
+    ratchet_api_url = xargs['ratchet_api_url']
+
+    if not are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
+        print "Error: Check the Ratchet api urls for TTL and Normal access."
+        return None
+
     ts = TimedSet(expired=checkdatelock)
     ac = AccessChecker(xargs['collection'])
+
     proc_coll = get_proc_collection()
     proc_robots_coll = get_proc_robots_collection()
+
+    def register_access(parsed_line, rq):
+
+        if parsed_line['access_type'] == "PDF":
+            pdfid = parsed_line['pdf_path']
+            issn = parsed_line['pdf_issn']
+            register_pdf_download_accesses(rq,
+                                           issn,
+                                           pdfid,
+                                           parsed_line['iso_date'],
+                                           parsed_line['ip'])
+
+        if parsed_line['access_type'] == "HTML":
+            script = parsed_line['query_string']['script']
+            pid = parsed_line['query_string']['pid']
+            register_html_accesses(rq,
+                                   script,
+                                   pid,
+                                   parsed_line['iso_date'],
+                                   parsed_line['ip'])
 
     for logfile in os.popen('ls %s/*' % LOG_DIR):
 
@@ -77,51 +135,44 @@ def main(*args, **xargs):
         proc_coll.insert({'file_name': logfile})
 
         with open(logfile, 'rb') as f:
-            rq = RatchetQueue(error_log_file=xargs['error_log_file'])
+            if ratchet_api_url:
+                rq_all = RatchetQueue(ratchet_api_url, xargs['error_log_file'])
+
+            if ratchet_api_counter_url:
+                rq_ttl = RatchetQueue(ratchet_api_counter_url, xargs['error_log_file'])
+
             for raw_line in f:
                 parsed_line = ac.parsed_access(raw_line)
 
                 if not parsed_line:
                     continue
 
-                locktime = 10
-                if parsed_line['access_type'] == "PDF":
-                    locktime = 30
+                if ratchet_api_url:
+                    register_access(parsed_line, rq_all)
 
-                if xargs['ttl']:
+                if ratchet_api_counter_url:
+                    locktime = 10
+                    if parsed_line['access_type'] == "PDF":
+                        locktime = 30
                     try:
                         lockid = parsed_line['code']+parsed_line['script']
-                        ts.add(lockid,
-                               parsed_line['iso_datetime'], locktime)
+                        ts.add(lockid, parsed_line['iso_datetime'], locktime)
+                        register_access(parsed_line, rq_ttl)
                     except ValueError:
                         continue
 
-                if parsed_line['access_type'] == "PDF":
-                    pdfid = parsed_line['pdf_path']
-                    issn = parsed_line['pdf_issn']
-                    register_pdf_download_accesses(rq,
-                                                   issn,
-                                                   pdfid,
-                                                   parsed_line['iso_date'],
-                                                   parsed_line['ip'])
-
-                if parsed_line['access_type'] == "HTML":
-                    script = parsed_line['query_string']['script']
-                    pid = parsed_line['query_string']['pid']
-                    register_html_accesses(rq,
-                                           script,
-                                           pid,
-                                           parsed_line['iso_date'],
-                                           parsed_line['ip'])
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Run the processing to read the access log files and register accesses into Ratchet")
     parser.add_argument('-t',
                         '--ttl',
-                        action='store_true',
-                        default=False,
-                        help='Indicates if the processing will use a lock controller to control the acccesses according to Counter Project')
+                        default=None,
+                        help='Ratchet API URL (localhost:8081) to register accesses according to Counter rules.')
+    parser.add_argument('-r',
+                        '--ratchet_api_url',
+                        default=None,
+                        help='Ratchet API URL (localhost:8080) to register accesses.')
     parser.add_argument('-c',
                         '--collection',
                         default=None,
@@ -132,6 +183,7 @@ if __name__ == '__main__':
                         help='error log filename')
     args = parser.parse_args()
 
-    main(ttl=bool(args.ttl),
+    main(ratchet_api_counter_url=args.ttl,
+         ratchet_api_url=args.ratchet_api_url,
          collection=args.collection,
          error_log_file=args.error_log_file)
