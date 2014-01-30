@@ -174,7 +174,7 @@ class AccessChecker(object):
 
         try:
             data['pdf_issn'] = list(self.acronym_to_issn_dict[data['pdf_path'].split('/')[2]])
-        except KeyError:
+        except (KeyError, IndexError):
             return None
 
         return data

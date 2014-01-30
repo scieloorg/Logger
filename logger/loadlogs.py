@@ -133,5 +133,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(ttl=bool(args.ttl),
-         collection=str(args.collection),
-         error_log_file=str(args.error_log_file))
+         collection=args.collection,
+         error_log_file=args.error_log_file)
