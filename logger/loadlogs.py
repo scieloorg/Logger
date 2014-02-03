@@ -155,7 +155,9 @@ def main(*args, **xargs):
                     if parsed_line['access_type'] == "PDF":
                         locktime = 30
                     try:
-                        lockid = parsed_line['code']+parsed_line['script']
+                        lockid = '_'.join([parsed_line['ip'],
+                                           parsed_line['code'],
+                                           parsed_line['script']])
                         ts.add(lockid, parsed_line['iso_datetime'], locktime)
                         register_access(parsed_line, rq_ttl)
                     except ValueError:
