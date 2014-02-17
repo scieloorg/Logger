@@ -61,6 +61,10 @@ class AccessChecker(object):
         return allowed_collections
 
     def _acronym_to_issn_dict(self):
+        """
+        Create a acronym dictionay with valid issns. The issn's are the issn's
+        used as id in the SciELO Website.
+        """
         query_url = '{0}/api/v1/journal?collection={1}'.format(ARTICLE_META_URL, self.collection)
 
         try:
@@ -72,18 +76,14 @@ class AccessChecker(object):
 
         title_dict = {}
         for title in titles:
-            title_dict[title['v68'][0]['_']] = set([title['v400'][0]['_']])
-
-            if 'v935' in title:
-                title_dict[title['v68'][0]['_']].add(title['v935'][0]['_'])
+            title_dict[title['v68'][0]['_']] = title['v400'][0]['_']
 
         return title_dict
 
     def _allowed_issns(self, acronym_to_issn):
-        issns = set()
-        for lst_issn in acronym_to_issn.values():
-            for issn in lst_issn:
-                issns.add(issn)
+        issns = []
+        for issn in acronym_to_issn.values():
+            issns.append(issn)
 
         return issns
 
@@ -133,7 +133,7 @@ class AccessChecker(object):
 
     def _is_valid_html_request(self, script, pid):
 
-        pid = pid.upper().replace('S','')
+        pid = pid.upper().replace('S', '')
 
         if not pid[0:9] in self.allowed_issns:
             return None
@@ -173,25 +173,25 @@ class AccessChecker(object):
             return None
 
         try:
-            data['pdf_issn'] = list(self.acronym_to_issn_dict[data['pdf_path'].split('/')[2]])
+            data['pdf_issn'] = self.acronym_to_issn_dict[data['pdf_path'].split('/')[2]]
         except (KeyError, IndexError):
             return None
 
         return data
 
-    def is_robot(self, raw_line):
+    def is_robot(self, user_agent):
         for robot in COMPILED_ROBOTS:
-            if robot.search(raw_line):
+            if robot.search(user_agent):
                 return True
 
     def parsed_access(self, raw_line):
 
-        if self.is_robot(raw_line):
-            return None
-
         parsed_line = self._parse_line(raw_line)
 
         if not parsed_line:
+            return None
+
+        if self.is_robot(parsed_line['%{User-Agent}i']):
             return None
 
         access_date = self._access_date(parsed_line['%t'])
@@ -236,7 +236,7 @@ class AccessChecker(object):
             if not pdf_request:
                 return None
 
-            data['code'] = pdf_request['pdf_path']
+            data['code'] = pdf_request['pdf_path'].lower()
             data['script'] = ''
 
             data.update(pdf_request)

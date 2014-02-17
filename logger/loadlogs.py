@@ -37,13 +37,14 @@ def get_proc_robots_collection():
 
 
 def register_pdf_download_accesses(ratchet_queue, issn, pdfid, date, ip):
-    ratchet_queue.register_download_access(pdfid, ','.join(issn), date)
+
+    ratchet_queue.register_download_access(pdfid, issn, date)
 
 
 def register_html_accesses(ratchet_queue, script, pid, date, ip):
 
     if script == "sci_serial":
-        ratchet_queue.register_journal_access(','.join(pid), date)
+        ratchet_queue.register_journal_access(pid, date)
     elif script == "sci_abstract":
         ratchet_queue.register_abstract_access(pid, date)
     elif script == "sci_issuetoc":
@@ -75,13 +76,13 @@ def ratchet_is_working(url):
 
 def are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
 
-    if ratchet_api_counter_url.strip() == ratchet_api_url.strip():
+    if ratchet_api_counter_url == ratchet_api_url:
         return None
 
-    if not ratchet_is_working(ratchet_api_counter_url):
+    if ratchet_api_counter_url and not ratchet_is_working(ratchet_api_counter_url):
         return None
 
-    if not ratchet_is_working(ratchet_api_url):
+    if ratchet_api_url and not ratchet_is_working(ratchet_api_url):
         return None
 
     return True
