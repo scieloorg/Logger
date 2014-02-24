@@ -184,6 +184,8 @@ class AccessChecker(object):
             if robot.search(user_agent):
                 return True
 
+        return False
+
     def parsed_access(self, raw_line):
 
         parsed_line = self._parse_line(raw_line)

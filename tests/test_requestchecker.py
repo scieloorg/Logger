@@ -156,6 +156,81 @@ class AccessCheckerTests(MockerTestCase):
 
         self.assertEqual(AccessChecker(collection='scl').allowed_issns, [u'1984-4670', u'0100-879X'])
 
+    def test_is_bot_GoogleBot_sample(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '66.249.75.131 - - [24/Dec/2013:04:49:09 -0200] "GET http://www.scielo.br/scielo.php?script=sci_arttext&pid=S0102-79722002000200013 HTTP/1.1" 200 102967 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"'
+        
+        self.assertEqual(ac.parsed_access(line), None)
+
+    def test_is_bot_Bing_sample(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '13245  157.56.92.164 - - [30/Nov/2013:03:53:26 -0200] "GET http://www.scielo.br/scielo.php?script=sci_arttext&pid=S0104-87752010000200013 HTTP/1.1" 200 108777 "-" "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"'
+        
+        self.assertEqual(ac.parsed_access(line), None)
+
+    def test_is_bot_Spider_sample(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '180.76.5.118 - - [24/Dec/2013:04:49:09 -0200] "GET http://www.scielo.br/pdf/csc/v11n2/30434.pdf HTTP/1.1" 200 79618 "-" "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)"'
+        
+        self.assertEqual(ac.parsed_access(line), None)
+
+    def test_is_bot_method_with_bot_agent(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        agent = '"Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)"'
+
+        self.assertEqual(ac.is_robot(agent), True)
+
+    def test_is_bot_method_with_common_user_agent(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        agent = '"Mozilla/5.0 (Windows NT 5.1; rv:26.0) Gecko/20100101 Firefox/26.0"'
+
+        self.assertEqual(ac.is_robot(agent), False)
+
     def test_pdf_or_html_access_for_html(self):
         accesschecker = self.mocker.patch(AccessChecker)
         accesschecker._allowed_collections()
