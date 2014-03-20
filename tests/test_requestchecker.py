@@ -665,6 +665,21 @@ class AccessCheckerTests(MockerTestCase):
 
         self.assertEqual(ac._is_valid_pdf_request(request), {'pdf_issn': u'1984-4670', 'pdf_path': u'/pdf/zool/v96n2/a18v96n2.pdf'})
 
+    def test_pid_is_valid_pdf_request_GET_without_domain(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        request = u'GET /pdf/zool/v29n4/18781.pdf HTTP/1.1'
+
+        self.assertEqual(ac._is_valid_pdf_request(request), {'pdf_issn': u'1984-4670', 'pdf_path': u'/pdf/zool/v29n4/18781.pdf'})
+
     def test_pid_is_valid_pdf_request_empty_file_path(self):
         accesschecker = self.mocker.patch(AccessChecker)
         accesschecker._allowed_collections()
@@ -770,6 +785,37 @@ class AccessCheckerTests(MockerTestCase):
         line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
         self.assertEqual(ac.parsed_access(line), None)
+
+    def test_parsed_access_valid_pdf_access_GET_string_without_domain(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '66.249.73.80 - - [30/May/2013:00:01:01 -0300] "GET /pdf/bjmbr/v29n4/18781.pdf HTTP/1.1" 200 32061 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = {
+                        'ip': '66.249.73.80',
+                        'code': '/pdf/bjmbr/v29n4/18781.pdf',
+                        'access_type': 'PDF',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'day': '30',
+                        'month': '05',
+                        'query_string': None,
+                        'pdf_issn': u'1414-431X',
+                        'script': '',
+                        'pdf_path': '/pdf/bjmbr/v29n4/18781.pdf'
+                    }
+
+        self.assertEqual(ac.parsed_access(line), expected)
+
 
     def test_parsed_access_valid_pdf_access(self):
         accesschecker = self.mocker.patch(AccessChecker)
