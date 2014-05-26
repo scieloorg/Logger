@@ -92,6 +92,7 @@ def main(*args, **xargs):
     error_log_file = xargs['error_log_file']
     ratchet_api_counter_url = xargs['ratchet_api_counter_url']
     ratchet_api_url = xargs['ratchet_api_url']
+    ratchet_api_manager_token = xargs['ratchet_api_manager_token']
 
     if not are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
         print "Error: Check the Ratchet api urls for TTL and Normal access."
@@ -137,10 +138,18 @@ def main(*args, **xargs):
 
         with open(logfile, 'rb') as f:
             if ratchet_api_url:
-                rq_all = RatchetQueue(ratchet_api_url, xargs['error_log_file'])
+                rq_all = RatchetQueue(
+                    ratchet_api_url,
+                    manager_token=ratchet_api_manager_token,
+                    error_log_file=error_log_file
+                )
 
             if ratchet_api_counter_url:
-                rq_ttl = RatchetQueue(ratchet_api_counter_url, xargs['error_log_file'])
+                rq_ttl = RatchetQueue(
+                    ratchet_api_counter_url,
+                    manager_token=ratchet_api_manager_token,
+                    error_log_file=error_log_file
+                )
 
             for raw_line in f:
                 parsed_line = ac.parsed_access(raw_line)
@@ -176,6 +185,10 @@ if __name__ == '__main__':
                         '--ratchet_api_url',
                         default=None,
                         help='Ratchet API URL (localhost:8080) to register accesses.')
+    parser.add_argument('-a',
+                        '--ratchet_api_manager_token',
+                        default=None,
+                        help='Ratchet API Manager Token.')
     parser.add_argument('-c',
                         '--collection',
                         default=None,
@@ -188,5 +201,6 @@ if __name__ == '__main__':
 
     main(ratchet_api_counter_url=args.ttl,
          ratchet_api_url=args.ratchet_api_url,
+         ratchet_api_manager_token=args.ratchet_api_manager_token,
          collection=args.collection,
          error_log_file=args.error_log_file)

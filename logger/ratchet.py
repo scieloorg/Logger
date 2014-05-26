@@ -7,10 +7,11 @@ import datetime
 
 class RatchetQueue(object):
 
-    def __init__(self, api_url, error_log_file=None):
+    def __init__(self, api_url, manager_token='', error_log_file=None):
         error_log_file = error_log_file or '%s_error.log' % datetime.datetime.today().isoformat()[0:10]
         self._error_log_file = open(error_log_file, 'a')
         self._api_url = api_url
+        self._manager_token = manager_token
 
     def _request(self, url):
         try:
@@ -21,7 +22,7 @@ class RatchetQueue(object):
 
     def _prepare_url(self, **kwargs):
 
-        qs = []
+        qs = ['api_token=%s' % self._manager_token]
         if 'code' in kwargs:
             qs.append("code={0}".format(kwargs['code']))
 
