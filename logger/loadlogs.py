@@ -68,7 +68,7 @@ def ratchet_is_working(url):
     except:
         return None
 
-    if not response.text == 'Another Ratchet Local Resource':
+    if not response.text == 'Ratchet API':
         return None
 
     return True
