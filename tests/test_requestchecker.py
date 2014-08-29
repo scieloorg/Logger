@@ -480,7 +480,7 @@ class AccessCheckerTests(MockerTestCase):
 
         ac = AccessChecker(collection='scl')
 
-        self.assertEqual(ac._is_valid_html_request('sci_arttext', 'XXXX-XXXX2012000100001'), None)
+        self.assertEqual(ac._is_valid_html_request('sci_arttext', 'XXXX-XXXX2012000100001'), False)
 
     def test_pid_is_valid_script_sci_arttext_invalid_pid(self):
         accesschecker = self.mocker.patch(AccessChecker)
@@ -493,7 +493,7 @@ class AccessCheckerTests(MockerTestCase):
 
         ac = AccessChecker(collection='scl')
 
-        self.assertEqual(ac._is_valid_html_request('sci_arttext', '123443212012000100001'), None)
+        self.assertEqual(ac._is_valid_html_request('sci_arttext', '123443212012000100001'), False)
 
     def test_pid_is_valid_script_sci_arttext_valid_pid(self):
         accesschecker = self.mocker.patch(AccessChecker)
@@ -532,7 +532,7 @@ class AccessCheckerTests(MockerTestCase):
 
         ac = AccessChecker(collection='scl')
 
-        self.assertEqual(ac._is_valid_html_request('sci_abstract', '1414-431X201200100001'), None)
+        self.assertEqual(ac._is_valid_html_request('sci_abstract', '1414-431X201200100001'), False)
 
     def test_pid_is_valid_script_sci_abstract_valid_pid(self):
         accesschecker = self.mocker.patch(AccessChecker)
@@ -571,7 +571,7 @@ class AccessCheckerTests(MockerTestCase):
 
         ac = AccessChecker(collection='scl')
 
-        self.assertEqual(ac._is_valid_html_request('sci_pdf', '1414-431X9012000100001'), None)
+        self.assertEqual(ac._is_valid_html_request('sci_pdf', '1414-431X9012000100001'), False)
 
     def test_pid_is_valid_script_sci_pdf_valid_pid(self):
         accesschecker = self.mocker.patch(AccessChecker)
@@ -636,7 +636,7 @@ class AccessCheckerTests(MockerTestCase):
 
         ac = AccessChecker(collection='scl')
 
-        self.assertEqual(ac._is_valid_html_request('sci_issuetoc', '1234432120120001'), None)
+        self.assertEqual(ac._is_valid_html_request('sci_issuetoc', '1234432120120001'), False)
 
     def test_pid_is_valid_script_sci_issues_valid_pid(self):
         accesschecker = self.mocker.patch(AccessChecker)
