@@ -47,7 +47,7 @@ class RatchetQueue(object):
         self._request(url)
 
     def register_download_access(self, code, issn, access_date):
-        page = 'download'
+        page = 'pdf'
         code = code.upper()
         issn = issn.upper()
         # Register PDF direct download access
@@ -66,10 +66,12 @@ class RatchetQueue(object):
         self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
 
     def register_article_access(self, code, access_date):
-        page = 'fulltext'
+        page = 'html'
         code = code.upper()
         # Register access for a specific article
         self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[1:10], issue=code[1:18], page=page, type_doc='article')
+        # Register access inside toc record for page sci_arttext
+        self._prepare_url(endpoint='general', code=code[1:18], access_date=access_date, page=page, type_doc='toc')
         # Register access inside journal record for page sci_arttext
         self._prepare_url(endpoint='general', code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_arttext
@@ -80,16 +82,20 @@ class RatchetQueue(object):
         code = code.upper()
         # Register access for a specific article
         self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[1:10], issue=code[1:18], page=page, type_doc='article')
+        # Register access inside toc record for page sci_abstract
+        self._prepare_url(endpoint='general', code=code[1:18], access_date=access_date, page=page, type_doc='toc')
         # Register access inside journal record for page sci_abstract
         self._prepare_url(endpoint='general', code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_abstract
         self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
 
     def register_pdf_access(self, code, access_date):
-        page = 'pdf'
+        page = 'other.pdfsite'
         code = code.upper()
         # Register access for a specific article
         self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[1:10], issue=code[1:18], page=page, type_doc='article')
+        # Register access inside toc record for page pdf
+        self._prepare_url(endpoint='general', code=code[1:18], access_date=access_date, page=page, type_doc='toc')
         # Register access inside journal record for page pdf
         self._prepare_url(endpoint='general', code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page pdf
