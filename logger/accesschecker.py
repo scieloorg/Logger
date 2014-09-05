@@ -138,22 +138,22 @@ class AccessChecker(object):
         if not pid[0:9] in self.allowed_issns:
             return False
 
-        if script == u"sci_arttext" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
+        if script == "sci_arttext" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
             return True
 
-        if script == u"sci_abstract" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
+        if script == "sci_abstract" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
             return True
 
-        if script == u"sci_pdf" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
+        if script == "sci_pdf" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
             return True
 
-        if script == u"sci_serial" and REGEX_ISSN.search(pid):
+        if script == "sci_serial" and REGEX_ISSN.search(pid):
             return True
 
-        if script == u"sci_issuetoc" and REGEX_ISSUE.search(pid):
+        if script == "sci_issuetoc" and REGEX_ISSUE.search(pid):
             return True
 
-        if script == u"sci_issues" and REGEX_ISSN.search(pid):
+        if script == "sci_issues" and REGEX_ISSN.search(pid):
             return True
 
         return False
