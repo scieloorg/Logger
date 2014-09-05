@@ -8,11 +8,12 @@ import requests
 from logaccess_config import *
 
 
-class RatchetClient(object):
+class RatchetOneByOne(object):
 
-    def __init__(self, api_url, manager_token='', error_log_file=None):
+    def __init__(self, api_url, collection, manager_token=None, error_log_file=None):
         self._api_url = api_url
-        self._manager_token = manager_token
+        self._manager_token = manager_token or ''
+        self._collection = collection.lower()
 
     def _request(self, url):
         x = requests.post('http://'+url, allow_redirects=False)
@@ -48,9 +49,6 @@ class RatchetClient(object):
 
         self._request(url)
 
-
-class RatchetOneByOne(RatchetClient):
-
     def register_download_access(self, code, issn, access_date):
         page = 'pdf'
         code = code.upper()
@@ -60,7 +58,7 @@ class RatchetOneByOne(RatchetClient):
         # Register PDF direct download access for a specific journal register
         self._prepare_url(endpoint='general', code=issn, access_date=access_date, page=page, type_doc='journal')
         # Register PDF direct download access for a collection register
-        self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
 
     def register_journal_access(self, code, access_date):
         page = 'journal'
@@ -68,7 +66,7 @@ class RatchetOneByOne(RatchetClient):
         # Register access for journal page
         self._prepare_url(endpoint='general', code=code, access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_serial
-        self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
 
     def register_article_access(self, code, access_date):
         page = 'html'
@@ -80,7 +78,7 @@ class RatchetOneByOne(RatchetClient):
         # Register access inside journal record for page sci_arttext
         self._prepare_url(endpoint='general', code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_arttext
-        self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
 
     def register_abstract_access(self, code, access_date):
         page = 'abstract'
@@ -92,7 +90,7 @@ class RatchetOneByOne(RatchetClient):
         # Register access inside journal record for page sci_abstract
         self._prepare_url(endpoint='general', code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_abstract
-        self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
 
     def register_pdf_access(self, code, access_date):
         page = 'other.pdfsite'
@@ -104,7 +102,7 @@ class RatchetOneByOne(RatchetClient):
         # Register access inside journal record for page pdf
         self._prepare_url(endpoint='general', code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page pdf
-        self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
 
     def register_toc_access(self, code, access_date):
         page = 'toc'
@@ -114,13 +112,13 @@ class RatchetOneByOne(RatchetClient):
         # Register access inside journal record for page sci_issuetoc
         self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_issuetoc
-        self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
 
     def register_home_access(self, code, access_date):
         page = 'home'
         code = code.upper()
         # Register access inside collection record for page sci_home
-        self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
 
     def register_issues_access(self, code, access_date):
         page = 'issues'
@@ -128,27 +126,58 @@ class RatchetOneByOne(RatchetClient):
         # Register access inside journal record for page issues
         self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page issues
-        self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
 
     def register_alpha_access(self, code, access_date):
         page = 'alpha'
         code = code.upper()
         # Register access inside collection record for page alphabetic list
-        self._prepare_url(endpoint='general', code='WEBSITE', access_date=access_date, page=page)
+        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
 
 
-class RatchetBulk(RatchetClient):
+class RatchetBulk(object):
 
-    def __init__(self, api_url, manager_token='', error_log_file=None):
+    def __init__(self, api_url, collection, manager_token='', error_log_file=None):
         error_log_file = error_log_file or '%s_error.log' % datetime.datetime.today().isoformat()[0:10]
         self._error_log_file = open(error_log_file, 'a')
         self._api_url = api_url
         self._manager_token = manager_token
         self.bulk_data = {}
+        self._collection = collection
 
-    def send(self):
-        for key, value in self.bulk_data.items():
-            self._prepare_url(endpoint='general/bulk', data=json.dumps(value))
+    def _request(self, url):
+        x = requests.post('http://'+url, allow_redirects=False)
+        x.close()
+        x.connection.close()
+
+    def _prepare_url(self, **kwargs):
+
+        qs = ['api_token=%s' % self._manager_token]
+        if 'code' in kwargs:
+            qs.append("code={0}".format(kwargs['code']))
+
+        if 'access_date' in kwargs:
+            qs.append("access_date={0}".format(kwargs['access_date']))
+
+        if 'page' in kwargs:
+            qs.append("page={0}".format(kwargs['page']))
+
+        if 'type_doc' in kwargs:
+            qs.append("type_doc={0}".format(kwargs['type_doc']))
+
+        if 'journal' in kwargs:
+            qs.append("journal={0}".format(kwargs['journal']))
+
+        if 'issue' in kwargs:
+            qs.append("issue={0}".format(kwargs['issue']))
+
+        if 'data' in kwargs:
+            qs.append("data={0}".format(kwargs['data']))
+
+        qrs = "&".join(qs)
+        url = "{0}/api/v1/{1}?{2}".format(self._api_url, kwargs['endpoint'], qrs)
+
+        self._request(url)
 
     def _load_to_bulk(self, code, access_date, page, issue=None, journal=None, type_doc=None):
         self.bulk_data.setdefault(code, {})
@@ -190,6 +219,10 @@ class RatchetBulk(RatchetClient):
 
         self.bulk_data[code]['total'] += 1
 
+    def send(self):
+        for key, value in self.bulk_data.items():
+            self._prepare_url(endpoint='general/bulk', data=json.dumps(value))
+
     def register_download_access(self, code, issn, access_date):
         page = 'pdf'
         code = code.upper()
@@ -198,7 +231,7 @@ class RatchetBulk(RatchetClient):
         # # Register PDF direct download access for a specific journal register
         self._load_to_bulk(code=issn, access_date=access_date, page=page, type_doc='journal')
         # # Register PDF direct download access for a collection register
-        self._load_to_bulk(code='WEBSITE', access_date=access_date, page=page)
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 
     def register_journal_access(self, code, access_date):
         page = 'journal'
@@ -206,7 +239,7 @@ class RatchetBulk(RatchetClient):
         # Register access for journal page
         self._load_to_bulk(code=code, access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_serial
-        self._load_to_bulk(code='WEBSITE', access_date=access_date, page=page)
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 
     def register_article_access(self, code, access_date):
         page = 'html'
@@ -218,7 +251,7 @@ class RatchetBulk(RatchetClient):
         # Register access inside journal record for page sci_arttext
         self._load_to_bulk(code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_arttext
-        self._load_to_bulk(code='WEBSITE', access_date=access_date, page=page)
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 
     def register_abstract_access(self, code, access_date):
         page = 'abstract'
@@ -230,7 +263,7 @@ class RatchetBulk(RatchetClient):
         # Register access inside journal record for page sci_abstract
         self._load_to_bulk(code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_abstract
-        self._load_to_bulk(code='WEBSITE', access_date=access_date, page=page)
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 
     def register_pdf_access(self, code, access_date):
         page = 'other.pdfsite'
@@ -242,7 +275,7 @@ class RatchetBulk(RatchetClient):
         # Register access inside journal record for page pdf
         self._load_to_bulk(code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page pdf
-        self._load_to_bulk(code='WEBSITE', access_date=access_date, page=page)
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 
     def register_toc_access(self, code, access_date):
         page = 'toc'
@@ -252,13 +285,13 @@ class RatchetBulk(RatchetClient):
         # Register access inside journal record for page sci_issuetoc
         self._load_to_bulk(code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_issuetoc
-        self._load_to_bulk(code='WEBSITE', access_date=access_date, page=page)
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 
     def register_home_access(self, code, access_date):
         page = 'home'
         code = code.upper()
         # Register access inside collection record for page sci_home
-        self._load_to_bulk(code='WEBSITE', access_date=access_date, page=page)
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 
     def register_issues_access(self, code, access_date):
         page = 'issues'
@@ -266,11 +299,11 @@ class RatchetBulk(RatchetClient):
         # Register access inside journal record for page issues
         self._load_to_bulk(code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page issues
-        self._load_to_bulk(code='WEBSITE', access_date=access_date, page=page)
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 
     def register_alpha_access(self, code, access_date):
         page = 'alpha'
         code = code.upper()
         # Register access inside collection record for page alphabetic list
-        self._load_to_bulk(code='WEBSITE', access_date=access_date, page=page)
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 

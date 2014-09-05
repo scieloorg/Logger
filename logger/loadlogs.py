@@ -141,15 +141,15 @@ def onebyone(*args, **xargs):
             if ratchet_api_url:
                 rq_all = RatchetOneByOne(
                     ratchet_api_url,
+                    xargs['collection'],
                     manager_token=ratchet_api_manager_token,
-                    error_log_file=error_log_file
                 )
 
             if ratchet_api_counter_url:
                 rq_ttl = RatchetOneByOne(
                     ratchet_api_counter_url,
+                    xargs['collection'],
                     manager_token=ratchet_api_manager_token,
-                    error_log_file=error_log_file
                 )
 
             for raw_line in f:
@@ -206,15 +206,15 @@ def bulk(*args, **xargs):
         if ratchet_api_url:
             rq_all = RatchetBulk(
                 ratchet_api_url,
-                manager_token=ratchet_api_manager_token,
-                error_log_file=error_log_file
+                xargs['collection'],
+                manager_token=ratchet_api_manager_token
             )
 
         if ratchet_api_counter_url:
             rq_ttl = RatchetBulk(
                 ratchet_api_counter_url,
-                manager_token=ratchet_api_manager_token,
-                error_log_file=error_log_file
+                xargs['collection'],
+                manager_token=ratchet_api_manager_token
             )
 
         with open(logfile, 'rb') as f:
