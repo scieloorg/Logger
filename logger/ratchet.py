@@ -2,7 +2,7 @@
 import json
 import datetime
 import logging
-import sys
+import traceback
 
 import requests
 from requests import exceptions
@@ -37,7 +37,7 @@ def dorequest(url):
                 logging.error('Timeout {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except:
             if attempts > 10:
-                logging.error('Unexpected error: %s' % sys.exec_info()[0])
+                logging.error('Unexpected error: %s' % traceback.format_exc())
 
 
 class RatchetOneByOne(object):
