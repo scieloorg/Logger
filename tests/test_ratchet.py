@@ -20,7 +20,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
-            '/PDF/BJMBR/V14N4/03.PDF', '1414-431X', 'WEBSITE'
+            '/PDF/BJMBR/V14N4/03.PDF', '1414-431X', 'scl'
         ]
 
         self.assertEqual(sorted(self.rb.bulk_data.keys()), expected)
@@ -36,7 +36,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
-            '/PDF/BJMBR/V14N4/03.PDF', '1414-431X', 'WEBSITE'
+            '/PDF/BJMBR/V14N4/03.PDF', '1414-431X', 'scl'
         ]
 
         self.assertEqual(
@@ -44,7 +44,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         self.assertEqual(
-            self.rb.bulk_data['WEBSITE']['total'], 2
+            self.rb.bulk_data['scl']['total'], 2
         )
 
         self.assertEqual(
@@ -90,7 +90,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
-            'code:WEBSITE',
+            'code:scl',
             'pdf.y2013.m05.d29:1',
             'pdf.y2013.m05.d30:1',
             'pdf.y2013.m05.total:2',
@@ -103,7 +103,7 @@ class RatchetBulk(unittest.TestCase):
         ]
 
         self.assertEqual(
-            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['WEBSITE'].items()]), expected
+            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['scl'].items()]), expected
         )
 
     def test_register_download_access_keys_values_pdf(self):
@@ -137,11 +137,11 @@ class RatchetBulk(unittest.TestCase):
     def test_register_alpha_access_keys_values_website(self):
 
         self.rb.register_alpha_access(
-            'WEBSITE', '2013-05-29'
+            'scl', '2013-05-29'
         )
 
         self.rb.register_alpha_access(
-            'WEBSITE', '2013-05-30'
+            'scl', '2013-05-30'
         )
 
         expected = [
@@ -149,7 +149,7 @@ class RatchetBulk(unittest.TestCase):
             'alpha.y2013.m05.d30:1',
             'alpha.y2013.m05.total:2',
             'alpha.y2013.total:2',
-            'code:WEBSITE',
+            'code:scl',
             'total:2',
             'y2013.m05.d29:1',
             'y2013.m05.d30:1',
@@ -158,7 +158,7 @@ class RatchetBulk(unittest.TestCase):
         ]
 
         self.assertEqual(
-            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['WEBSITE'].items()]), expected
+            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['scl'].items()]), expected
         )
 
     def test_register_issues_access_key_values(self):
@@ -200,7 +200,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
-            'code:WEBSITE',
+            'code:scl',
             'issues.y2013.m05.d29:1',
             'issues.y2013.m05.d30:1',
             'issues.y2013.m05.total:2',
@@ -213,21 +213,21 @@ class RatchetBulk(unittest.TestCase):
         ]
 
         self.assertEqual(
-            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['WEBSITE'].items()]), expected
+            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['scl'].items()]), expected
         )
 
     def test_register_home_access_keys_values(self):
 
         self.rb.register_home_access(
-            'WEBSITE', '2013-05-29'
+            'scl', '2013-05-29'
         )
 
         self.rb.register_home_access(
-            'WEBSITE', '2013-05-30'
+            'scl', '2013-05-30'
         )
 
         expected = [
-            'code:WEBSITE',
+            'code:scl',
             'home.y2013.m05.d29:1',
             'home.y2013.m05.d30:1',
             'home.y2013.m05.total:2',
@@ -240,7 +240,7 @@ class RatchetBulk(unittest.TestCase):
         ]
 
         self.assertEqual(
-            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['WEBSITE'].items()]), expected
+            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['scl'].items()]), expected
         )
 
     def test_register_journal_access_keys_values(self):
@@ -282,7 +282,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
-            'code:WEBSITE',
+            'code:scl',
             'journal.y2013.m05.d29:1',
             'journal.y2013.m05.d30:1',
             'journal.y2013.m05.total:2',
@@ -295,7 +295,7 @@ class RatchetBulk(unittest.TestCase):
         ]
 
         self.assertEqual(
-            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['WEBSITE'].items()]), expected
+            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['scl'].items()]), expected
         )
 
     def test_register_toc_access_keys_values_website(self):
@@ -309,7 +309,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
-            'code:WEBSITE',
+            'code:scl',
             'toc.y2013.m05.d29:1',
             'toc.y2013.m05.d30:1',
             'toc.y2013.m05.total:2',
@@ -322,7 +322,7 @@ class RatchetBulk(unittest.TestCase):
         ]
 
         self.assertEqual(
-            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['WEBSITE'].items()]), expected
+            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['scl'].items()]), expected
         )
 
     def test_register_toc_access_keys_values_journal(self):
@@ -393,7 +393,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
-            'code:WEBSITE',
+            'code:scl',
             'html.y2013.m05.d29:1',
             'html.y2013.m05.d30:1',
             'html.y2013.m05.total:2',
@@ -406,7 +406,7 @@ class RatchetBulk(unittest.TestCase):
         ]
 
         self.assertEqual(
-            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['WEBSITE'].items()]), expected
+            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['scl'].items()]), expected
         )
 
     def test_register_article_access_keys_values_journal(self):
@@ -510,7 +510,7 @@ class RatchetBulk(unittest.TestCase):
             'abstract.y2013.m05.d30:1',
             'abstract.y2013.m05.total:2',
             'abstract.y2013.total:2',
-            'code:WEBSITE',
+            'code:scl',
             'total:2',
             'y2013.m05.d29:1',
             'y2013.m05.d30:1',
@@ -519,7 +519,7 @@ class RatchetBulk(unittest.TestCase):
         ]
 
         self.assertEqual(
-            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['WEBSITE'].items()]), expected
+            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['scl'].items()]), expected
         )
 
     def test_register_abstract_access_keys_values_journal(self):
@@ -619,7 +619,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
-            'code:WEBSITE',
+            'code:scl',
             'other.pdfsite.y2013.m05.d29:1',
             'other.pdfsite.y2013.m05.d30:1',
             'other.pdfsite.y2013.m05.total:2',
@@ -632,7 +632,7 @@ class RatchetBulk(unittest.TestCase):
         ]
 
         self.assertEqual(
-            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['WEBSITE'].items()]), expected
+            sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['scl'].items()]), expected
         )
 
     def test_register_opdf_access_keys_values_journal(self):

@@ -164,9 +164,7 @@ class RatchetOneByOne(object):
 
 class RatchetBulk(object):
 
-    def __init__(self, api_url, collection, manager_token='', error_log_file=None):
-        error_log_file = error_log_file or '%s_error.log' % datetime.datetime.today().isoformat()[0:10]
-        self._error_log_file = open(error_log_file, 'a')
+    def __init__(self, api_url, collection, manager_token=''):
         self._api_url = api_url
         self._manager_token = manager_token
         self.bulk_data = {}
