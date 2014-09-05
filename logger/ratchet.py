@@ -37,7 +37,7 @@ def dorequest(url):
                 logging.error('Timeout {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except:
             if attempts > 10:
-                logging.error('Unexpected error: %s' % traceback.format_exc())
+                logging.error('Unexpected error: {0} : URL: {1}'.format(traceback.format_exc()), url)
 
 
 class RatchetOneByOne(object):
@@ -244,6 +244,8 @@ class RatchetBulk(object):
         for key, value in self.bulk_data.items():
             url = self._prepare_url(endpoint='general/bulk', data=json.dumps(value))
             dorequest(url)
+
+        self.bulk_data = None
 
     def register_download_access(self, code, issn, access_date):
         page = 'pdf'

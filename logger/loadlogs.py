@@ -267,8 +267,10 @@ def bulk(*args, **xargs):
 
         if ratchet_api_url:
             rq_all.send()
+            del(rq_all)
         if ratchet_api_counter_url:
             rq_ttl.send()
+            del(rq_ttl)
 
 if __name__ == '__main__':
 
