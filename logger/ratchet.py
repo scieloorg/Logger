@@ -24,15 +24,20 @@ def dorequest(url):
             x.connection.close()
             break
         except exceptions.ConnectionError as e:
-            logging.error('ConnectionError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+            if attempts > 10:
+                logging.error('ConnectionError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except exceptions.HTTPError as e:
-            logging.error('HTTPError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+            if attempts > 10:
+                logging.error('HTTPError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except exceptions.TooManyRedirects as e:
-            logging.error('ToManyRedirections {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+            if attempts > 10:
+                logging.error('ToManyRedirections {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except exceptions.Timeout as e:
-            logging.error('Timeout {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+            if attempts > 10:
+                logging.error('Timeout {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except:
-            logging.error('Unexpected error: %s' % sys.exec_info()[0])
+            if attempts > 10:
+                logging.error('Unexpected error: %s' % sys.exec_info()[0])
 
 
 class RatchetOneByOne(object):
