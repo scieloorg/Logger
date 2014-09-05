@@ -3,11 +3,33 @@
 import os
 import argparse
 import requests
+import datetime
 
 from pymongo import Connection
 
 from ratchet import *
 from accesschecker import AccessChecker, TimedSet, checkdatelock
+
+
+def _config_logging(logging_level='INFO', logging_file=None):
+
+    allowed_levels = {
+        'DEBUG': logging.DEBUG,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'ERROR': logging.ERROR,
+        'CRITICAL': logging.CRITICAL
+    }
+
+    logging_config = {
+        'level': allowed_levels.get(logging_level, 'INFO'),
+        'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    }
+
+    if logging_file:
+        logging_config['filename'] = logging_file
+
+    logging.basicConfig(**logging_config)
 
 
 def get_proc_collection():
@@ -248,34 +270,57 @@ def bulk(*args, **xargs):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="Run the processing to read the access log files and register accesses into Ratchet")
-    parser.add_argument('-t',
-                        '--ttl',
-                        default=None,
-                        help='Ratchet API URL (localhost:8081) to register accesses according to Counter rules.')
-    parser.add_argument('-r',
-                        '--ratchet_api_url',
-                        default=None,
-                        help='Ratchet API URL (localhost:8080) to register accesses.')
-    parser.add_argument('-a',
-                        '--ratchet_api_manager_token',
-                        default=None,
-                        help='Ratchet API Manager Token.')
-    parser.add_argument('-c',
-                        '--collection',
-                        default=None,
-                        help='Three letters collection id')
-    parser.add_argument('-m',
-                        '--register_mode',
-                        default='bulk',
-                        choices=['bulk', 'onebyone'],
-                        help='Define how to send the accesses to ratchet API')
-    parser.add_argument('-l',
-                        '--error_log_file',
-                        default=None,
-                        help='error log filename')
+    parser = argparse.ArgumentParser(
+        description="Run the processing to read the access log files and register accesses into Ratchet"
+    )
+    parser.add_argument(
+        '-t',
+        '--ttl',
+        default=None,
+        help='Ratchet API URL (localhost:8081) to register accesses according to Counter rules.'
+    )
+    parser.add_argument(
+        '-r',
+        '--ratchet_api_url',
+        default=None,
+        help='Ratchet API URL (localhost:8080) to register accesses.'
+    )
+    parser.add_argument(
+        '-a',
+        '--ratchet_api_manager_token',
+        default=None,
+        help='Ratchet API Manager Token.'
+    )
+    parser.add_argument(
+        '-c',
+        '--collection',
+        default=None,
+        help='Three letters collection id'
+    )
+    parser.add_argument(
+        '-m',
+        '--register_mode',
+        default='bulk',
+        choices=['bulk', 'onebyone'],
+        help='Define how to send the accesses to ratchet API'
+    )
+    parser.add_argument(
+        '--logging_file',
+        '-o',
+        default='/tmp/logger_%s.log' % datetime.datetime.now().isoformat()[0:10],
+        help='Full path to the log file'
+    )
+    parser.add_argument(
+        '--logging_level',
+        '-l',
+        default='DEBUG',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        help='Logggin level'
+    )
 
     args = parser.parse_args()
+
+    _config_logging(args.logging_level, args.logging_file)
 
     if args.register_mode == 'bulk':
         main = bulk
