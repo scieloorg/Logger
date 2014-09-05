@@ -2,6 +2,7 @@
 import json
 import datetime
 import logging
+import sys
 
 import requests
 from requests import exceptions
@@ -22,13 +23,14 @@ def dorequest(url):
             x.close()
             x.connection.close()
             break
-        except exceptions.ConnectionError:
-            logging.error('ConnectionError %s' % url)
-        except exceptions.HTTPError:
-            logging.error('HTTPError %s' % url)
-        except exceptions.ToManyRedirections:
-            logging.error('ToManyRedirections %s' % url)
-
+        except exceptions.ConnectionError as e:
+            logging.error('ConnectionError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+        except exceptions.HTTPError as e:
+            logging.error('HTTPError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+        except exceptions.ToManyRedirections as e:
+            logging.error('ToManyRedirections {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+        except:
+            logging.error('Unexpected error: %s' % sys.exec_info()[0]
 
 class RatchetOneByOne(object):
 
