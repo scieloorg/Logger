@@ -4,6 +4,7 @@ import os
 import argparse
 import requests
 import datetime
+import logging
 
 from pymongo import Connection
 
@@ -132,13 +133,13 @@ def are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
 
 
 def onebyone(*args, **xargs):
-    error_log_file = xargs['error_log_file']
+    logging.info('Running as onebyone')
     ratchet_api_counter_url = xargs['ratchet_api_counter_url']
     ratchet_api_url = xargs['ratchet_api_url']
     ratchet_api_manager_token = xargs['ratchet_api_manager_token']
 
     if not are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
-        print "Error: Check the Ratchet api urls for TTL and Normal access."
+        logging.error("Check the Ratchet api urls for TTL and Normal access.")
         return None
 
     ts = TimedSet(expired=checkdatelock)
@@ -153,10 +154,11 @@ def onebyone(*args, **xargs):
 
         # Verifica se arquivo já foi processado.
         if proc_coll.find({'file_name': logfile}).count() > 0:
+            logging.debug('File already processe %s' % logfile)
             continue
 
         # Registra em base de dados de arquivos processados o novo arquivo.
-        print "processing: {0}".format(logfile)
+        logging.debug('Processing %s' % logfile)
         proc_coll.insert({'file_name': logfile})
 
         with open(logfile, 'rb') as f:
@@ -198,13 +200,13 @@ def onebyone(*args, **xargs):
 
 
 def bulk(*args, **xargs):
-    error_log_file = xargs['error_log_file']
+    logging.info('Running as bulk')
     ratchet_api_counter_url = xargs['ratchet_api_counter_url']
     ratchet_api_url = xargs['ratchet_api_url']
     ratchet_api_manager_token = xargs['ratchet_api_manager_token']
 
     if not are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
-        print "Error: Check the Ratchet api urls for TTL and Normal access."
+        logging.error("Error: Check the Ratchet api urls for TTL and Normal access.")
         return None
 
     ts = TimedSet(expired=checkdatelock)
@@ -219,10 +221,11 @@ def bulk(*args, **xargs):
 
         # Verifica se arquivo já foi processado.
         if proc_coll.find({'file_name': logfile}).count() > 0:
+            logging.debug('File already processe %s' % logfile)
             continue
 
         # Registra em base de dados de arquivos processados o novo arquivo.
-        print "processing: {0}".format(logfile)
+        logging.info("Processing: %s" % logfile)
         proc_coll.insert({'file_name': logfile})
 
         if ratchet_api_url:
@@ -238,7 +241,6 @@ def bulk(*args, **xargs):
                 xargs['collection'],
                 manager_token=ratchet_api_manager_token
             )
-
         with open(logfile, 'rb') as f:
 
             for raw_line in f:
@@ -330,5 +332,4 @@ if __name__ == '__main__':
     main(ratchet_api_counter_url=args.ttl,
          ratchet_api_url=args.ratchet_api_url,
          ratchet_api_manager_token=args.ratchet_api_manager_token,
-         collection=args.collection,
-         error_log_file=args.error_log_file)
+         collection=args.collection)

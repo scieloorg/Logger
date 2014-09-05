@@ -4,8 +4,30 @@ import datetime
 import logging
 
 import requests
-
+from requests import exceptions
 from logaccess_config import *
+
+
+def dorequest(url):
+
+    attempts = 0
+    while attempts <= 10:
+        if attempts > 1:
+            logging.warning('Retry %s' % url)
+        attempts += 1
+
+        try:
+            x = requests.post('http://'+url, allow_redirects=False)
+            logging.debug('Request %s' % url)
+            x.close()
+            x.connection.close()
+            break
+        except exceptions.ConnectionError:
+            logging.error('ConnectionError %s' % url)
+        except exceptions.HTTPError:
+            logging.error('HTTPError %s' % url)
+        except exceptions.ToManyRedirections:
+            logging.error('ToManyRedirections %s' % url)
 
 
 class RatchetOneByOne(object):
@@ -14,11 +36,6 @@ class RatchetOneByOne(object):
         self._api_url = api_url
         self._manager_token = manager_token or ''
         self._collection = collection.lower()
-
-    def _request(self, url):
-        x = requests.post('http://'+url, allow_redirects=False)
-        x.close()
-        x.connection.close()
 
     def _prepare_url(self, **kwargs):
 
@@ -47,7 +64,7 @@ class RatchetOneByOne(object):
         qrs = "&".join(qs)
         url = "{0}/api/v1/{1}?{2}".format(self._api_url, kwargs['endpoint'], qrs)
 
-        self._request(url)
+        dorequest(url)
 
     def register_download_access(self, code, issn, access_date):
         page = 'pdf'
@@ -145,11 +162,6 @@ class RatchetBulk(object):
         self.bulk_data = {}
         self._collection = collection
 
-    def _request(self, url):
-        x = requests.post('http://'+url, allow_redirects=False)
-        x.close()
-        x.connection.close()
-
     def _prepare_url(self, **kwargs):
 
         qs = ['api_token=%s' % self._manager_token]
@@ -175,9 +187,10 @@ class RatchetBulk(object):
             qs.append("data={0}".format(kwargs['data']))
 
         qrs = "&".join(qs)
+
         url = "{0}/api/v1/{1}?{2}".format(self._api_url, kwargs['endpoint'], qrs)
 
-        self._request(url)
+        return url
 
     def _load_to_bulk(self, code, access_date, page, issue=None, journal=None, type_doc=None):
         self.bulk_data.setdefault(code, {})
@@ -221,7 +234,8 @@ class RatchetBulk(object):
 
     def send(self):
         for key, value in self.bulk_data.items():
-            self._prepare_url(endpoint='general/bulk', data=json.dumps(value))
+            url = self._prepare_url(endpoint='general/bulk', data=json.dumps(value))
+            dorequest(url)
 
     def register_download_access(self, code, issn, access_date):
         page = 'pdf'
