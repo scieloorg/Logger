@@ -30,7 +30,8 @@ def dorequest(url):
         except exceptions.ToManyRedirections as e:
             logging.error('ToManyRedirections {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except:
-            logging.error('Unexpected error: %s' % sys.exec_info()[0]
+            logging.error('Unexpected error: %s' % sys.exec_info()[0])
+
 
 class RatchetOneByOne(object):
 
