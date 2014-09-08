@@ -3,6 +3,7 @@ import json
 import datetime
 import logging
 import traceback
+import time
 
 import requests
 from requests import exceptions
@@ -241,9 +242,15 @@ class RatchetBulk(object):
         self.bulk_data[code]['total'] += 1
 
     def send(self):
+        total = str(len(self.bulk_data))
+        logging.info('%s Records to bulk' % total)
+        i = 0
         for key, value in self.bulk_data.items():
+            i += 1
+            logging.debug('bulking %s of %s' % (str(i), str(total)))
             url = self._prepare_url(endpoint='general/bulk', data=json.dumps(value))
             dorequest(url)
+            time.sleep(0.05)
 
         self.bulk_data = None
 
