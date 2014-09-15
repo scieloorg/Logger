@@ -248,7 +248,12 @@ class RatchetBulk(object):
         for key, value in self.bulk_data.items():
             i += 1
             logging.debug('bulking %s of %s' % (str(i), str(total)))
-            url = self._prepare_url(endpoint='general/bulk', data=json.dumps(value))
+            try:
+                data = json.dumps(value)
+            except UnicodeDecodeError:
+                logging.error('Data encode error')
+                continue
+            url = self._prepare_url(endpoint='general/bulk', data=data)
             dorequest(url)
             time.sleep(0.05)
 
