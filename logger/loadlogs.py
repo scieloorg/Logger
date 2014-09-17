@@ -8,8 +8,9 @@ import logging
 
 from pymongo import Connection
 
-from ratchet import *
-from accesschecker import AccessChecker, TimedSet, checkdatelock
+from logger.ratchet import Remote, Local
+from logger.accesschecker import AccessChecker, TimedSet, checkdatelock
+from logger.logaccess_config import *
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
@@ -38,9 +39,8 @@ def get_proc_collection():
     The proc collection is a mongodb database that keeps the name of each
     processed file, to avoid processing these files again.
     """
-    conn = Connection(LOGGER_DATABASE_DOMAIN, LOGGER_DATABASE_PORT)
-    db = conn['proc_files']
-    coll = db[LOGGER_DATABASE_COLLECTION]
+    conn = Connection(RATCHET_DATABASE_DOMAIN, RATCHET_DATABASE_PORT)
+    coll = conn['scielo_network']['proc_files']
     coll.ensure_index('file_name')
 
     return coll
@@ -51,9 +51,8 @@ def get_proc_robots_collection():
     The robots collection is a mongodb database that keeps the count of each
     robots occurences record for each url + ip address.
     """
-    conn = Connection(LOGGER_DATABASE_DOMAIN, LOGGER_DATABASE_PORT)
-    db = conn['robots']
-    coll = db[LOGGER_DATABASE_COLLECTION]
+    conn = Connection(RATCHET_DATABASE_DOMAIN, RATCHET_DATABASE_PORT)
+    coll = conn['scielo_network']['robots']
     coll.ensure_index('code')
 
     return coll
@@ -131,86 +130,12 @@ def are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
 
     return True
 
-
-def onebyone(*args, **xargs):
-    logging.info('Running as onebyone')
-    ratchet_api_counter_url = xargs['ratchet_api_counter_url']
-    ratchet_api_url = xargs['ratchet_api_url']
-    ratchet_api_manager_token = xargs['ratchet_api_manager_token']
-
-    if not are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
-        logging.error("Check the Ratchet api urls for TTL and Normal access.")
-        return None
-
-    ts = TimedSet(expired=checkdatelock)
-    ac = AccessChecker(xargs['collection'])
-
-    proc_coll = get_proc_collection()
-    proc_robots_coll = get_proc_robots_collection()
-
-    for logfile in os.popen('ls %s/*' % LOG_DIR):
-
-        logfile = logfile.strip()
-
-        # Verifica se arquivo já foi processado.
-        if proc_coll.find({'file_name': logfile}).count() > 0:
-            logging.debug('File already processe %s' % logfile)
-            continue
-
-        # Registra em base de dados de arquivos processados o novo arquivo.
-        logging.debug('Processing %s' % logfile)
-        proc_coll.insert({'file_name': logfile})
-
-        with open(logfile, 'rb') as f:
-            if ratchet_api_url:
-                rq_all = RatchetOneByOne(
-                    ratchet_api_url,
-                    xargs['collection'],
-                    manager_token=ratchet_api_manager_token,
-                )
-
-            if ratchet_api_counter_url:
-                rq_ttl = RatchetOneByOne(
-                    ratchet_api_counter_url,
-                    xargs['collection'],
-                    manager_token=ratchet_api_manager_token,
-                )
-
-            log_file_line = 0
-            for raw_line in f:
-                log_file_line += 1
-                logging.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
-                parsed_line = ac.parsed_access(raw_line)
-
-                if not parsed_line:
-                    continue
-
-                if ratchet_api_url:
-                    register_access(rq_all, parsed_line)
-
-                if ratchet_api_counter_url:
-                    locktime = 10
-                    if parsed_line['access_type'] == "PDF":
-                        locktime = 30
-                    try:
-                        lockid = '_'.join([parsed_line['ip'],
-                                           parsed_line['code'],
-                                           parsed_line['script']])
-                        ts.add(lockid, parsed_line['iso_datetime'], locktime)
-                        register_access(rq_ttl, parsed_line)
-                    except ValueError:
-                        continue
-
-
 def bulk(*args, **xargs):
     logging.info('Running as bulk')
     ratchet_api_counter_url = xargs['ratchet_api_counter_url']
     ratchet_api_url = xargs['ratchet_api_url']
     ratchet_api_manager_token = xargs['ratchet_api_manager_token']
-
-    if not are_valid_api_urls(ratchet_api_counter_url, ratchet_api_url):
-        logging.error("Error: Check the Ratchet api urls for TTL and Normal access.")
-        return None
+    mode = xargs['mode']
 
     ts = TimedSet(expired=checkdatelock)
     ac = AccessChecker(xargs['collection'])
@@ -231,19 +156,31 @@ def bulk(*args, **xargs):
         logging.info("Processing: %s" % logfile)
         proc_coll.insert({'file_name': logfile})
 
-        if ratchet_api_url:
-            rq_all = RatchetBulk(
-                ratchet_api_url,
-                xargs['collection'],
-                manager_token=ratchet_api_manager_token
+        if mode == 'local':
+            rq_all = Local(
+                'localhost',
+                'scielo_network',
+                xargs['collection']
             )
+            rq_ttl = Local(
+                'localhost',
+                'counter_scielo_network',
+                xargs['collection']
+            )
+        else:
+            if ratchet_api_url:
+                rq_all = Remote(
+                    ratchet_api_url,
+                    xargs['collection'],
+                    ratchet_api_manager_token
+                )
+            if ratchet_api_counter_url:
+                rq_ttl = Remote(
+                    ratchet_api_counter_url,
+                    xargs['collection'],
+                    ratchet_api_manager_token
+                )
 
-        if ratchet_api_counter_url:
-            rq_ttl = RatchetBulk(
-                ratchet_api_counter_url,
-                xargs['collection'],
-                manager_token=ratchet_api_manager_token
-            )
         with open(logfile, 'rb') as f:
 
             log_file_line = 0
@@ -272,10 +209,10 @@ def bulk(*args, **xargs):
                         continue
 
         if ratchet_api_url:
-            rq_all.send()
+            rq_all.send(slp=SLEEP)
             del(rq_all)
         if ratchet_api_counter_url:
-            rq_ttl.send()
+            rq_ttl.send(slp=SLEEP)
             del(rq_ttl)
 
 if __name__ == '__main__':
@@ -309,10 +246,10 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '-m',
-        '--register_mode',
-        default='bulk',
-        choices=['bulk', 'onebyone'],
-        help='Define how to send the accesses to ratchet API'
+        '--mode',
+        default='local',
+        choices=['local', 'remote'],
+        help='Bulk Mode, could be local or remote.'
     )
     parser.add_argument(
         '--logging_file',
@@ -332,12 +269,13 @@ if __name__ == '__main__':
 
     _config_logging(args.logging_level, args.logging_file)
 
-    if args.register_mode == 'bulk':
-        main = bulk
-    elif args.register_mode == 'onebyone':
-        main = onebyone
+    if args.mode == 'remote':
+        if not are_valid_api_urls(args.ttl, args.ratchet_api_url):
+            logging.error("Error: Check the Ratchet api urls for TTL and Normal access.")
+            exit()
 
-    main(ratchet_api_counter_url=args.ttl,
+    bulk(ratchet_api_counter_url=args.ttl,
          ratchet_api_url=args.ratchet_api_url,
          ratchet_api_manager_token=args.ratchet_api_manager_token,
-         collection=args.collection)
+         collection=args.collection,
+         mode=args.mode)

@@ -7,8 +7,9 @@ import time
 
 import requests
 from requests import exceptions
-from logaccess_config import *
+from pymongo import Connection
 
+from logger.logaccess_config import *
 
 def dorequest(url):
 
@@ -41,165 +42,7 @@ def dorequest(url):
                 logging.error('Unexpected error: {0} : URL: {1}'.format(traceback.format_exc(), url))
 
 
-class RatchetOneByOne(object):
-
-    def __init__(self, api_url, collection, manager_token=None, error_log_file=None):
-        self._api_url = api_url
-        self._manager_token = manager_token or ''
-        self._collection = collection.lower()
-
-    def _prepare_url(self, **kwargs):
-
-        qs = ['api_token=%s' % self._manager_token]
-        if 'code' in kwargs:
-            qs.append("code={0}".format(kwargs['code']))
-
-        if 'access_date' in kwargs:
-            qs.append("access_date={0}".format(kwargs['access_date']))
-
-        if 'page' in kwargs:
-            qs.append("page={0}".format(kwargs['page']))
-
-        if 'type_doc' in kwargs:
-            qs.append("type_doc={0}".format(kwargs['type_doc']))
-
-        if 'journal' in kwargs:
-            qs.append("journal={0}".format(kwargs['journal']))
-
-        if 'issue' in kwargs:
-            qs.append("issue={0}".format(kwargs['issue']))
-
-        if 'data' in kwargs:
-            qs.append("data={0}".format(kwargs['data']))
-
-        qrs = "&".join(qs)
-        url = "{0}/api/v1/{1}?{2}".format(self._api_url, kwargs['endpoint'], qrs)
-
-        dorequest(url)
-
-    def register_download_access(self, code, issn, access_date):
-        page = 'pdf'
-        code = code.upper()
-        issn = issn.upper()
-        # Register PDF direct download access
-        self._prepare_url(endpoint='general', code=code, access_date=access_date, page=page, type_doc='pdf')
-        # Register PDF direct download access for a specific journal register
-        self._prepare_url(endpoint='general', code=issn, access_date=access_date, page=page, type_doc='journal')
-        # Register PDF direct download access for a collection register
-        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
-
-    def register_journal_access(self, code, access_date):
-        page = 'journal'
-        code = code.upper()
-        # Register access for journal page
-        self._prepare_url(endpoint='general', code=code, access_date=access_date, page=page, type_doc='journal')
-        # Register access inside collection record for page sci_serial
-        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
-
-    def register_article_access(self, code, access_date):
-        page = 'html'
-        code = code.upper()
-        # Register access for a specific article
-        self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[1:10], issue=code[1:18], page=page, type_doc='article')
-        # Register access inside toc record for page sci_arttext
-        self._prepare_url(endpoint='general', code=code[1:18], access_date=access_date, page=page, type_doc='toc')
-        # Register access inside journal record for page sci_arttext
-        self._prepare_url(endpoint='general', code=code[1:10], access_date=access_date, page=page, type_doc='journal')
-        # Register access inside collection record for page sci_arttext
-        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
-
-    def register_abstract_access(self, code, access_date):
-        page = 'abstract'
-        code = code.upper()
-        # Register access for a specific article
-        self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[1:10], issue=code[1:18], page=page, type_doc='article')
-        # Register access inside toc record for page sci_abstract
-        self._prepare_url(endpoint='general', code=code[1:18], access_date=access_date, page=page, type_doc='toc')
-        # Register access inside journal record for page sci_abstract
-        self._prepare_url(endpoint='general', code=code[1:10], access_date=access_date, page=page, type_doc='journal')
-        # Register access inside collection record for page sci_abstract
-        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
-
-    def register_pdf_access(self, code, access_date):
-        page = 'other.pdfsite'
-        code = code.upper()
-        # Register access for a specific article
-        self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[1:10], issue=code[1:18], page=page, type_doc='article')
-        # Register access inside toc record for page pdf
-        self._prepare_url(endpoint='general', code=code[1:18], access_date=access_date, page=page, type_doc='toc')
-        # Register access inside journal record for page pdf
-        self._prepare_url(endpoint='general', code=code[1:10], access_date=access_date, page=page, type_doc='journal')
-        # Register access inside collection record for page pdf
-        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
-
-    def register_toc_access(self, code, access_date):
-        page = 'toc'
-        code = code.upper()
-        # Register access for a specific issue
-        self._prepare_url(endpoint='general', code=code, access_date=access_date, journal=code[0:9], page=page, type_doc='toc')
-        # Register access inside journal record for page sci_issuetoc
-        self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
-        # Register access inside collection record for page sci_issuetoc
-        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
-
-    def register_home_access(self, code, access_date):
-        page = 'home'
-        code = code.upper()
-        # Register access inside collection record for page sci_home
-        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
-
-    def register_issues_access(self, code, access_date):
-        page = 'issues'
-        code = code.upper()
-        # Register access inside journal record for page issues
-        self._prepare_url(endpoint='general', code=code[0:9], access_date=access_date, page=page, type_doc='journal')
-        # Register access inside collection record for page issues
-        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
-
-    def register_alpha_access(self, code, access_date):
-        page = 'alpha'
-        code = code.upper()
-        # Register access inside collection record for page alphabetic list
-        self._prepare_url(endpoint='general', code=self._collection, access_date=access_date, page=page)
-
-
 class RatchetBulk(object):
-
-    def __init__(self, api_url, collection, manager_token=''):
-        self._api_url = api_url
-        self._manager_token = manager_token
-        self.bulk_data = {}
-        self._collection = collection
-
-    def _prepare_url(self, **kwargs):
-
-        qs = ['api_token=%s' % self._manager_token]
-        if 'code' in kwargs:
-            qs.append("code={0}".format(kwargs['code']))
-
-        if 'access_date' in kwargs:
-            qs.append("access_date={0}".format(kwargs['access_date']))
-
-        if 'page' in kwargs:
-            qs.append("page={0}".format(kwargs['page']))
-
-        if 'type_doc' in kwargs:
-            qs.append("type_doc={0}".format(kwargs['type_doc']))
-
-        if 'journal' in kwargs:
-            qs.append("journal={0}".format(kwargs['journal']))
-
-        if 'issue' in kwargs:
-            qs.append("issue={0}".format(kwargs['issue']))
-
-        if 'data' in kwargs:
-            qs.append("data={0}".format(kwargs['data']))
-
-        qrs = "&".join(qs)
-
-        url = "{0}/api/v1/{1}?{2}".format(self._api_url, kwargs['endpoint'], qrs)
-
-        return url
 
     def _load_to_bulk(self, code, access_date, page, issue=None, journal=None, type_doc=None):
         self.bulk_data.setdefault(code, {})
@@ -240,24 +83,6 @@ class RatchetBulk(object):
         self.bulk_data[code].setdefault('total', 0)
 
         self.bulk_data[code]['total'] += 1
-
-    def send(self):
-        total = str(len(self.bulk_data))
-        logging.info('%s Records to bulk' % total)
-        i = 0
-        for key, value in self.bulk_data.items():
-            i += 1
-            logging.debug('bulking %s of %s' % (str(i), str(total)))
-            try:
-                data = json.dumps(value)
-            except UnicodeDecodeError:
-                logging.error('Data encode error')
-                continue
-            url = self._prepare_url(endpoint='general/bulk', data=data)
-            dorequest(url)
-            time.sleep(0.05)
-
-        self.bulk_data = None
 
     def register_download_access(self, code, issn, access_date):
         page = 'pdf'
@@ -343,3 +168,113 @@ class RatchetBulk(object):
         # Register access inside collection record for page alphabetic list
         self._load_to_bulk(code=self._collection, access_date=access_date, page=page)
 
+class Remote(RatchetBulk):
+
+    def __init__(self, api_url, scielo_collection, manager_token=''):
+        self._api_url = api_url
+        self._manager_token = manager_token
+        self.bulk_data = {}
+        self._collection = scielo_collection
+
+    def _prepare_url(self, **kwargs):
+
+        qs = ['api_token=%s' % self._manager_token]
+        if 'code' in kwargs:
+            qs.append("code={0}".format(kwargs['code']))
+
+        if 'access_date' in kwargs:
+            qs.append("access_date={0}".format(kwargs['access_date']))
+
+        if 'page' in kwargs:
+            qs.append("page={0}".format(kwargs['page']))
+
+        if 'type_doc' in kwargs:
+            qs.append("type_doc={0}".format(kwargs['type_doc']))
+
+        if 'journal' in kwargs:
+            qs.append("journal={0}".format(kwargs['journal']))
+
+        if 'issue' in kwargs:
+            qs.append("issue={0}".format(kwargs['issue']))
+
+        if 'data' in kwargs:
+            qs.append("data={0}".format(kwargs['data']))
+
+        qrs = "&".join(qs)
+
+        url = "{0}/api/v1/{1}?{2}".format(self._api_url, kwargs['endpoint'], qrs)
+
+        return url
+
+
+    def send(self, slp=0):
+        total = str(len(self.bulk_data))
+        logging.info('%s Records to bulk' % total)
+        i = 0
+        for key, value in self.bulk_data.items():
+            i += 1
+            logging.debug('bulking %s of %s' % (str(i), str(total)))
+            try:
+                data = json.dumps(value)
+            except UnicodeDecodeError:
+                logging.error('Data encode error')
+                continue
+            url = self._prepare_url(endpoint='general/bulk', data=data)
+            dorequest(url)
+            time.sleep(slp)
+
+        self.bulk_data = None
+
+
+class Local(RatchetBulk):
+
+    def __init__(self, mongodb_url, mongodb_database, scielo_collection):
+
+        self.db_collection = Connection(mongodb_url)[mongodb_database]['accesses']
+        self.bulk_data = {}
+        self._collection = scielo_collection
+
+    def send(self, slp=0):
+
+        total = str(len(self.bulk_data))
+        logging.info('%s Records to bulk' % total)
+        i = 0
+        for key, value in self.bulk_data.items():
+            i += 1
+            logging.debug('bulking %s of %s' % (str(i), str(total)))
+
+            code = value['code']
+            include_set = {}
+            if 'journal' in value:
+                include_set['journal'] = value['journal']
+                del(value['journal'])
+
+            if 'issue' in value:
+                include_set['issue'] = value['issue']
+                del(value['issue'])
+
+            if 'page' in value:
+                include_set['page'] = value['page']
+                del(value['page'])
+
+            if 'type' in value:
+                include_set['type'] = value['type']
+                del(value['type'])
+
+            del value['code']
+
+            try:
+                self.db_collection.update(
+                    {'code': code}, {
+                        '$set': include_set,
+                        '$inc': value
+                        },
+                    safe=False,
+                    upsert=True
+                )
+            except:
+                logging.error('Unexpected error: {0}'.format(traceback.format_exc()))
+            
+            time.sleep(slp)
+
+        self.bulk_data = None

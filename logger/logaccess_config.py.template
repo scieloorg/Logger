@@ -3,13 +3,12 @@
 #Article Meta API
 URL = 'http://localhost:7000'
 
-#Logger Controlling Database MONGODB
-LOGGER_DATABASE_DOMAIN = '127.0.0.1'
-LOGGER_DATABASE_PORT = 27017
-LOGGER_DATABASE_COLLECTION = 'xxx'  # Collection identifier
+RATCHET_DATABASE_DOMAIN = '127.0.0.1'
+RATCHET_DATABASE_PORT = 27017
 
 LOG_DIR = '/data/logs'
 
 ROBOTS_FILE = 'robots.txt'
+SLEEP = 0
 
 APACHE_LOG_FORMAT = r'%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"'

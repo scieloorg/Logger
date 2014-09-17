@@ -1,3 +1,4 @@
 pymongo
 apachelog
 requests
+celery

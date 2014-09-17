@@ -23,7 +23,7 @@ setup(
         "Topic :: System",
         "Topic :: Utilities",
     ],
-    setup_requires=["nose>=1.0", "coverage", "pymongo", "gevent", "apachelog"],
+    setup_requires=["nose>=1.0", "coverage", "pymongo", "celery", "apachelog"],
     tests_require=["mocker"],
     test_suite="nose.collector",
 )
