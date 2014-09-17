@@ -246,7 +246,10 @@ def bulk(*args, **xargs):
             )
         with open(logfile, 'rb') as f:
 
+            log_file_line = 0
             for raw_line in f:
+                log_file_line += 1
+                logging.debug("Reading line %s from file %s".format(str(log_file_line, logfile)))
                 parsed_line = ac.parsed_access(raw_line)
 
                 if not parsed_line:
