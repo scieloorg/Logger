@@ -74,14 +74,16 @@ class RatchetBulk(object):
         field_page_day_total = '.'.join([page, field_day_total])
         field_page_month_total = '.'.join([page, field_month_total])
         field_page_year_total = '.'.join([page, field_year_total])
+        field_page_total = '.'.join([page, 'total'])
         self.bulk_data[code].setdefault(field_page_day_total, 0)
         self.bulk_data[code][field_page_day_total] += 1
         self.bulk_data[code].setdefault(field_page_month_total, 0)
         self.bulk_data[code][field_page_month_total] += 1
         self.bulk_data[code].setdefault(field_page_year_total, 0)
         self.bulk_data[code][field_page_year_total] += 1
+        self.bulk_data[code].setdefault(field_page_total, 0)
+        self.bulk_data[code][field_page_total] += 1
         self.bulk_data[code].setdefault('total', 0)
-
         self.bulk_data[code]['total'] += 1
 
     def register_download_access(self, code, issn, access_date):

@@ -7,7 +7,7 @@ class RatchetBulk(unittest.TestCase):
 
     def setUp(self):
 
-        self.rb = ratchet.RatchetBulk('fakeapiuri', 'scl')
+        self.rb = ratchet.Remote('fakeapiuri', 'scl')
 
     def test_register_download_access_keys(self):
 
@@ -63,6 +63,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:1414-431X',
+            'pdf.total:2',
             'pdf.y2013.m05.d29:1',
             'pdf.y2013.m05.d30:1',
             'pdf.y2013.m05.total:2',
@@ -91,6 +92,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:scl',
+            'pdf.total:2',
             'pdf.y2013.m05.d29:1',
             'pdf.y2013.m05.d30:1',
             'pdf.y2013.m05.total:2',
@@ -118,6 +120,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:/PDF/BJMBR/V14N4/03.PDF',
+            'pdf.total:2',
             'pdf.y2013.m05.d29:1',
             'pdf.y2013.m05.d30:1',
             'pdf.y2013.m05.total:2',
@@ -145,6 +148,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
+            'alpha.total:2',
             'alpha.y2013.m05.d29:1',
             'alpha.y2013.m05.d30:1',
             'alpha.y2013.m05.total:2',
@@ -173,6 +177,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:1414-431X',
+            'issues.total:2',
             'issues.y2013.m05.d29:1',
             'issues.y2013.m05.d30:1',
             'issues.y2013.m05.total:2',
@@ -201,6 +206,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:scl',
+            'issues.total:2',
             'issues.y2013.m05.d29:1',
             'issues.y2013.m05.d30:1',
             'issues.y2013.m05.total:2',
@@ -228,6 +234,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:scl',
+            'home.total:2',
             'home.y2013.m05.d29:1',
             'home.y2013.m05.d30:1',
             'home.y2013.m05.total:2',
@@ -255,6 +262,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:1414-431X',
+            'journal.total:2',
             'journal.y2013.m05.d29:1',
             'journal.y2013.m05.d30:1',
             'journal.y2013.m05.total:2',
@@ -283,6 +291,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:scl',
+            'journal.total:2',
             'journal.y2013.m05.d29:1',
             'journal.y2013.m05.d30:1',
             'journal.y2013.m05.total:2',
@@ -310,6 +319,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:scl',
+            'toc.total:2',
             'toc.y2013.m05.d29:1',
             'toc.y2013.m05.d30:1',
             'toc.y2013.m05.total:2',
@@ -337,6 +347,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:1414-431X',
+            'toc.total:2',
             'toc.y2013.m05.d29:1',
             'toc.y2013.m05.d30:1',
             'toc.y2013.m05.total:2',
@@ -366,6 +377,7 @@ class RatchetBulk(unittest.TestCase):
         expected = [
             'code:1414-431X20140001',
             'journal:1414-431X',
+            'toc.total:2',
             'toc.y2013.m05.d29:1',
             'toc.y2013.m05.d30:1',
             'toc.y2013.m05.total:2',
@@ -394,6 +406,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:scl',
+            'html.total:2',
             'html.y2013.m05.d29:1',
             'html.y2013.m05.d30:1',
             'html.y2013.m05.total:2',
@@ -421,6 +434,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:1414-431X',
+            'html.total:2',
             'html.y2013.m05.d29:1',
             'html.y2013.m05.d30:1',
             'html.y2013.m05.total:2',
@@ -449,6 +463,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:1414-431X20140001',
+            'html.total:2',
             'html.y2013.m05.d29:1',
             'html.y2013.m05.d30:1',
             'html.y2013.m05.total:2',
@@ -477,6 +492,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:S1414-431X2014000100005',
+            'html.total:2',
             'html.y2013.m05.d29:1',
             'html.y2013.m05.d30:1',
             'html.y2013.m05.total:2',
@@ -506,6 +522,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
+            'abstract.total:2',
             'abstract.y2013.m05.d29:1',
             'abstract.y2013.m05.d30:1',
             'abstract.y2013.m05.total:2',
@@ -533,6 +550,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
+            'abstract.total:2',
             'abstract.y2013.m05.d29:1',
             'abstract.y2013.m05.d30:1',
             'abstract.y2013.m05.total:2',
@@ -561,6 +579,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
+            'abstract.total:2',
             'abstract.y2013.m05.d29:1',
             'abstract.y2013.m05.d30:1',
             'abstract.y2013.m05.total:2',
@@ -589,6 +608,7 @@ class RatchetBulk(unittest.TestCase):
         )
 
         expected = [
+            'abstract.total:2',
             'abstract.y2013.m05.d29:1',
             'abstract.y2013.m05.d30:1',
             'abstract.y2013.m05.total:2',
@@ -620,6 +640,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:scl',
+            'other.pdfsite.total:2',
             'other.pdfsite.y2013.m05.d29:1',
             'other.pdfsite.y2013.m05.d30:1',
             'other.pdfsite.y2013.m05.total:2',
@@ -647,6 +668,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:1414-431X',
+            'other.pdfsite.total:2',
             'other.pdfsite.y2013.m05.d29:1',
             'other.pdfsite.y2013.m05.d30:1',
             'other.pdfsite.y2013.m05.total:2',
@@ -675,6 +697,7 @@ class RatchetBulk(unittest.TestCase):
 
         expected = [
             'code:1414-431X20140001',
+            'other.pdfsite.total:2',
             'other.pdfsite.y2013.m05.d29:1',
             'other.pdfsite.y2013.m05.d30:1',
             'other.pdfsite.y2013.m05.total:2',
@@ -705,6 +728,7 @@ class RatchetBulk(unittest.TestCase):
             'code:S1414-431X2014000100005',
             'issue:1414-431X20140001',
             'journal:1414-431X',
+            'other.pdfsite.total:2',
             'other.pdfsite.y2013.m05.d29:1',
             'other.pdfsite.y2013.m05.d30:1',
             'other.pdfsite.y2013.m05.total:2',

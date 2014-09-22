@@ -6,7 +6,7 @@ import datetime
 from mocker import ANY, MockerTestCase
 
 from logger.accesschecker import AccessChecker, TimedSet, checkdatelock
-from logger.ratchet import RatchetOneByOne
+
 from . import fixtures
 
 
