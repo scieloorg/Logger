@@ -110,7 +110,7 @@ class RatchetBulk(object):
         # Register access for a specific article
         self._load_to_bulk(code=code, access_date=access_date, journal=code[1:10], issue=code[1:18], page=page, type_doc='article')
         # Register access inside toc record for page sci_arttext
-        self._load_to_bulk(code=code[1:18], access_date=access_date, page=page, type_doc='toc')
+        self._load_to_bulk(code=code[1:18], access_date=access_date, page=page, type_doc='issue')
         # Register access inside journal record for page sci_arttext
         self._load_to_bulk(code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_arttext
@@ -122,7 +122,7 @@ class RatchetBulk(object):
         # Register access for a specific article
         self._load_to_bulk(code=code, access_date=access_date, journal=code[1:10], issue=code[1:18], page=page, type_doc='article')
         # Register access inside toc record for page sci_abstract
-        self._load_to_bulk(code=code[1:18], access_date=access_date, page=page, type_doc='toc')
+        self._load_to_bulk(code=code[1:18], access_date=access_date, page=page, type_doc='issue')
         # Register access inside journal record for page sci_abstract
         self._load_to_bulk(code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_abstract
@@ -134,7 +134,7 @@ class RatchetBulk(object):
         # Register access for a specific article
         self._load_to_bulk(code=code, access_date=access_date, journal=code[1:10], issue=code[1:18], page=page, type_doc='article')
         # Register access inside toc record for page pdf
-        self._load_to_bulk(code=code[1:18], access_date=access_date, page=page, type_doc='toc')
+        self._load_to_bulk(code=code[1:18], access_date=access_date, page=page, type_doc='issue')
         # Register access inside journal record for page pdf
         self._load_to_bulk(code=code[1:10], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page pdf
@@ -144,7 +144,7 @@ class RatchetBulk(object):
         page = 'toc'
         code = code.upper()
         # Register access for a specific issue
-        self._load_to_bulk(code=code, access_date=access_date, journal=code[0:9], page=page, type_doc='toc')
+        self._load_to_bulk(code=code, access_date=access_date, journal=code[0:9], page=page, type_doc='issue')
         # Register access inside journal record for page sci_issuetoc
         self._load_to_bulk(code=code[0:9], access_date=access_date, page=page, type_doc='journal')
         # Register access inside collection record for page sci_issuetoc
