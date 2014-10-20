@@ -49,8 +49,8 @@ class AccessChecker(object):
     def _allowed_collections(self):
         allowed_collections = []
         try:
-            json_network = urllib2.urlopen('{0}/api/v1/collection'.format(ARTICLE_META_URL), timeout=3).read()
-        except urllib2.URLError:
+            json_network = urllib2.urlopen('{0}/api/v1/collection'.format(ARTICLE_META_URL), timeout=10).read()
+        except:
             raise urllib2.URLError('Was not possible to connect to articlemeta api, try again later!')
 
         network = json.loads(json_network)
@@ -68,8 +68,8 @@ class AccessChecker(object):
         query_url = '{0}/api/v1/journal?collection={1}'.format(ARTICLE_META_URL, self.collection)
 
         try:
-            titles_json = urllib2.urlopen(query_url, timeout=3).read()
-        except urllib2.URLError:
+            titles_json = urllib2.urlopen(query_url, timeout=10).read()
+        except:
             raise urllib2.URLError('Was not possible to connect to webservices.scielo.org, try again later!')
 
         titles = json.loads(titles_json)
