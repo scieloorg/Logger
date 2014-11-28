@@ -43,10 +43,10 @@ class AccessCheckerTests(MockerTestCase):
     def test_instanciatingAccessChecker(self):
         mock_urllib2 = self.mocker.replace("urllib2")
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.collections)
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.journals)
 
         self.mocker.replay()
@@ -56,7 +56,7 @@ class AccessCheckerTests(MockerTestCase):
     def test_instanciatingAccessChecker_with_invalid_collection(self):
         mock_urllib2 = self.mocker.replace("urllib2")
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.collections)
 
         self.mocker.replay()
@@ -67,10 +67,10 @@ class AccessCheckerTests(MockerTestCase):
     def test_instanciatingAccessChecker_allowed_collections(self):
         mock_urllib2 = self.mocker.replace("urllib2")
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.collections)
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.journals)
 
         self.mocker.replay()
@@ -80,7 +80,7 @@ class AccessCheckerTests(MockerTestCase):
     def test_instanciatingAccessChecker_not_allowed_collections(self):
         mock_urllib2 = self.mocker.replace("urllib2")
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.collections)
 
         self.mocker.replay()
@@ -91,7 +91,7 @@ class AccessCheckerTests(MockerTestCase):
     def test_instanciatingAccessChecker_allowed_collections_exception(self):
         mock_urllib2 = self.mocker.replace("urllib2")
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.throw(urllib2.URLError(u'Was not possible to connect to webservices.scielo.org, try again later!'))
 
         self.mocker.replay()
@@ -102,10 +102,10 @@ class AccessCheckerTests(MockerTestCase):
     def test_instanciatingAccessChecker_acron_to_issns_dict(self):
         mock_urllib2 = self.mocker.replace("urllib2")
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.collections)
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.journals)
 
         self.mocker.replay()
@@ -115,10 +115,10 @@ class AccessCheckerTests(MockerTestCase):
     def test_instanciatingAccessChecker_acronym_to_issn_dict_exception(self):
         mock_urllib2 = self.mocker.replace("urllib2")
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.collections)
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.throw(urllib2.URLError(u'Was not possible to connect to webservices.scielo.org, try again later!'))
 
         self.mocker.replay()
@@ -129,10 +129,10 @@ class AccessCheckerTests(MockerTestCase):
     def test_instanciatingAccessChecker_allowed_issn(self):
         mock_urllib2 = self.mocker.replace("urllib2")
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.collections)
 
-        mock_urllib2.urlopen(ANY, timeout=3).read()
+        mock_urllib2.urlopen(ANY, timeout=10).read()
         self.mocker.result(fixtures.journals)
 
         self.mocker.replay()
