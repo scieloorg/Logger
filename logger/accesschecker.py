@@ -49,7 +49,7 @@ class AccessChecker(object):
     def _allowed_collections(self):
         allowed_collections = []
 
-        query_url = '{0}/api/v1/collection'.format(ARTICLE_META_URL)
+        query_url = '{0}/api/v1/collection/identifiers'.format(ARTICLE_META_URL)
         try:
             json_network = urllib2.urlopen(query_url, timeout=10).read()
         except:
