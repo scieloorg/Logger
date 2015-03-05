@@ -273,14 +273,7 @@ class Local(RatchetBulk):
                 data['$inc'] = value
 
             try:
-                self.db_collection.update(
-                    {'code': code}, {
-                        '$set': data,
-                        '$inc': value
-                        },
-                    safe=False,
-                    upsert=True
-                )
+                self.db_collection.update({'code': code}, data, safe=False, upsert=True)
             except:
                 logging.error('Unexpected error: {0}'.format(traceback.format_exc()))
             
