@@ -4,42 +4,43 @@ import datetime
 import logging
 import traceback
 import time
+import urlparse
 
 import requests
 from requests import exceptions
-from pymongo import Connection
+import pymongo
 
-from logger.logaccess_config import *
+_logger = logging.getLogger(__name__)
 
 def dorequest(url):
 
     attempts = 0
     while attempts <= 10:
         if attempts > 1:
-            logging.warning('Retry %s' % url)
+            _logger.warning('Retry %s' % url)
         attempts += 1
 
         try:
             x = requests.post('http://'+url, allow_redirects=False)
-            logging.debug('Request %s' % url)
+            _logger.debug('Request %s' % url)
             x.close()
             x.connection.close()
             break
         except exceptions.ConnectionError as e:
             if attempts > 10:
-                logging.error('ConnectionError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+                _logger.error('ConnectionError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except exceptions.HTTPError as e:
             if attempts > 10:
-                logging.error('HTTPError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+                _logger.error('HTTPError {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except exceptions.TooManyRedirects as e:
             if attempts > 10:
-                logging.error('ToManyRedirections {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+                _logger.error('ToManyRedirections {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except exceptions.Timeout as e:
             if attempts > 10:
-                logging.error('Timeout {0}, {1}: {2}'.format(e.errno, e.strerror, url))
+                _logger.error('Timeout {0}, {1}: {2}'.format(e.errno, e.strerror, url))
         except:
             if attempts > 10:
-                logging.error('Unexpected error: {0} : URL: {1}'.format(traceback.format_exc(), url))
+                _logger.error('Unexpected error: {0} : URL: {1}'.format(traceback.format_exc(), url))
 
 
 class RatchetBulk(object):
@@ -211,15 +212,15 @@ class Remote(RatchetBulk):
 
     def send(self, slp=0):
         total = str(len(self.bulk_data))
-        logging.info('%s Records to bulk' % total)
+        _logger.info('%s Records to bulk' % total)
         i = 0
         for key, value in self.bulk_data.items():
             i += 1
-            logging.debug('bulking %s of %s' % (str(i), str(total)))
+            _logger.debug('bulking %s of %s' % (str(i), str(total)))
             try:
                 data = json.dumps(value)
             except UnicodeDecodeError:
-                logging.error('Data encode error')
+                _logger.error('Data encode error')
                 continue
             url = self._prepare_url(endpoint='general/bulk', data=data)
             dorequest(url)
@@ -230,20 +231,26 @@ class Remote(RatchetBulk):
 
 class Local(RatchetBulk):
 
-    def __init__(self, mongodb_url, mongodb_database, scielo_collection):
+    def __init__(self, mongodb_uri, scielo_collection):
 
-        self.db_collection = Connection(mongodb_url)[mongodb_database]['accesses']
+        db_url = urlparse.urlparse(mongodb_uri)
+        conn = pymongo.MongoClient(host=db_url.hostname, port=db_url.port)
+        db = conn[db_url.path[1:]]
+        if db_url.username and db_url.password:
+            db.authenticate(db_url.username, db_url.password)
+
+        self.db_collection = db['accesses']
         self.bulk_data = {}
         self._collection = scielo_collection
 
     def send(self, slp=0):
 
         total = str(len(self.bulk_data))
-        logging.info('%s Records to bulk' % total)
+        _logger.info('%s Records to bulk' % total)
         i = 0
         for key, value in self.bulk_data.items():
             i += 1
-            logging.debug('bulking %s of %s' % (str(i), str(total)))
+            _logger.debug('bulking %s of %s' % (str(i), str(total)))
 
             code = value['code']
             include_set = {}
@@ -275,7 +282,7 @@ class Local(RatchetBulk):
             try:
                 self.db_collection.update({'code': code}, data, safe=False, upsert=True)
             except:
-                logging.error('Unexpected error: {0}'.format(traceback.format_exc()))
+                _logger.error('Unexpected error: {0}'.format(traceback.format_exc()))
             
             time.sleep(slp)
 

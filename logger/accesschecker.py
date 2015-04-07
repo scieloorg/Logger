@@ -7,8 +7,9 @@ import datetime
 import urlparse
 import re
 
-from logaccess_config import *
 import apachelog
+
+from logger import utils
 
 MONTH_DICT = {
     'JAN': '01',
@@ -25,7 +26,11 @@ MONTH_DICT = {
     'DEC': '12',
 }
 
-ROBOTS = [i.strip() for i in open('/'.join([os.path.dirname(__file__), ROBOTS_FILE]))]
+config = utils.Configuration.from_env()
+settings = dict(config.items())['app:main']
+
+ROBOTS = [i.strip() for i in open(settings['robots_file'])]
+APACHE_LOG_FORMAT = settings.get('log_format', r'= %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"')
 COMPILED_ROBOTS = [re.compile(i.lower()) for i in ROBOTS]
 REGEX_ISSN = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]$")
 REGEX_ISSUE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}$")
@@ -49,7 +54,7 @@ class AccessChecker(object):
     def _allowed_collections(self):
         allowed_collections = []
 
-        query_url = '{0}/api/v1/collection/identifiers'.format(ARTICLE_META_URL)
+        query_url = 'http://articlemeta.scielo.org/api/v1/collection/identifiers'
         try:
             json_network = urllib2.urlopen(query_url, timeout=10).read()
         except:
@@ -67,7 +72,7 @@ class AccessChecker(object):
         Create a acronym dictionay with valid issns. The issn's are the issn's
         used as id in the SciELO Website.
         """
-        query_url = '{0}/api/v1/journal?collection={1}'.format(ARTICLE_META_URL, self.collection)
+        query_url = 'http://articlemeta.scielo.org/api/v1/journal?collection=%s' % self.collection
 
         try:
             titles_json = urllib2.urlopen(query_url, timeout=10).read()

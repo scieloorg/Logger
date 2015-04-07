@@ -1,3 +1,4 @@
-pymongo
-apachelog
-requests
+pymongo==2.8
+apachelog==1.1
+requests==2.6.0
+-e git+https://github.com/scieloorg/logger@0.1.1#egg=logger

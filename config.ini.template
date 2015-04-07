@@ -1,0 +1,7 @@
+[app:main]
+mongo_uri = mongodb://127.0.0.1:27017/database_name
+log_dir = /var/www/logger/data/logs
+robots_file = /var/www/logger/robots.txt
+counter_compliant = 0
+sleep = 0
+log_format = %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"
