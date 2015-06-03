@@ -9,17 +9,17 @@ import urlparse
 
 import pymongo
 
-from logger.ratchet import Remote, Local
+from logger.ratchet import Local
 from logger.accesschecker import AccessChecker, TimedSet, checkdatelock
 from logger import utils
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 config = utils.Configuration.from_env()
 settings = dict(config.items())['app:main']
 
-SLEEP = float(settings.get('sleep', 0))
 COUNTER_COMPLIANT = int(settings.get('counter_compliant', 0))
+COUNTER_COMPLIANT_SKIPPED_LOG_DIR = settings.get('counter_compliant_skipped_log_dir', None)
 MONGO_URI = settings.get('mongo_uri', 'mongodb://127.0.0.1:27017/database_name')
 MONGO_URI_COUNTER = settings.get('mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
 LOG_DIR = settings['log_dir']
@@ -36,7 +36,7 @@ def _config_logging(logging_level='INFO', logging_file=None):
 
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    _logger.setLevel(allowed_levels.get(logging_level, 'INFO'))
+    logger.setLevel(allowed_levels.get(logging_level, 'INFO'))
 
     if logging_file:
         hl = logging.FileHandler(logging_file, mode='a')
@@ -46,39 +46,7 @@ def _config_logging(logging_level='INFO', logging_file=None):
     hl.setFormatter(formatter)
     hl.setLevel(allowed_levels.get(logging_level, 'INFO'))
 
-    _logger.addHandler(hl)
-
-
-def mongodb_connect(collection):
-
-    db_url = urlparse.urlparse(MONGO_URI)
-    conn = pymongo.MongoClient(host=db_url.hostname, port=db_url.port)
-    db = conn[db_url.path[1:]]
-    if db_url.username and db_url.password:
-        db.authenticate(db_url.username, db_url.password)
-
-    return db[collection]
-
-def get_proc_collection():
-    """
-    The proc collection is a mongodb database that keeps the name of each
-    processed file, to avoid processing these files again.
-    """
-    coll =  mongodb_connect('proc_files')
-    coll.ensure_index('file_name')
-
-    return coll
-
-
-def get_proc_robots_collection():
-    """
-    The robots collection is a mongodb database that keeps the count of each
-    robots occurences record for each url + ip address.
-    """
-    coll =  mongodb_connect('robots')
-    coll.ensure_index('code')
-
-    return coll
+    logger.addHandler(hl)
 
 
 def register_pdf_download_accesses(interface, issn, pdfid, date, ip):
@@ -127,63 +95,99 @@ def register_access(interface, parsed_line):
                                parsed_line['ip'])
 
 
-def bulk(collection=None):
-    _logger.info('Running as bulk')
+class Bulk(object):
 
-    if COUNTER_COMPLIANT:
-        ts = TimedSet(expired=checkdatelock)
+    def __init__(self, mongo_uri, collection, counter_compliant=None, skipped_log_dir=None):
+        self._mongo_uri = mongo_uri
+        self._proc_coll = self.get_proc_collection()
+        self._collection = collection
+        self._counter_compliant = counter_compliant
+        self._skipped_log_dir = None
+        if skipped_log_dir:
+            now = datetime.datetime.now().isoformat()
+            skipped_log = '/'.join([skipped_log_dir, now]).replace('//', '/')
+            try:
+                self._skipped_log_dir = open(skipped_log, 'w')
+            except ValueError:
+                raise "Invalid directory or file name: %s" % skipped_log
 
-    ac = AccessChecker(collection)
+    def _mongodb_connect(self, mdb_database):
 
-    proc_coll = get_proc_collection()
-    proc_robots_coll = get_proc_robots_collection()
+        db_url = urlparse.urlparse(self._mongo_uri)
+        conn = pymongo.MongoClient(host=db_url.hostname, port=db_url.port)
+        db = conn[db_url.path[1:]]
+        if db_url.username and db_url.password:
+            db.authenticate(db_url.username, db_url.password)
 
-    for logfile in os.popen('ls %s/*' % LOG_DIR):
+        return db['scielo']
 
-        logfile = logfile.strip()
+    def get_proc_collection(self):
+        """
+        The proc collection is a mongodb database that keeps the name of each
+        processed file, to avoid processing these files again.
+        """
+        coll =  self._mongodb_connect('proc_files')
+        coll.ensure_index('file_name')
 
-        # Verifica se arquivo já foi processado.
-        if proc_coll.find({'file_name': logfile}).count() > 0:
-            _logger.debug('File already processe %s' % logfile)
-            continue
+        return coll
 
-        # Registra em base de dados de arquivos processados o novo arquivo.
-        _logger.info("Processing: %s" % logfile)
-        proc_coll.insert({'file_name': logfile})
+    def write_skipped_log_dir(self, line):
+        if self._skipped_log_dir:
+            self._skipped_log_dir.write("%s \r\n" % line)
+    
+    def run(self):
+        if self._counter_compliant:
+            ts = utils.TimedSet(expired=utils.checkdatelock)
 
-        rq = Local(MONGO_URI, collection)
+        ac = AccessChecker(self._collection)
 
-        with open(logfile, 'rb') as f:
+        for logfile in os.popen('ls %s/*' % LOG_DIR):
 
-            log_file_line = 0
-            for raw_line in f:
-                log_file_line += 1
-                _logger.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
-                parsed_line = ac.parsed_access(raw_line)
+            logfile = logfile.strip()
 
-                if not parsed_line:
-                    continue
+            # Verifica se arquivo já foi processado.
+            if self._proc_coll.find({'file_name': logfile}).count() > 0:
+                logger.debug('File already processe %s' % logfile)
+                continue
 
-                if COUNTER_COMPLIANT:
-                    # Counter Mode Accesses
-                    locktime = 10
-                    if parsed_line['access_type'] == "PDF":
-                        locktime = 30
-                    try:
-                        lockid = '_'.join([parsed_line['ip'],
-                                           parsed_line['code'],
-                                           parsed_line['script']])
-                        ts.add(lockid, parsed_line['iso_datetime'], locktime)
-                        register_access(rq, parsed_line)
-                    except ValueError:
+            # Registra em base de dados de arquivos processados o novo arquivo.
+            logger.info("Processing: %s" % logfile)
+            self._proc_coll.insert({'file_name': logfile})
+
+            rq = Local(self._mongo_uri, self._collection)
+
+            with open(logfile, 'rb') as f:
+
+                log_file_line = 0
+                for raw_line in f:
+                    log_file_line += 1
+                    logger.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
+                    parsed_line = ac.parsed_access(raw_line)
+
+                    if not parsed_line:
                         continue
-                else:
-                    # SciELO Mode Accesses
-                    register_access(rq, parsed_line)
+
+                    if COUNTER_COMPLIANT:
+                        # Counter Mode Accesses
+                        locktime = 10
+                        if parsed_line['access_type'] == "PDF":
+                            locktime = 30
+                        try:
+                            lockid = '_'.join([parsed_line['ip'],
+                                               parsed_line['code'],
+                                               parsed_line['script']])
+                            ts.add(lockid, parsed_line['iso_datetime'], locktime)
+                            register_access(rq, parsed_line)
+                        except ValueError:
+                            self.write_skipped_log_dir('; '.join([lockid, parsed_line['original_date'], parsed_line['original_agent']]))
+                            continue
+                    else:
+                        # SciELO Mode Accesses
+                        register_access(rq, parsed_line)
 
 
-        rq.send(slp=SLEEP)
-        del(rq)
+            rq.send()
+            del(rq)
 
 def main():
 
@@ -216,4 +220,10 @@ def main():
 
     _config_logging(args.logging_level, args.logging_file)
 
-    bulk(collection=args.collection)
+    bk = Bulk(
+        MONGO_URI,
+        collection=args.collection,
+        counter_compliant=COUNTER_COMPLIANT,
+        skipped_log_dir=COUNTER_COMPLIANT_SKIPPED_LOG_DIR
+    )
+    bk.run()

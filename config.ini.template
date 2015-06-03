@@ -2,6 +2,13 @@
 mongo_uri = mongodb://127.0.0.1:27017/database_name
 log_dir = /var/www/logger/data/logs
 robots_file = /var/www/logger/robots.txt
+
+# COUNTER MODE
 counter_compliant = 0
-sleep = 0
+
+# Record log files directory with skipped accesses. No logs will be recorded
+if this config is omitted.
+# counter_compliant_skipped_log_dir = /Users/fabiobatalha/Trabalho/logger/data/logs
+
+# APACHE LOG format
 log_format = %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"

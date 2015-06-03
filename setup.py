@@ -15,7 +15,7 @@ with open(os.path.join(here, 'CHANGES.rst')) as f:
 install_requires = [
     'requests>=2.6.0',
     'apachelog>=1.1',
-    'pymongo>=2.8',
+    'pymongo>=2.8'
 ]
 
 tests_require = [
@@ -47,5 +47,6 @@ setup(
     entry_points="""\
     [console_scripts]
     logger_loadlogs = logger.loadlogs:main
+    logger_loadlogs_readcube = logger.readcube:main
     """,
 )
