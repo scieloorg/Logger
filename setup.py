@@ -24,7 +24,7 @@ tests_require = [
 
 setup(
     name="logger",
-    version='0.1.1',
+    version='0.1.2',
     description="A SciELO tool to load apache log files and register access into Ratchet.",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
@@ -46,7 +46,7 @@ setup(
     test_suite="nose.collector",
     entry_points="""\
     [console_scripts]
-    logger_loadlogs = logger.loadlogs:main
+    logger_loadlogs = logger.scielo:main
     logger_loadlogs_readcube = logger.readcube:main
     """,
 )
