@@ -6,11 +6,12 @@ import requests
 import datetime
 import logging
 import urlparse
+import codecs
 
 import pymongo
 
 from logger.ratchet import Local
-from logger.accesschecker import AccessChecker, TimedSet, checkdatelock
+from logger.accesschecker import AccessChecker
 from logger import utils
 
 logger = logging.getLogger(__name__)
@@ -156,12 +157,13 @@ class Bulk(object):
 
             rq = Local(self._mongo_uri, self._collection)
 
-            with open(logfile, 'rb') as f:
+            with codecs.open(logfile, 'rb', encoding='utf-8', errors='replace') as f:
 
                 log_file_line = 0
                 for raw_line in f:
                     log_file_line += 1
                     logger.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
+                    logger.debug(raw_line)
                     parsed_line = ac.parsed_access(raw_line)
 
                     if not parsed_line:

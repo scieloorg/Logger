@@ -142,8 +142,12 @@ class AccessChecker(object):
 
         pid = pid.upper().replace('S', '')
 
-        if not pid[0:9] in self.allowed_issns:
-            return False
+        try:
+            print pid[0:9]
+            if not pid[0:9] in self.allowed_issns:
+                return False
+        except:
+            import pdb; pdb.set_trace()
 
         if script == "sci_arttext" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
             return True

@@ -3,9 +3,9 @@
 import logging
 import argparse
 import time
-import csv
 import datetime
 import urlparse
+import codecs
 
 import pymongo
 
@@ -132,7 +132,7 @@ class AccessMap(object):
         return self._data[12]
 
 def get_lines(filename):
-    with open(filename, 'r') as csvfile:
+    with codecs.open(filename, 'r', encoding="utf-8", errors="replace") as csvfile:
         for line in csvfile:
             try:
                 am = AccessMap([i.strip() for i in line.split('\t')])
