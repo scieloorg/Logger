@@ -199,7 +199,6 @@ class ReadCube(RatchetBulk):
         _logger.info('%s Records to bulk' % total)
         i = 0
 
-        import pdb; pdb.set_trace()
         for key, value in self.bulk_data.items():
             i += 1
             _logger.debug('bulking %s of %s' % (str(i), str(total)))

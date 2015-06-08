@@ -196,7 +196,10 @@ class Bulk(object):
 
         rq = ReadCube(self._mongo_uri, self._collection)
         
+        log_file_line = 0
         for parsed_line in get_lines(filename):
+            log_file_line += 1
+            logger.debug("Reading line {0} from file {1}".format(str(log_file_line), filename))
             if COUNTER_COMPLIANT:
                 # Counter Mode Accesses
                 locktime = 30 # Always ePDF's
@@ -209,9 +212,11 @@ class Bulk(object):
                     continue
             else:
                 # SciELO Mode Accesses
-                self.register_access(rq, parsed_line)
+                rq.register_readcube_access(parsed_line.doi, parsed_line.access_date)
 
+        logger.info('Bulking data')
         rq.send()
+        logger.info('Bulking data finished')
         del(rq)
 
 class EventHandler(FileSystemEventHandler):
