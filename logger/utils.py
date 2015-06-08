@@ -1,6 +1,7 @@
 #coding: utf-8
 import os
 import weakref
+import datetime
 
 from ConfigParser import SafeConfigParser
 
@@ -62,3 +63,35 @@ class Configuration(SingletonMixin):
         """
         return [(section, dict(self.conf.items(section, raw=True))) for \
             section in [section for section in self.conf.sections()]]
+
+def checkdatelock(previous_date=None, next_date=None, locktime=10):
+
+    try:
+        pd = datetime.datetime.strptime(previous_date, '%Y-%m-%dT%H:%M:%S')
+        nd = datetime.datetime.strptime(next_date, '%Y-%m-%dT%H:%M:%S')
+    except ValueError:
+        return None
+
+    delta = nd - pd
+
+    if not delta.total_seconds() <= locktime:
+        return nd
+
+
+class TimedSet(object):
+    def __init__(self, items=None, expired=None):
+        self.expired = expired or (lambda t0, t1, t2: True)
+        self._items = {}
+
+    def _add_or_update(self, item, dt, locktime):
+        match = self._items.get(item, None)
+        return True if match is None else self.expired(match, dt, locktime=locktime)
+
+    def add(self, item, dt, locktime=10):
+        if self._add_or_update(item, dt, locktime):
+            self._items[item] = dt
+        else:
+            raise ValueError('the item stills valid')
+
+    def __contains__(self, item):
+        return item in self._items

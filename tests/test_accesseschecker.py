@@ -5,37 +5,8 @@ import datetime
 
 from mocker import ANY, MockerTestCase
 
-from logger.accesschecker import AccessChecker, TimedSet, checkdatelock
-
+from logger.accesschecker import AccessChecker
 from . import fixtures
-
-
-class TimedSetTests(MockerTestCase):
-    def test_expiration(self):
-        ts = TimedSet(expired=checkdatelock)
-        ts.add('art1', '2013-05-29T00:01:01')
-        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:01'})
-
-        with self.assertRaises(ValueError):
-            ts.add('art1', '2013-05-29T00:01:05')
-
-        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:01'})
-
-        ts.add('art1', '2013-05-29T00:01:22')
-        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:22'})
-
-    def test_expiration_custom_timeout(self):
-        ts = TimedSet(expired=checkdatelock)
-        ts.add('art1', '2013-05-29T00:01:01', 30)
-        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:01'})
-
-        with self.assertRaises(ValueError):
-            ts.add('art1', '2013-05-29T00:01:031')
-
-        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:01'})
-
-        ts.add('art1', '2013-05-29T00:01:32')
-        self.assertTrue(ts._items, {'art1': '29/May/2013:00:01:32'})
 
 
 class AccessCheckerTests(MockerTestCase):
@@ -718,6 +689,8 @@ class AccessCheckerTests(MockerTestCase):
                             'script': 'sci_arttext'
                         },
                         'day': '30',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': 'sci_arttext',
                         'month': '05'
                     }
@@ -791,6 +764,8 @@ class AccessCheckerTests(MockerTestCase):
                         'year': '2013',
                         'day': '30',
                         'month': '05',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
                         'query_string': None,
                         'pdf_issn': u'1414-431X',
                         'script': '',
@@ -822,6 +797,8 @@ class AccessCheckerTests(MockerTestCase):
                         'year': '2013',
                         'day': '30',
                         'month': '05',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
                         'query_string': None,
                         'pdf_issn': u'1414-431X',
                         'script': '',

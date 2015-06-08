@@ -1,4 +1,6 @@
 pymongo==2.8
 apachelog==1.1
 requests==2.6.0
--e git+https://github.com/scieloorg/logger@0.1.1#egg=logger
+watchdog==0.8.3
+-e git+https://github.com/scieloorg/logger@0.1.2#egg=logger
+-e git+https://github.com/scieloorg/xylose@0.9b#egg=xylose

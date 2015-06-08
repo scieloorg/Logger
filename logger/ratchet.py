@@ -97,6 +97,13 @@ class RatchetBulk(object):
         # # Register PDF direct download access for a collection register
         self._load_to_bulk(code=self._collection, access_date=access_date, page=page, type_doc='website')
 
+    def register_readcube_access(self, code, access_date):
+        page = 'readcube'
+        code = code.upper()
+        self._load_to_bulk(code=code, access_date=access_date, page=page, type_doc='readcube')
+        # # Register PDF direct download access for a collection register
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page, type_doc='website')
+
     def register_journal_access(self, code, access_date):
         page = 'journal'
         code = code.upper()
@@ -171,59 +178,63 @@ class RatchetBulk(object):
         # Register access inside collection record for page alphabetic list
         self._load_to_bulk(code=self._collection, access_date=access_date, page=page, type_doc='website')
 
-class Remote(RatchetBulk):
 
-    def __init__(self, api_url, scielo_collection, manager_token=''):
-        self._api_url = api_url
-        self._manager_token = manager_token
+class ReadCube(RatchetBulk):
+
+    def __init__(self, mongodb_uri, scielo_collection):
+
+        db_url = urlparse.urlparse(mongodb_uri)
+        conn = pymongo.MongoClient(host=db_url.hostname, port=db_url.port)
+        db = conn[db_url.path[1:]]
+        if db_url.username and db_url.password:
+            db.authenticate(db_url.username, db_url.password)
+
+        self.db_collection = db['accesses']
         self.bulk_data = {}
         self._collection = scielo_collection
 
-    def _prepare_url(self, **kwargs):
-
-        qs = ['api_token=%s' % self._manager_token]
-        if 'code' in kwargs:
-            qs.append("code={0}".format(kwargs['code']))
-
-        if 'access_date' in kwargs:
-            qs.append("access_date={0}".format(kwargs['access_date']))
-
-        if 'page' in kwargs:
-            qs.append("page={0}".format(kwargs['page']))
-
-        if 'type_doc' in kwargs:
-            qs.append("type_doc={0}".format(kwargs['type_doc']))
-
-        if 'journal' in kwargs:
-            qs.append("journal={0}".format(kwargs['journal']))
-
-        if 'issue' in kwargs:
-            qs.append("issue={0}".format(kwargs['issue']))
-
-        if 'data' in kwargs:
-            qs.append("data={0}".format(kwargs['data']))
-
-        qrs = "&".join(qs)
-
-        url = "{0}/api/v1/{1}?{2}".format(self._api_url, kwargs['endpoint'], qrs)
-
-        return url
-
-
     def send(self, slp=0):
+
         total = str(len(self.bulk_data))
         _logger.info('%s Records to bulk' % total)
         i = 0
+
         for key, value in self.bulk_data.items():
             i += 1
             _logger.debug('bulking %s of %s' % (str(i), str(total)))
+
+            code = value['code']
+            include_set = {}
+            if 'journal' in value:
+                include_set['journal'] = value['journal']
+                del(value['journal'])
+
+            if 'issue' in value:
+                include_set['issue'] = value['issue']
+                del(value['issue'])
+
+            if 'page' in value:
+                include_set['page'] = value['page']
+                del(value['page'])
+
+            if 'type' in value:
+                include_set['type'] = value['type']
+                del(value['type'])
+
+            del value['code']
+
+            data = {}
+            if include_set:
+                data['$set'] = include_set
+
+            if value:
+                data['$inc'] = value
+
             try:
-                data = json.dumps(value)
-            except UnicodeDecodeError:
-                _logger.error('Data encode error')
-                continue
-            url = self._prepare_url(endpoint='general/bulk', data=data)
-            dorequest(url)
+                self.db_collection.update({'code': code}, data, safe=False, upsert=True)
+            except:
+                _logger.error('Unexpected error: {0}'.format(traceback.format_exc()))
+            
             time.sleep(slp)
 
         self.bulk_data = None

@@ -142,8 +142,12 @@ class AccessChecker(object):
 
         pid = pid.upper().replace('S', '')
 
-        if not pid[0:9] in self.allowed_issns:
-            return False
+        try:
+            print pid[0:9]
+            if not pid[0:9] in self.allowed_issns:
+                return False
+        except:
+            import pdb; pdb.set_trace()
 
         if script == "sci_arttext" and (REGEX_ARTICLE.search(pid) or REGEX_FBPE.search(pid)):
             return True
@@ -212,6 +216,8 @@ class AccessChecker(object):
 
         data = {}
         data['ip'] = parsed_line['%h'].strip()
+        data['original_date'] = parsed_line['%t']
+        data['original_agent'] = parsed_line['%{User-Agent}i']
         data['access_type'] = self._pdf_or_html_access(parsed_line['%r'])
         data['iso_date'] = access_date.date().isoformat()
         data['iso_datetime'] = access_date.isoformat()
@@ -253,36 +259,3 @@ class AccessChecker(object):
             data.update(pdf_request)
 
         return data
-
-
-def checkdatelock(previous_date=None, next_date=None, locktime=10):
-
-    try:
-        pd = datetime.datetime.strptime(previous_date, '%Y-%m-%dT%H:%M:%S')
-        nd = datetime.datetime.strptime(next_date, '%Y-%m-%dT%H:%M:%S')
-    except ValueError:
-        return None
-
-    delta = nd - pd
-
-    if not delta.total_seconds() <= locktime:
-        return nd
-
-
-class TimedSet(object):
-    def __init__(self, items=None, expired=None):
-        self.expired = expired or (lambda t0, t1, t2: True)
-        self._items = {}
-
-    def _add_or_update(self, item, dt, locktime):
-        match = self._items.get(item, None)
-        return True if match is None else self.expired(match, dt, locktime=locktime)
-
-    def add(self, item, dt, locktime=10):
-        if self._add_or_update(item, dt, locktime):
-            self._items[item] = dt
-        else:
-            raise ValueError('the item stills valid')
-
-    def __contains__(self, item):
-        return item in self._items
