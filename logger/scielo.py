@@ -164,8 +164,13 @@ class Bulk(object):
                     log_file_line += 1
                     logger.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
                     logger.debug(raw_line)
-                    parsed_line = ac.parsed_access(raw_line)
 
+                    try:
+                        parsed_line = ac.parsed_access(raw_line)
+                    except ValueError as e:
+                        logger.error("%s: %s" % (e.message, raw_line))
+                        continue
+                    
                     if not parsed_line:
                         continue
 
