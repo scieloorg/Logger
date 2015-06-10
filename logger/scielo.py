@@ -120,7 +120,7 @@ class Bulk(object):
         if db_url.username and db_url.password:
             db.authenticate(db_url.username, db_url.password)
 
-        return db['scielo']
+        return db[mdb_database]
 
     def get_proc_collection(self):
         """

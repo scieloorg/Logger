@@ -164,7 +164,7 @@ class Bulk(object):
         if db_url.username and db_url.password:
             db.authenticate(db_url.username, db_url.password)
 
-        return db['readcube']
+        return db[mdb_database]
 
     def get_proc_collection(self):
         """
@@ -232,6 +232,7 @@ class EventHandler(FileSystemEventHandler):
             skipped_log_dir = COUNTER_COMPLIANT_SKIPPED_LOG_DIR
         )
         bk.run(event.src_path)
+        del(bk)
 
 def watcher(collection, logs_source=LOG_DIR):
 
