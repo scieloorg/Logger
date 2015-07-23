@@ -9,6 +9,7 @@ urllib
 LOCKSS
 crawl
 java
+SciELO
 Alexandria[\s]+prototype[\s]+project
 AllenTrack
 Arachmo
