@@ -231,7 +231,7 @@ class EventHandler(FileSystemEventHandler):
             counter_compliant = COUNTER_COMPLIANT,
             skipped_log_dir = COUNTER_COMPLIANT_SKIPPED_LOG_DIR
         )
-        ogger.debug('New file available: %s' % event.src_path)
+        logger.debug('New file available: %s' % event.src_path)
         bk.run(event.src_path)
         del(bk)
 
