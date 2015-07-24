@@ -231,7 +231,7 @@ class EventHandler(FileSystemEventHandler):
             counter_compliant = COUNTER_COMPLIANT,
             skipped_log_dir = COUNTER_COMPLIANT_SKIPPED_LOG_DIR
         )
-        ogger.debug('New file available: %s' event.src_path)
+        ogger.debug('New file available: %s' % event.src_path)
         bk.run(event.src_path)
         del(bk)
 
@@ -241,7 +241,7 @@ def watcher(collection, logs_source=LOG_DIR):
     observer = Observer()
     observer.schedule(event_handler, logs_source, recursive=True)
     observer.start()
-    logger.info('Starting listening directory: %s' log_source)
+    logger.info('Starting listening directory: %s' % log_source)
     try:
         while True:
             time.sleep(1)
