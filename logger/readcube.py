@@ -241,7 +241,7 @@ def watcher(collection, logs_source=LOG_DIR):
     observer = Observer()
     observer.schedule(event_handler, logs_source, recursive=True)
     observer.start()
-    logger.info('Starting listening directory: %s' % log_source)
+    logger.info('Starting listening directory: %s' % logs_source)
     try:
         while True:
             time.sleep(1)
