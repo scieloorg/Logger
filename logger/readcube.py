@@ -191,8 +191,8 @@ class Bulk(object):
             return None
 
         # Registra em base de dados de arquivos processados o novo arquivo.
-        # logger.info("Processing: %s" % filename)
-        # self._proc_coll.insert({'file_name': filename})
+        logger.debug("Processing: %s" % filename)
+        self._proc_coll.insert({'file_name': filename})
 
         rq = ReadCube(self._mongo_uri, self._collection)
         
