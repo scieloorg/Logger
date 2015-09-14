@@ -1,6 +1,7 @@
 [app:main]
 mongo_uri = mongodb://127.0.0.1:27017/database_name
-log_dir = /var/www/logger/data/logs
+#logs_source = /var/www/logger/data/logs
+#readcube_logs_source = /var/www/logger/data/readcube/logs
 robots_file = /var/www/logger/robots.txt
 
 # COUNTER MODE

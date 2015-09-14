@@ -23,7 +23,7 @@ COUNTER_COMPLIANT = int(settings.get('counter_compliant', 0))
 COUNTER_COMPLIANT_SKIPPED_LOG_DIR = settings.get('counter_compliant_skipped_log_dir', None)
 MONGO_URI = settings.get('mongo_uri', 'mongodb://127.0.0.1:27017/database_name')
 MONGO_URI_COUNTER = settings.get('mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
-LOG_DIR = settings['log_dir']
+LOGS_SOURCE = settings['logs_source']
 
 def _config_logging(logging_level='INFO', logging_file=None):
 
@@ -98,10 +98,11 @@ def register_access(interface, parsed_line):
 
 class Bulk(object):
 
-    def __init__(self, mongo_uri, collection, counter_compliant=None, skipped_log_dir=None):
+    def __init__(self, mongo_uri, collection, logs_source=LOGS_SOURCE, counter_compliant=None, skipped_log_dir=None):
         self._mongo_uri = mongo_uri
         self._proc_coll = self.get_proc_collection()
         self._collection = collection
+        self._logs_source = logs_source
         self._counter_compliant = counter_compliant
         self._skipped_log_dir = None
         if skipped_log_dir:
@@ -142,7 +143,7 @@ class Bulk(object):
 
         ac = AccessChecker(self._collection)
 
-        for logfile in os.popen('ls %s/*' % LOG_DIR):
+        for logfile in os.popen('ls %s/*' % self._logs_source):
 
             logfile = logfile.strip()
 
@@ -210,6 +211,12 @@ def main():
     )
 
     parser.add_argument(
+        '--logs_source',
+        '-s',
+        help='Full path to the directory with apache log files'
+    )
+
+    parser.add_argument(
         '--logging_file',
         '-o',
         help='Full path to the log file'
@@ -230,6 +237,7 @@ def main():
     bk = Bulk(
         "%s_%s" % (MONGO_URI, args.collection),
         collection=args.collection,
+        logs_source=args.logs_source,
         counter_compliant=COUNTER_COMPLIANT,
         skipped_log_dir=COUNTER_COMPLIANT_SKIPPED_LOG_DIR
     )

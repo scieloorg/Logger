@@ -7,7 +7,7 @@ class RatchetBulk(unittest.TestCase):
 
     def setUp(self):
 
-        self.rb = ratchet.Remote('fakeapiuri', 'scl')
+        self.rb = ratchet.Local('fakeapiuri', 'scl')
 
     def test_register_download_access_keys(self):
 

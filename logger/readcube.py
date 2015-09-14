@@ -24,7 +24,7 @@ COUNTER_COMPLIANT = int(settings.get('counter_compliant', 0))
 COUNTER_COMPLIANT_SKIPPED_LOG_DIR = settings.get('counter_compliant_skipped_log_dir', None)
 MONGO_URI = settings.get('mongo_uri', 'mongodb://127.0.0.1:27017/database_name')
 MONGO_URI_COUNTER = settings.get('mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
-LOG_DIR = settings['readcube_log_dir']
+LOGS_SOURCE = settings['readcube_logs_source']
 
 def _config_logging(logging_level='INFO', logging_file=None):
 
@@ -263,6 +263,12 @@ def main():
     )
 
     parser.add_argument(
+        '--logs_source',
+        '-s',
+        help='Full path to the directory with apache log files'
+    )
+
+    parser.add_argument(
         '--logging_file',
         '-o',
         help='Full path to the log file'
@@ -280,4 +286,4 @@ def main():
 
     _config_logging(args.logging_level, args.logging_file)
 
-    watcher(args.collection)
+    watcher(args.collection, args.log_dir)
