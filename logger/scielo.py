@@ -228,7 +228,7 @@ def main():
     _config_logging(args.logging_level, args.logging_file)
 
     bk = Bulk(
-        MONGO_URI,
+        "%s_%s" % (MONGO_URI, args.collection),
         collection=args.collection,
         counter_compliant=COUNTER_COMPLIANT,
         skipped_log_dir=COUNTER_COMPLIANT_SKIPPED_LOG_DIR

@@ -226,7 +226,7 @@ class EventHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         bk = Bulk(
-            MONGO_URI,
+            '%s_%s' % (MONGO_URI, self._collection),
             collection = self._collection,
             counter_compliant = COUNTER_COMPLIANT,
             skipped_log_dir = COUNTER_COMPLIANT_SKIPPED_LOG_DIR
