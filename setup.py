@@ -46,7 +46,8 @@ setup(
     test_suite="nose.collector",
     entry_points="""\
     [console_scripts]
-    logger_loadlogs = logger.scielo:main
+    logger_loadlogs_scielo = logger.scielo:main
     logger_loadlogs_readcube = logger.readcube:main
+    logger_inspector = logger.inspector:main
     """,
 )

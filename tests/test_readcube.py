@@ -3,7 +3,7 @@ import unittest
 from logger import readcube
 
 
-class ReadCubeBulk(unittest.TestCase):
+class ReadCubeBulkTests(unittest.TestCase):
 
     def test_instantiating_invalid_len(self):
         sample_line = []

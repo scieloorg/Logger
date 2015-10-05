@@ -3,7 +3,7 @@ import unittest
 from logger import ratchet
 
 
-class RatchetBulk(unittest.TestCase):
+class RatchetBulkTests(unittest.TestCase):
 
     def setUp(self):
 

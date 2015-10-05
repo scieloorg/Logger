@@ -235,7 +235,7 @@ class EventHandler(FileSystemEventHandler):
         bk.run(event.src_path)
         del(bk)
 
-def watcher(collection, logs_source=LOG_DIR):
+def watcher(collection, logs_source):
 
     event_handler = EventHandler(collection=collection)
     observer = Observer()
@@ -286,4 +286,4 @@ def main():
 
     _config_logging(args.logging_level, args.logging_file)
 
-    watcher(args.collection, args.log_dir)
+    watcher(args.collection, args.logs_source)
