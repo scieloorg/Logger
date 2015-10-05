@@ -118,11 +118,11 @@ class EventHandler(FileSystemEventHandler):
         filename = event.src_path.split('/')[-1]
         inspector = Inspector(filename)
         
-        os.logger.debug("File is valid: %s" % str(inspector.is_valid()))
+        logger.debug("File is valid: %s" % str(inspector.is_valid()))
 
         if not inspector.is_valid():
             os.remove(event.src_path)
-            os.logger.debug("File removed from server: %s" % event.src_path)
+            logger.debug("File removed from server: %s" % event.src_path)
 
 def watcher(logs_source):
 
