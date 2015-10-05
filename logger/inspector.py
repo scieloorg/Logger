@@ -11,6 +11,8 @@ import re
 import datetime
 import time
 import os
+import traceback
+import sys
 
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
@@ -114,15 +116,24 @@ class Inspector(object):
 class EventHandler(FileSystemEventHandler):
 
     def on_created(self, event):
-        logger.info('New file detected: %s' % event.src_path)
-        filename = event.src_path.split('/')[-1]
-        inspector = Inspector(filename)
-        
-        logger.debug("File is valid: %s" % str(inspector.is_valid()))
+        try:
+            if event.is_directory:
+                logger.debug('New directory detected: %s' % event.src_path)
+                os.rmdir(event.src_path)
+                logger.debug('Directory removed: %s' % event.src_path)
+                return False
 
-        if not inspector.is_valid():
-            os.remove(event.src_path)
-            logger.debug("File removed from server: %s" % event.src_path)
+            logger.info('New file detected: %s' % event.src_path)
+            filename = event.src_path.split('/')[-1]
+            inspector = Inspector(filename)
+            
+            logger.debug("File is valid: %s" % str(inspector.is_valid()))
+
+            if not inspector.is_valid():
+                os.remove(event.src_path)
+                logger.debug("File removed from server: %s" % event.src_path)
+        except Exception, err:
+            logger.exception(sys.exc_info()[0])
 
 def watcher(logs_source):
 
