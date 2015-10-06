@@ -3,9 +3,10 @@ mongo_uri = mongodb://127.0.0.1:27017/database_name
 #logs_source = /var/www/logger/data/logs
 #readcube_logs_source = /var/www/logger/data/readcube/logs
 robots_file = /var/www/logger/robots.txt
+celery = amqp://guest@localhost//
 
 # COUNTER MODE
-counter_compliant = 0
+counter_compliant = 1
 
 # Record log files directory with skipped accesses. No logs will be recorded
 if this config is omitted.

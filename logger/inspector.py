@@ -18,9 +18,12 @@ from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
 from watchdog.events import FileSystemEventHandler
 
+from logger import utils
+from tasks import readlog
+
 logger = logging.getLogger(__name__)
 
-REGEX_FILENAME = re.compile(r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<collection>.*?)\.log.gz$')
+REGEX_FILENAME = re.compile(r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<collection>.*?)\.log\.gz$')
 
 def _config_logging(logging_level='INFO', logging_file=None):
 
@@ -62,7 +65,8 @@ class Inspector(object):
     def __init__(self, filename):
 
         logger.info('Inspecting file: %s' % filename)
-        self._filename = filename
+        self._file = filename
+        self._filename = filename.split('/')[-1]
         self._parsed_fn = REGEX_FILENAME.match(self._filename)
 
     def _is_valid_filename(self):
@@ -77,10 +81,8 @@ class Inspector(object):
         if not self._is_valid_filename:
             return False
 
-        date = self._parsed_fn.groupdict().get('date', None)
-
         try:
-            datetime.datetime.strptime(date,'%Y-%m-%d')
+            datetime.datetime.strptime(self.datelog,'%Y-%m-%d')
         except:
             logger.warning('Invalid date in filename: %s' % self._filename)
             return False
@@ -92,13 +94,34 @@ class Inspector(object):
         if not self._is_valid_filename:
             return False
 
-        collection = self._parsed_fn.groupdict().get('collection', None)
-
-        if not collection in COLLECTIONS:
+        if not self.collection in COLLECTIONS:
             logger.warning('Invalid collection in filename: %s' % self._filename)
             return False
 
         return True
+
+    def _is_valid_gzip(self):
+        if not utils.check_file_format(self._file) == 'gzip':
+            logger.warning('Invalid gzip file: %s' % self._file)
+            return False
+
+        return True
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @property
+    def datelog(self):
+        return self._parsed_fn.groupdict().get('date', None)
+
+    @property
+    def collection(self):
+        return self._parsed_fn.groupdict().get('collection', None)
+
+    @property
+    def collection_acron_3(self):
+        return COLLECTIONS.get(self._parsed_fn.groupdict().get('collection', None), {'code': None})['code']
 
     def is_valid(self):
 
@@ -109,6 +132,9 @@ class Inspector(object):
             return False
 
         if not self._is_valid_collection():
+            return False
+
+        if not self._is_valid_gzip():
             return False
 
         return True
@@ -124,14 +150,17 @@ class EventHandler(FileSystemEventHandler):
                 return False
 
             logger.info('New file detected: %s' % event.src_path)
-            filename = event.src_path.split('/')[-1]
-            inspector = Inspector(filename)
+            inspector = Inspector(event.src_path)
             
             logger.debug("File is valid: %s" % str(inspector.is_valid()))
 
             if not inspector.is_valid():
                 os.remove(event.src_path)
                 logger.debug("File removed from server: %s" % event.src_path)
+                return False
+
+            readlog.delay(event.src_path, inspector.collection_acron_3)
+
         except Exception, err:
             logger.exception(sys.exc_info()[0])
 

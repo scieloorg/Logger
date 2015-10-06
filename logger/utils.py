@@ -78,6 +78,15 @@ def checkdatelock(previous_date=None, next_date=None, locktime=10):
         return nd
 
 
+def check_file_format(logfile):
+    with open(logfile, 'rb') as f:
+        if f.read(1024).startswith('\x1f\x8b\x08'):
+            f.seek(0)
+            return 'gzip'
+
+    return 'txt'
+
+
 class TimedSet(object):
     def __init__(self, items=None, expired=None):
         self.expired = expired or (lambda t0, t1, t2: True)

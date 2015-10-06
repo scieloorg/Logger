@@ -7,6 +7,7 @@ import datetime
 import logging
 import urlparse
 import codecs
+import gzip
 
 import pymongo
 
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 config = utils.Configuration.from_env()
 settings = dict(config.items())['app:main']
 
-COUNTER_COMPLIANT = int(settings.get('counter_compliant', 0))
+COUNTER_COMPLIANT = int(settings.get('counter_compliant', 1))
 COUNTER_COMPLIANT_SKIPPED_LOG_DIR = settings.get('counter_compliant_skipped_log_dir', None)
 MONGO_URI = settings.get('mongo_uri', 'mongodb://127.0.0.1:27017/database_name')
 MONGO_URI_COUNTER = settings.get('mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
@@ -98,13 +99,15 @@ def register_access(interface, parsed_line):
 
 class Bulk(object):
 
-    def __init__(self, mongo_uri, collection, logs_source=LOGS_SOURCE, counter_compliant=None, skipped_log_dir=None):
-        self._mongo_uri = mongo_uri
+    def __init__(self, collection, mongo_uri=MONGO_URI, logs_source=LOGS_SOURCE, counter_compliant=None, skipped_log_dir=None):
+        self._mongo_uri = "%s_%s" % (mongo_uri, collection)
         self._proc_coll = self.get_proc_collection()
         self._collection = collection
         self._logs_source = logs_source
         self._counter_compliant = counter_compliant
         self._skipped_log_dir = None
+        self._ts = utils.TimedSet(expired=utils.checkdatelock)
+
         if skipped_log_dir:
             now = datetime.datetime.now().isoformat()
             skipped_log = '/'.join([skipped_log_dir, now]).replace('//', '/')
@@ -137,65 +140,67 @@ class Bulk(object):
         if self._skipped_log_dir:
             self._skipped_log_dir.write("%s \r\n" % line)
     
-    def run(self):
-        if self._counter_compliant:
-            ts = utils.TimedSet(expired=utils.checkdatelock)
+    def read_log(self, logfile):
+        logfile = logfile.strip()
 
         ac = AccessChecker(self._collection)
 
-        for logfile in os.popen('ls %s/*' % self._logs_source):
+        # Verifica se arquivo já foi processado.
+        if self._proc_coll.find({'file_name': logfile}).count() > 0:
+            logger.info('File already processe %s' % logfile)
+            return None
 
-            logfile = logfile.strip()
+        reader = codecs
+        if utils.check_file_format(logfile) == 'gzip':
+            reader = gzip
 
-            # Verifica se arquivo já foi processado.
-            if self._proc_coll.find({'file_name': logfile}).count() > 0:
-                logger.debug('File already processe %s' % logfile)
-                continue
+        # Registra em base de dados de arquivos processados o novo arquivo.
+        logger.info("Processing: %s" % logfile)
+        self._proc_coll.insert({'file_name': logfile})
 
-            # Registra em base de dados de arquivos processados o novo arquivo.
-            logger.info("Processing: %s" % logfile)
-            self._proc_coll.insert({'file_name': logfile})
+        rq = Local(self._mongo_uri, self._collection)
 
-            rq = Local(self._mongo_uri, self._collection)
+        with reader.open(logfile, 'rb') as f:
 
-            with codecs.open(logfile, 'rb', encoding='utf-8', errors='replace') as f:
+            log_file_line = 0
+            for raw_line in f:
+                log_file_line += 1
+                logger.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
+                logger.debug(raw_line)
 
-                log_file_line = 0
-                for raw_line in f:
-                    log_file_line += 1
-                    logger.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
-                    logger.debug(raw_line)
+                try:
+                    parsed_line = ac.parsed_access(raw_line)
+                except ValueError as e:
+                    logger.error("%s: %s" % (e.message, raw_line))
+                    continue
+                
+                if not parsed_line:
+                    continue
 
+                if COUNTER_COMPLIANT:
+                    # Counter Mode Accesses
+                    locktime = 10
+                    if parsed_line['access_type'] == "PDF":
+                        locktime = 30
                     try:
-                        parsed_line = ac.parsed_access(raw_line)
-                    except ValueError as e:
-                        logger.error("%s: %s" % (e.message, raw_line))
-                        continue
-                    
-                    if not parsed_line:
-                        continue
-
-                    if COUNTER_COMPLIANT:
-                        # Counter Mode Accesses
-                        locktime = 10
-                        if parsed_line['access_type'] == "PDF":
-                            locktime = 30
-                        try:
-                            lockid = '_'.join([parsed_line['ip'],
-                                               parsed_line['code'],
-                                               parsed_line['script']])
-                            ts.add(lockid, parsed_line['iso_datetime'], locktime)
-                            register_access(rq, parsed_line)
-                        except ValueError:
-                            self.write_skipped_log_dir('; '.join([lockid, parsed_line['original_date'], parsed_line['original_agent']]))
-                            continue
-                    else:
-                        # SciELO Mode Accesses
+                        lockid = '_'.join([parsed_line['ip'],
+                                           parsed_line['code'],
+                                           parsed_line['script']])
+                        self._ts.add(lockid, parsed_line['iso_datetime'], locktime)
                         register_access(rq, parsed_line)
-
+                    except ValueError:
+                        self.write_skipped_log_dir('; '.join([lockid, parsed_line['original_date'], parsed_line['original_agent']]))
+                        continue
+                else:
+                    # SciELO Mode Accesses
+                    register_access(rq, parsed_line)
 
             rq.send()
             del(rq)
+
+    def run(self):
+        for logfile in os.popen('ls %s/*' % self._logs_source):
+            self.read_log(logfile)
 
 def main():
 
@@ -235,10 +240,11 @@ def main():
     _config_logging(args.logging_level, args.logging_file)
 
     bk = Bulk(
-        "%s_%s" % (MONGO_URI, args.collection),
-        collection=args.collection,
-        logs_source=args.logs_source,
-        counter_compliant=COUNTER_COMPLIANT,
-        skipped_log_dir=COUNTER_COMPLIANT_SKIPPED_LOG_DIR
+        collection = args.collection,
+        mongo_uri = MONGO_URI,
+        logs_source = args.logs_source,
+        counter_compliant = COUNTER_COMPLIANT,
+        skipped_log_dir = COUNTER_COMPLIANT_SKIPPED_LOG_DIR
     )
+
     bk.run()
