@@ -240,31 +240,53 @@ class ReadCube(RatchetBulk):
         self.bulk_data = None
 
 
+
 class Local(RatchetBulk):
 
     def __init__(self, mongodb_uri, scielo_collection):
-
-        db_url = urlparse.urlparse(mongodb_uri)
-        conn = pymongo.MongoClient(host=db_url.hostname, port=db_url.port)
-        db = conn[db_url.path[1:]]
-        if db_url.username and db_url.password:
-            db.authenticate(db_url.username, db_url.password)
-
-        self.db_collection = db['accesses']
-        self.bulk_data = {}
+        self._db_url = urlparse.urlparse(mongodb_uri)
         self._collection = scielo_collection
+
+    def __enter__(self):
+        self._conn = pymongo.MongoClient(host=self._db_url.hostname, port=self._db_url.port)
+        self._db = self._conn[self._db_url.path[1:]]
+        if self._db_url.username and self._db_url.password:
+            self._db.authenticate(self._db_url.username, self._db_url.password)
+
+        self.db_collection = self._db['accesses']
+        self.bulk_data = {}
+        
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._conn.close()
+        self._collection = None
+        docs = []
+        for document, items in self.bulk_data.items():
+            for item in items:
+                docs.append([document, item])
+
+        for item in docs:
+            del(self.bulk_data[item[0]][item[1]])
+
+        for item in self.bulk_data.keys():
+            del(self.bulk_data[item])
+
+        self.bulk_data.clear()
 
     def send(self, slp=0):
 
         total = str(len(self.bulk_data))
         _logger.info('%s Records to bulk' % total)
         i = 0
+        include_set = {}
+        data = {}
         for key, value in self.bulk_data.items():
             i += 1
             _logger.debug('bulking %s of %s' % (str(i), str(total)))
 
             code = value['code']
-            include_set = {}
+            
             if 'journal' in value:
                 include_set['journal'] = value['journal']
                 del(value['journal'])
@@ -283,7 +305,6 @@ class Local(RatchetBulk):
 
             del value['code']
 
-            data = {}
             if include_set:
                 data['$set'] = include_set
 
@@ -294,7 +315,47 @@ class Local(RatchetBulk):
                 self.db_collection.update({'code': code}, data, safe=False, upsert=True)
             except:
                 _logger.error('Unexpected error: {0}'.format(traceback.format_exc()))
-            
+
+            include_set.clear()
+            value.clear()
+
             time.sleep(slp)
 
-        self.bulk_data = None
+    def register_pdf_download_accesses(self, issn, pdfid, date, ip):
+
+        self.register_download_access(pdfid, issn, date)
+
+    def register_html_accesses(self, script, pid, date, ip):
+
+        if script == "sci_serial":
+            self.register_journal_access(pid, date)
+        elif script == "sci_abstract":
+            self.register_abstract_access(pid, date)
+        elif script == "sci_issuetoc":
+            self.register_toc_access(pid, date)
+        elif script == "sci_arttext":
+            self.register_article_access(pid, date)
+        elif script == "sci_pdf":
+            self.register_pdf_access(pid, date)
+        elif script == "sci_home":
+            self.register_home_access(pid, date)
+        elif script == "sci_issues":
+            self.register_issues_access(pid, date)
+        elif script == "sci_alphabetic":
+            self.register_alpha_access(pid, date)
+
+    def register_access(self, parsed_line):
+
+        if parsed_line['access_type'] == "PDF":
+            pdfid = parsed_line['pdf_path']
+            issn = parsed_line['pdf_issn']
+            self.register_pdf_download_accesses(issn, pdfid, 
+                parsed_line['iso_date'], parsed_line['ip']
+            )
+
+        if parsed_line['access_type'] == "HTML":
+            script = parsed_line['query_string']['script']
+            pid = parsed_line['query_string']['pid']
+            self.register_html_accesses(script, pid, parsed_line['iso_date'],
+                parsed_line['ip']
+            )

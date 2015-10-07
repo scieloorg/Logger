@@ -50,53 +50,6 @@ def _config_logging(logging_level='INFO', logging_file=None):
 
     logger.addHandler(hl)
 
-
-def register_pdf_download_accesses(interface, issn, pdfid, date, ip):
-
-    interface.register_download_access(pdfid, issn, date)
-
-
-def register_html_accesses(interface, script, pid, date, ip):
-
-    if script == "sci_serial":
-        interface.register_journal_access(pid, date)
-    elif script == "sci_abstract":
-        interface.register_abstract_access(pid, date)
-    elif script == "sci_issuetoc":
-        interface.register_toc_access(pid, date)
-    elif script == "sci_arttext":
-        interface.register_article_access(pid, date)
-    elif script == "sci_pdf":
-        interface.register_pdf_access(pid, date)
-    elif script == "sci_home":
-        interface.register_home_access(pid, date)
-    elif script == "sci_issues":
-        interface.register_issues_access(pid, date)
-    elif script == "sci_alphabetic":
-        interface.register_alpha_access(pid, date)
-
-
-def register_access(interface, parsed_line):
-
-    if parsed_line['access_type'] == "PDF":
-        pdfid = parsed_line['pdf_path']
-        issn = parsed_line['pdf_issn']
-        register_pdf_download_accesses(interface,
-                                       issn,
-                                       pdfid,
-                                       parsed_line['iso_date'],
-                                       parsed_line['ip'])
-
-    if parsed_line['access_type'] == "HTML":
-        script = parsed_line['query_string']['script']
-        pid = parsed_line['query_string']['pid']
-        register_html_accesses(interface,
-                               script,
-                               pid,
-                               parsed_line['iso_date'],
-                               parsed_line['ip'])
-
-
 class Bulk(object):
 
     def __init__(self, collection, mongo_uri=MONGO_URI, logs_source=LOGS_SOURCE, counter_compliant=None, skipped_log_dir=None):
@@ -105,16 +58,27 @@ class Bulk(object):
         self._collection = collection
         self._logs_source = logs_source
         self._counter_compliant = counter_compliant
-        self._skipped_log_dir = None
         self._ts = utils.TimedSet(expired=utils.checkdatelock)
+        self._skipped_log_dir = skipped_log_dir
+        self._skipped_log = None
+        self._ac = AccessChecker(self._collection)
 
-        if skipped_log_dir:
+    def __enter__(self):
+        if self._skipped_log_dir:
             now = datetime.datetime.now().isoformat()
-            skipped_log = '/'.join([skipped_log_dir, now]).replace('//', '/')
+            skipped_log = '/'.join([self._skipped_log_dir, now]).replace('//', '/')
             try:
-                self._skipped_log_dir = open(skipped_log, 'w')
+                self._skipped_log = open(skipped_log, 'w')
             except ValueError:
                 raise "Invalid directory or file name: %s" % skipped_log
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._ts = None
+        self._ac = None
+        if self._skipped_log:
+            self._skipped_log.close()
 
     def _mongodb_connect(self, mdb_database):
 
@@ -136,19 +100,17 @@ class Bulk(object):
 
         return coll
 
-    def write_skipped_log_dir(self, line):
-        if self._skipped_log_dir:
-            self._skipped_log_dir.write("%s \r\n" % line)
+    def write_skipped_log(self, line):
+        if self._skipped_log:
+            self._skipped_log.write("%s \r\n" % line)
     
     def read_log(self, logfile):
         logfile = logfile.strip()
 
-        ac = AccessChecker(self._collection)
-
         # Verifica se arquivo já foi processado.
-        if self._proc_coll.find({'file_name': logfile}).count() > 0:
-            logger.info('File already processe %s' % logfile)
-            return None
+        # if self._proc_coll.find({'file_name': logfile}).count() > 0:
+        #     logger.info('File already processe %s' % logfile)
+        #     return None
 
         reader = codecs
         if utils.check_file_format(logfile) == 'gzip':
@@ -158,45 +120,42 @@ class Bulk(object):
         logger.info("Processing: %s" % logfile)
         self._proc_coll.insert({'file_name': logfile})
 
-        rq = Local(self._mongo_uri, self._collection)
-
         with reader.open(logfile, 'rb') as f:
+            with Local(self._mongo_uri, self._collection) as rq:
+                log_file_line = 0
+                for raw_line in f:
+                    log_file_line += 1
+                    logger.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
+                    logger.debug(raw_line)
 
-            log_file_line = 0
-            for raw_line in f:
-                log_file_line += 1
-                logger.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
-                logger.debug(raw_line)
-
-                try:
-                    parsed_line = ac.parsed_access(raw_line)
-                except ValueError as e:
-                    logger.error("%s: %s" % (e.message, raw_line))
-                    continue
-                
-                if not parsed_line:
-                    continue
-
-                if COUNTER_COMPLIANT:
-                    # Counter Mode Accesses
-                    locktime = 10
-                    if parsed_line['access_type'] == "PDF":
-                        locktime = 30
                     try:
-                        lockid = '_'.join([parsed_line['ip'],
-                                           parsed_line['code'],
-                                           parsed_line['script']])
-                        self._ts.add(lockid, parsed_line['iso_datetime'], locktime)
-                        register_access(rq, parsed_line)
-                    except ValueError:
-                        self.write_skipped_log_dir('; '.join([lockid, parsed_line['original_date'], parsed_line['original_agent']]))
+                        parsed_line = self._ac.parsed_access(raw_line)
+                    except ValueError as e:
+                        logger.error("%s: %s" % (e.message, raw_line))
                         continue
-                else:
-                    # SciELO Mode Accesses
-                    register_access(rq, parsed_line)
+                    
+                    if not parsed_line:
+                        continue
 
-            rq.send()
-            del(rq)
+                    if COUNTER_COMPLIANT:
+                        # Counter Mode Accesses
+                        locktime = 10
+                        if parsed_line['access_type'] == "PDF":
+                            locktime = 30
+                        try:
+                            lockid = '_'.join([parsed_line['ip'],
+                                               parsed_line['code'],
+                                               parsed_line['script']])
+                            self._ts.add(lockid, parsed_line['iso_datetime'], locktime)
+                            rq.register_access(parsed_line)
+                        except ValueError:
+                            self.write_skipped_log('; '.join([lockid, parsed_line['original_date'], parsed_line['original_agent']]))
+                            continue
+                    else:
+                        pass
+                        # SciELO Mode Accesses
+                        rq.register_access(parsed_line)
+                rq.send()
 
     def run(self):
         for logfile in os.popen('ls %s/*' % self._logs_source):
