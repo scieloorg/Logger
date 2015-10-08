@@ -76,6 +76,17 @@ class Inspector(object):
 
         return True
 
+    def _is_valid_source_directory(self):
+
+        if not self._is_valid_filename:
+            return False
+
+        if not self._file.split('/')[-2] in self._filename:
+            logger.warning('Invalid source directory: %s' % self._file)
+            return False
+
+        return True
+
     def _is_valid_date(self):
 
         if not self._is_valid_filename:
@@ -132,6 +143,9 @@ class Inspector(object):
             return False
 
         if not self._is_valid_collection():
+            return False
+
+        if not self._is_valid_source_directory():
             return False
 
         if not self._is_valid_gzip():
