@@ -246,6 +246,7 @@ class Local(RatchetBulk):
     def __init__(self, mongodb_uri, scielo_collection):
         self._db_url = urlparse.urlparse(mongodb_uri)
         self._collection = scielo_collection
+        self.bulk_data = {}
 
     def __enter__(self):
         self._conn = pymongo.MongoClient(host=self._db_url.hostname, port=self._db_url.port)
