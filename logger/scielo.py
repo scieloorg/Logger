@@ -108,9 +108,9 @@ class Bulk(object):
         logfile = logfile.strip()
 
         # Verifica se arquivo já foi processado.
-        # if self._proc_coll.find({'file_name': logfile}).count() > 0:
-        #     logger.info('File already processe %s' % logfile)
-        #     return None
+        if self._proc_coll.find({'file_name': logfile}).count() > 0:
+            logger.info('File already processe %s' % logfile)
+            return None
 
         reader = codecs
         if utils.check_file_format(logfile) == 'gzip':
