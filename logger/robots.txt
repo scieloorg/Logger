@@ -9,7 +9,8 @@ urllib
 LOCKSS
 crawl
 java
-SciELO
+ArticleMeta
+TurnitinBot
 Alexandria[\s]+prototype[\s]+project
 AllenTrack
 Arachmo
