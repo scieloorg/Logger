@@ -109,7 +109,7 @@ class Bulk(object):
 
         # Verifica se arquivo já foi processado.
         if self._proc_coll.find({'file_name': logfile}).count() > 0:
-            logger.info('File already processe %s' % logfile)
+            logger.info('File already processed %s' % logfile)
             return None
 
         reader = codecs

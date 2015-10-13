@@ -155,24 +155,52 @@ class Inspector(object):
 
 class EventHandler(FileSystemEventHandler):
 
+    logfilename = 'report.log'
+
+    def write_log(self, logpath, message):
+
+        logpath = logpath.split('/')
+        logpath[-1] = self.logfilename
+        logfile = '/'.join(logpath)
+
+        message = datetime.datetime.now().isoformat()[:19] + ' - ' + message
+
+        with open(logfile, 'a') as f:
+            line = '%s\r\n' % message
+            f.write(line)
+
     def on_created(self, event):
+
+        if self.logfilename in event.src_path:
+            return False
+
         try:
             if event.is_directory:
-                logger.debug('New directory detected: %s' % event.src_path)
+                msg = 'New directory detected: %s' % event.src_path
+                logger.debug(msg)
+                self.write_log(event.src_path, msg)
                 os.rmdir(event.src_path)
-                logger.debug('Directory removed: %s' % event.src_path)
+                msg = 'Directory removed: %s' % event.src_path
+                logger.debug(msg)
+                self.write_log(event.src_path, msg)
                 return False
 
-            logger.info('New file detected: %s' % event.src_path)
+            msg = 'New file detected: %s' % event.src_path
+            logger.info(msg)
+            self.write_log(event.src_path, msg)
             inspector = Inspector(event.src_path)
-            
-            logger.debug("File is valid: %s" % str(inspector.is_valid()))
-
+            msg = "File is valid: %s" % str(inspector.is_valid())
+            logger.debug(msg)
             if not inspector.is_valid():
                 os.remove(event.src_path)
-                logger.debug("File removed from server: %s" % event.src_path)
+                msg = "File is not valid, removed from server: %s" % event.src_path
+                logger.debug(msg)
+                self.write_log(event.src_path, msg)
                 return False
 
+            msg = "File is valid, sending for processing: %s" % event.src_path
+            logger.debug(msg)
+            self.write_log(event.src_path, msg)
             readlog.delay(event.src_path, inspector.collection_acron_3)
 
         except Exception, err:
