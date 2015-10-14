@@ -170,7 +170,7 @@ class EventHandler(FileSystemEventHandler):
             f.write(line)
 
     def on_created(self, event):
-
+        slp_time = 3
         if self.logfilename in event.src_path:
             return False
 
@@ -188,20 +188,32 @@ class EventHandler(FileSystemEventHandler):
             msg = 'New file detected: %s' % event.src_path
             logger.info(msg)
             self.write_log(event.src_path, msg)
-            inspector = Inspector(event.src_path)
-            msg = "File is valid: %s" % str(inspector.is_valid())
-            logger.debug(msg)
-            if not inspector.is_valid():
-                os.remove(event.src_path)
-                msg = "File is not valid, removed from server: %s" % event.src_path
+
+            attempt = 0
+            while True:
+                attempt += 1
+                inspector = Inspector(event.src_path)
+                msg = "File is valid: %s" % str(inspector.is_valid())
+                logger.debug(msg)
+                if not inspector.is_valid():
+                    msg = "File is not valid, attempt (%d/10) will try again in %d seconds: %s" % (attempt, slp_time, event.src_path)
+                    logger.debug(msg)
+                    self.write_log(event.src_path, msg)
+                    if attempt <= 10:
+                        time.sleep(slp_time)
+                        continue
+                    else:
+                        os.remove(event.src_path)
+                        msg = "File is not valid, removed from server: %s" % event.src_path
+                        logger.debug(msg)
+                        self.write_log(event.src_path, msg)
+                        return None
+
+                msg = "File is valid, sending for processing: %s" % event.src_path
                 logger.debug(msg)
                 self.write_log(event.src_path, msg)
-                return False
-
-            msg = "File is valid, sending for processing: %s" % event.src_path
-            logger.debug(msg)
-            self.write_log(event.src_path, msg)
-            readlog.delay(event.src_path, inspector.collection_acron_3)
+                readlog.delay(event.src_path, inspector.collection_acron_3)
+                break
 
         except Exception, err:
             logger.exception(sys.exc_info()[0])
