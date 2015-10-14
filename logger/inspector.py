@@ -199,7 +199,7 @@ class EventHandler(FileSystemEventHandler):
                     msg = "File is not valid, attempt (%d/10) will try again in %d seconds: %s" % (attempt, slp_time, event.src_path)
                     logger.debug(msg)
                     self.write_log(event.src_path, msg)
-                    if attempt <= 10:
+                    if attempt < 10:
                         time.sleep(slp_time)
                         continue
                     else:
