@@ -24,7 +24,7 @@ COUNTER_COMPLIANT = int(settings.get('counter_compliant', 1))
 COUNTER_COMPLIANT_SKIPPED_LOG_DIR = settings.get('counter_compliant_skipped_log_dir', None)
 MONGO_URI = settings.get('mongo_uri', 'mongodb://127.0.0.1:27017/database_name')
 MONGO_URI_COUNTER = settings.get('mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
-LOGS_SOURCE = settings('logs_source', '.')
+LOGS_SOURCE = settings.get('logs_source', '.')
 
 def _config_logging(logging_level='INFO', logging_file=None):
 
