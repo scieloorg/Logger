@@ -29,7 +29,7 @@ MONTH_DICT = {
 config = utils.Configuration.from_env()
 settings = dict(config.items())['app:main']
 
-ROBOTS = [i.strip() for i in open(settings['robots_file'])]
+ROBOTS = [i.strip() for i in open(settings.get('robots_file', 'robots.txt'))]
 APACHE_LOG_FORMAT = settings.get('log_format', r'= %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"')
 COMPILED_ROBOTS = [re.compile(i.lower()) for i in ROBOTS]
 REGEX_ISSN = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]$")
