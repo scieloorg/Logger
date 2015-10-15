@@ -10,3 +10,4 @@ script:
   - python setup.py test
 before_script:
   - cp ./config.ini.template ./config.ini
+  - cp logger/robots.txt ./robots.txt
