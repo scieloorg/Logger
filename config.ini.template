@@ -9,7 +9,7 @@ celery = amqp://guest@localhost//
 counter_compliant = 1
 
 # Record log files directory with skipped accesses. No logs will be recorded
-if this config is omitted.
+# if this config is omitted.
 # counter_compliant_skipped_log_dir = /Users/fabiobatalha/Trabalho/logger/data/logs
 
 # APACHE LOG format
