@@ -9,4 +9,4 @@ install:
 script:
   - python setup.py test
 before_script:
-  - cp ./config.ini-template ./config.ini
+  - cp ./config.ini.template ./config.ini
