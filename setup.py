@@ -17,7 +17,8 @@ install_requires = [
     'apachelog>=1.1',
     'pymongo>=2.8',
     'celery>=3.1.18',
-    'watchdog>=0.8.3'
+    'watchdog>=0.8.3',
+    'xylose'
 ]
 
 tests_require = [
@@ -41,6 +42,9 @@ setup(
         "Operating System :: POSIX :: Linux",
         "Topic :: System",
         "Topic :: Utilities",
+    ],
+    dependency_links=[
+        "git+https://git@github.com/scieloorg/xylose.git@v0.34#egg=xylose"
     ],
     install_requires=install_requires,
     setup_requires=["nose>=1.0", "coverage"],

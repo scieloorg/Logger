@@ -4,4 +4,4 @@ requests==2.6.0
 watchdog==0.8.3
 celery==3.1.18
 -e git+https://github.com/scieloorg/logger@0.1.10#egg=logger
--e git+https://github.com/scieloorg/xylose@0.32#egg=xylose
+-e git+https://github.com/scieloorg/xylose@0.34#egg=xylose
