@@ -157,8 +157,8 @@ class Inspector(object):
         if not self._is_valid_gzip():
             return (False, 'invalid gzip')
 
-        # if not self._is_gzip_integrate():
-        #     return (False, 'invalid gzip, integrity error')
+        if not self._is_gzip_integrate():
+            return (False, 'invalid gzip, integrity error')
 
         return (True, 'file is valid')
 
