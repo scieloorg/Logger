@@ -118,6 +118,12 @@ class Inspector(object):
 
         return True
 
+    def _is_gzip_integrate(self):
+        if not utils.is_gzip_integrate(self._file):
+            return False
+
+        return True
+
     @property
     def filename(self):
         return self._filename
@@ -137,25 +143,39 @@ class Inspector(object):
     def is_valid(self):
 
         if not self._is_valid_filename():
-            return False
+            return (False, 'invalid file name')
 
         if not self._is_valid_date():
-            return False
+            return (False, 'invalid date')
 
         if not self._is_valid_collection():
-            return False
+            return (False, 'invalid collection code')
 
         if not self._is_valid_source_directory():
-            return False
+            return (False, 'invalid source directory')
 
         if not self._is_valid_gzip():
-            return False
+            return (False, 'invalid gzip')
 
-        return True
+        # if not self._is_gzip_integrate():
+        #     return (False, 'invalid gzip, integrity error')
+
+        return (True, 'file is valid')
 
 class EventHandler(FileSystemEventHandler):
 
     logfilename = 'report.log'
+    files = {}
+
+    def is_file_size_stucked(self, logpath):
+        status = self.files.setdefault(logpath, 0)
+        current = os.path.getsize(logpath)
+        print current, status
+        if not status == current:
+            self.files[logpath] = current
+            return False
+        del(self.files[logpath])
+        return True
 
     def write_log(self, logpath, message):
 
@@ -189,31 +209,30 @@ class EventHandler(FileSystemEventHandler):
             logger.info(msg)
             self.write_log(event.src_path, msg)
 
-            attempt = 0
             while True:
-                attempt += 1
-                inspector = Inspector(event.src_path)
-                msg = "File is valid: %s" % str(inspector.is_valid())
-                logger.debug(msg)
-                if not inspector.is_valid():
-                    msg = "File is not valid, attempt (%d/10) will try again in %d seconds: %s" % (attempt, slp_time, event.src_path)
-                    logger.debug(msg)
-                    self.write_log(event.src_path, msg)
-                    if attempt < 10:
-                        time.sleep(slp_time)
-                        continue
-                    else:
-                        os.remove(event.src_path)
-                        msg = "File is not valid, removed from server: %s" % event.src_path
-                        logger.debug(msg)
-                        self.write_log(event.src_path, msg)
-                        return None
+                msg = 'File being uploaded to the FTP: %s' % event.src_path
+                logger.info(msg)
+                self.write_log(event.src_path, msg)
+                if self.is_file_size_stucked(event.src_path):
+                    break
+                time.sleep(3)
 
-                msg = "File is valid, sending for processing: %s" % event.src_path
+            inspector = Inspector(event.src_path)
+            validated, validation_message = inspector.is_valid()
+            msg = "File is valid: %s" % str(validated)
+            logger.debug(msg)
+
+            if not validated:
+                os.remove(event.src_path)
+                msg = "File is not valid (%s), removed from server: %s" % (validation_message, event.src_path)
                 logger.debug(msg)
                 self.write_log(event.src_path, msg)
-                readlog.delay(event.src_path, inspector.collection_acron_3)
-                break
+                return None
+
+            msg = "File is valid, sending for processing: %s" % event.src_path
+            logger.debug(msg)
+            self.write_log(event.src_path, msg)
+            readlog.delay(event.src_path, inspector.collection_acron_3)
 
         except Exception, err:
             logger.exception(sys.exc_info()[0])

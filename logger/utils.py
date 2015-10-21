@@ -86,6 +86,14 @@ def check_file_format(logfile):
 
     return 'txt'
 
+def is_gzip_integrate(logfile):
+    try:
+        with open(logfile, 'rb') as f:
+            for line in f:
+                pass
+        return True
+    except:
+        return False
 
 class TimedSet(object):
     def __init__(self, items=None, expired=None):
