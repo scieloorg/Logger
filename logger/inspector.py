@@ -170,7 +170,6 @@ class EventHandler(FileSystemEventHandler):
     def is_file_size_stucked(self, logpath):
         status = self.files.setdefault(logpath, 0)
         current = os.path.getsize(logpath)
-        print current, status
         if not status == current:
             self.files[logpath] = current
             return False
