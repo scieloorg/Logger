@@ -2,6 +2,7 @@
 import os
 import weakref
 import datetime
+import gzip
 
 from ConfigParser import SafeConfigParser
 
@@ -88,7 +89,7 @@ def check_file_format(logfile):
 
 def is_gzip_integrate(logfile):
     try:
-        with open(logfile, 'rb') as f:
+        with gzip.open(logfile, 'rb') as f:
             for line in f:
                 pass
         return True

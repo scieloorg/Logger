@@ -214,7 +214,7 @@ class EventHandler(FileSystemEventHandler):
                 self.write_log(event.src_path, msg)
                 if self.is_file_size_stucked(event.src_path):
                     break
-                time.sleep(3)
+                time.sleep(10)
 
             inspector = Inspector(event.src_path)
             validated, validation_message = inspector.is_valid()
