@@ -53,8 +53,8 @@ def _config_logging(logging_level='INFO', logging_file=None):
 class AccessMap(object):
 
     def __init__(self, line):
-        if len(line) != 13:
-            raise ValueError('Log line does not have 13 itens')
+        if len(line) != 14:
+            raise ValueError('Log line does not have 14 itens')
         self._data = line
 
         try:
@@ -130,6 +130,10 @@ class AccessMap(object):
     @property
     def downloaded(self):
         return self._data[12]
+
+    @property
+    def printed(self):
+        return self._data[13]
 
 def get_lines(filename):
     with codecs.open(filename, 'r', encoding="utf-8", errors="replace") as csvfile:
