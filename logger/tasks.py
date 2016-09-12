@@ -7,8 +7,9 @@ import os
 config = utils.Configuration.from_env()
 settings = dict(config.items())['app:main']
 
-celery_broker = settings.get('celery', 'amqp://guest@localhost//')
+celery_broker = settings.get('rabbitmq', 'amqp://guest@localhost//')
 app = Celery('tasks', broker=celery_broker)
+
 
 @app.task
 def readlog(logfile, collection):

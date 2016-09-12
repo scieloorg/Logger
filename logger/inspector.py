@@ -1,9 +1,8 @@
+# coding: utf-8
 """
 This tool inspects the FTP directories that will receive the apache log files
 from the SciELO Network.
 """
-#!/usr/bin/env python
-# coding: utf-8
 import logging
 import argparse
 import requests
@@ -19,11 +18,19 @@ from watchdog.events import LoggingEventHandler
 from watchdog.events import FileSystemEventHandler
 
 from logger import utils
-from tasks import readlog
+from logger.tasks import readlog
+from thrift_clients.clients import articlemeta
 
 logger = logging.getLogger(__name__)
 
-REGEX_FILENAME = re.compile(r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<collection>.*?)\.log\.gz$')
+REGEX_FILENAME = re.compile(
+    r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<collection>.*?)\.log\.gz$')
+
+
+am_client = articlemeta(
+    utils.settings.get('articlemeta', 'articlemeta.scielo.org:11720')
+)
+
 
 def _config_logging(logging_level='INFO', logging_file=None):
 
@@ -35,7 +42,8 @@ def _config_logging(logging_level='INFO', logging_file=None):
         'CRITICAL': logging.CRITICAL
     }
 
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     logger.setLevel(allowed_levels.get(logging_level, 'INFO'))
 
@@ -49,16 +57,17 @@ def _config_logging(logging_level='INFO', logging_file=None):
 
     logger.addHandler(hl)
 
-def collections():
-    url = "http://articlemeta.scielo.org/api/v1/collection/identifiers/"
-    try:
-        collections = requests.get(url).json()
-    except:
-        logger.error('Fail to retrieve collections from: %s' % url)
 
-    return {i['acron2']:i for i in collections}
+def collections():
+    try:
+        collections = am_client.collections()
+    except:
+        logger.error('Fail to retrieve collections')
+
+    return {i.acronym2letters: i for i in collections}
 
 COLLECTIONS = collections()
+
 
 class Inspector(object):
 
@@ -93,7 +102,7 @@ class Inspector(object):
             return False
 
         try:
-            datetime.datetime.strptime(self.datelog,'%Y-%m-%d')
+            datetime.datetime.strptime(self.datelog, '%Y-%m-%d')
         except:
             logger.warning('Invalid date in filename: %s' % self._filename)
             return False
@@ -105,8 +114,9 @@ class Inspector(object):
         if not self._is_valid_filename:
             return False
 
-        if not self.collection in COLLECTIONS:
-            logger.warning('Invalid collection in filename: %s' % self._filename)
+        if self.collection not in COLLECTIONS:
+            logger.warning(
+                'Invalid collection in filename: %s' % self._filename)
             return False
 
         return True
@@ -138,7 +148,12 @@ class Inspector(object):
 
     @property
     def collection_acron_3(self):
-        return COLLECTIONS.get(self._parsed_fn.groupdict().get('collection', None), {'code': None})['code']
+
+        collection = COLLECTIONS.get(
+            self._parsed_fn.groupdict().get('collection', None), None
+        )
+
+        return collection.code if collection else None
 
     def is_valid(self):
 
@@ -162,10 +177,12 @@ class Inspector(object):
 
         return (True, 'file is valid')
 
+
 class EventHandler(FileSystemEventHandler):
 
-    logfilename = 'report.log'
-    files = {}
+    def __init__(self):
+        self.logfilename = 'report.log'
+        self.files = {}
 
     def is_file_size_stucked(self, logpath):
         status = self.files.setdefault(logpath, 0)
@@ -223,7 +240,8 @@ class EventHandler(FileSystemEventHandler):
 
             if not validated:
                 os.remove(event.src_path)
-                msg = "File is not valid (%s), removed from server: %s" % (validation_message, event.src_path)
+                msg = "File is not valid (%s), removed from server: %s" % (
+                    validation_message, event.src_path)
                 logger.debug(msg)
                 self.write_log(event.src_path, msg)
                 return None
@@ -235,6 +253,7 @@ class EventHandler(FileSystemEventHandler):
 
         except Exception, err:
             logger.exception(sys.exc_info()[0])
+
 
 def watcher(logs_source):
 
@@ -249,6 +268,7 @@ def watcher(logs_source):
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
 
 def main():
 

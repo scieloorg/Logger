@@ -2,7 +2,6 @@
 # coding: utf-8
 import os
 import argparse
-import requests
 import datetime
 import logging
 import urlparse
@@ -17,14 +16,17 @@ from logger import utils
 
 logger = logging.getLogger(__name__)
 
-config = utils.Configuration.from_env()
-settings = dict(config.items())['app:main']
+COUNTER_COMPLIANT = int(
+    utils.settings.get('counter_compliant', 1))
+COUNTER_COMPLIANT_SKIPPED_LOG_DIR = utils.settings.get(
+    'counter_compliant_skipped_log_dir', None)
+MONGO_URI = utils.settings.get(
+    'mongo_uri', 'mongodb://127.0.0.1:27017/database_name')
+MONGO_URI_COUNTER = utils.settings.get(
+    'mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
+LOGS_SOURCE = utils.settings.get(
+    'logs_source', '.')
 
-COUNTER_COMPLIANT = int(settings.get('counter_compliant', 1))
-COUNTER_COMPLIANT_SKIPPED_LOG_DIR = settings.get('counter_compliant_skipped_log_dir', None)
-MONGO_URI = settings.get('mongo_uri', 'mongodb://127.0.0.1:27017/database_name')
-MONGO_URI_COUNTER = settings.get('mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
-LOGS_SOURCE = settings.get('logs_source', '.')
 
 def _config_logging(logging_level='INFO', logging_file=None):
 
@@ -49,6 +51,7 @@ def _config_logging(logging_level='INFO', logging_file=None):
     hl.setLevel(allowed_levels.get(logging_level, 'INFO'))
 
     logger.addHandler(hl)
+
 
 class Bulk(object):
 
@@ -103,7 +106,7 @@ class Bulk(object):
     def write_skipped_log(self, line):
         if self._skipped_log:
             self._skipped_log.write("%s \r\n" % line)
-    
+
     def read_log(self, logfile):
         logfile = logfile.strip()
 
@@ -125,7 +128,8 @@ class Bulk(object):
                 log_file_line = 0
                 for raw_line in f:
                     log_file_line += 1
-                    logger.debug("Reading line {0} from file {1}".format(str(log_file_line), logfile))
+                    logger.debug("Reading line {0} from file {1}".format(
+                        str(log_file_line), logfile))
                     logger.debug(raw_line)
 
                     try:
@@ -133,7 +137,7 @@ class Bulk(object):
                     except ValueError as e:
                         logger.error("%s: %s" % (e.message, raw_line))
                         continue
-                    
+
                     if not parsed_line:
                         continue
 
@@ -160,6 +164,7 @@ class Bulk(object):
     def run(self):
         for logfile in os.popen('ls %s/*' % self._logs_source):
             self.read_log(logfile)
+
 
 def main():
 
@@ -199,11 +204,11 @@ def main():
     _config_logging(args.logging_level, args.logging_file)
 
     bk = Bulk(
-        collection = args.collection,
-        mongo_uri = MONGO_URI,
-        logs_source = args.logs_source,
-        counter_compliant = COUNTER_COMPLIANT,
-        skipped_log_dir = COUNTER_COMPLIANT_SKIPPED_LOG_DIR
+        collection=args.collection,
+        mongo_uri=MONGO_URI,
+        logs_source=args.logs_source,
+        counter_compliant=COUNTER_COMPLIANT,
+        skipped_log_dir=COUNTER_COMPLIANT_SKIPPED_LOG_DIR
     )
 
     bk.run()

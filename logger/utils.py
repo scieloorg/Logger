@@ -65,6 +65,9 @@ class Configuration(SingletonMixin):
         return [(section, dict(self.conf.items(section, raw=True))) for \
             section in [section for section in self.conf.sections()]]
 
+settings = dict(Configuration.from_env().items())['app:main']
+
+
 def checkdatelock(previous_date=None, next_date=None, locktime=10):
 
     try:
@@ -87,6 +90,7 @@ def check_file_format(logfile):
 
     return 'txt'
 
+
 def is_gzip_integrate(logfile):
     try:
         with gzip.open(logfile, 'rb') as f:
@@ -96,6 +100,7 @@ def is_gzip_integrate(logfile):
     except:
         return False
 
+
 class TimedSet(object):
     def __init__(self, items=None, expired=None):
         self.expired = expired or (lambda t0, t1, t2: True)
@@ -103,7 +108,8 @@ class TimedSet(object):
 
     def _add_or_update(self, item, dt, locktime):
         match = self._items.get(item, None)
-        return True if match is None else self.expired(match, dt, locktime=locktime)
+        return True if match is None else self.expired(
+            match, dt, locktime=locktime)
 
     def add(self, item, dt, locktime=10):
         if self._add_or_update(item, dt, locktime):

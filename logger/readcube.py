@@ -17,14 +17,17 @@ import utils
 
 logger = logging.getLogger(__name__)
 
-config = utils.Configuration.from_env()
-settings = dict(config.items())['app:main']
+COUNTER_COMPLIANT = int(
+    utils.settings.get('counter_compliant', 0))
+COUNTER_COMPLIANT_SKIPPED_LOG_DIR = utils.settings.get(
+    'counter_compliant_skipped_log_dir', None)
+MONGO_URI = utils.settings.get(
+    'mongo_uri', 'mongodb://127.0.0.1:27017/database_name')
+MONGO_URI_COUNTER = utils.settings.get(
+    'mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
+LOGS_SOURCE = utils.settings.get(
+    'readcube_logs_source', '.')
 
-COUNTER_COMPLIANT = int(settings.get('counter_compliant', 0))
-COUNTER_COMPLIANT_SKIPPED_LOG_DIR = settings.get('counter_compliant_skipped_log_dir', None)
-MONGO_URI = settings.get('mongo_uri', 'mongodb://127.0.0.1:27017/database_name')
-MONGO_URI_COUNTER = settings.get('mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
-LOGS_SOURCE = settings.get('readcube_logs_source', '.')
 
 def _config_logging(logging_level='INFO', logging_file=None):
 
@@ -36,7 +39,8 @@ def _config_logging(logging_level='INFO', logging_file=None):
         'CRITICAL': logging.CRITICAL
     }
 
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     logger.setLevel(allowed_levels.get(logging_level, 'INFO'))
 
@@ -50,6 +54,7 @@ def _config_logging(logging_level='INFO', logging_file=None):
 
     logger.addHandler(hl)
 
+
 class AccessMap(object):
 
     def __init__(self, line):
@@ -58,10 +63,10 @@ class AccessMap(object):
         self._data = line
 
         try:
-            self._date = datetime.datetime.strptime(self._data[0][0:10], '%Y-%m-%d')
+            self._date = datetime.datetime.strptime(
+                self._data[0][0:10], '%Y-%m-%d')
         except:
             raise ValueError('Invalid date: %s' % self._data[0])
-
 
     @property
     def access_date(self):
@@ -135,6 +140,7 @@ class AccessMap(object):
     def printed(self):
         return self._data[13]
 
+
 def get_lines(filename):
     with codecs.open(filename, 'r', encoding="utf-8", errors="replace") as csvfile:
         for line in csvfile:
@@ -144,9 +150,10 @@ def get_lines(filename):
             except ValueError as e:
                 logger.error(e.message)
 
+
 class Bulk(object):
 
-    def __init__(self, mongo_uri, collection, counter_compliant=None, skipped_log_dir=None):
+    def __init__(self,mongo_uri, collection, counter_compliant=None, skipped_log_dir=None):
         self._mongo_uri = mongo_uri
         self._proc_coll = self.get_proc_collection()
         self._collection = collection
@@ -175,7 +182,7 @@ class Bulk(object):
         The proc collection is a mongodb database that keeps the name of each
         processed file, to avoid processing these files again.
         """
-        coll =  self._mongodb_connect('proc_files')
+        coll = self._mongodb_connect('proc_files')
         coll.ensure_index('file_name')
 
         return coll
@@ -199,14 +206,14 @@ class Bulk(object):
         self._proc_coll.insert({'file_name': filename})
 
         rq = ReadCube(self._mongo_uri, self._collection)
-        
+
         log_file_line = 0
         for parsed_line in get_lines(filename):
             log_file_line += 1
             logger.debug("Reading line {0} from file {1}".format(str(log_file_line), filename))
             if COUNTER_COMPLIANT:
                 # Counter Mode Accesses
-                locktime = 30 # Always ePDF's
+                locktime = 30  # Always ePDF's
                 try:
                     lockid = '_'.join([parsed_line.ip, parsed_line.doi])
                     ts.add(lockid, parsed_line.access_timestamp, locktime)
@@ -222,6 +229,7 @@ class Bulk(object):
         rq.send()
         logger.info('Bulking data finished')
         del(rq)
+
 
 class EventHandler(FileSystemEventHandler):
 
@@ -239,6 +247,7 @@ class EventHandler(FileSystemEventHandler):
         bk.run(event.src_path)
         del(bk)
 
+
 def watcher(collection, logs_source):
 
     event_handler = EventHandler(collection=collection)
@@ -252,6 +261,7 @@ def watcher(collection, logs_source):
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
 
 def main():
 

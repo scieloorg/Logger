@@ -14,3 +14,6 @@ counter_compliant = 1
 
 # APACHE LOG format
 log_format = %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"
+
+# ArticleMeta ThriftServer
+articlemeta = articlemeta.scielo.org:11720

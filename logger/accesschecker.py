@@ -6,10 +6,14 @@ import json
 import datetime
 import urlparse
 import re
+import logging
 
 import apachelog
 
 from logger import utils
+from thrift_clients.clients import articlemeta
+
+logger = logging.getLogger(__name__)
 
 MONTH_DICT = {
     'JAN': '01',
@@ -26,16 +30,23 @@ MONTH_DICT = {
     'DEC': '12',
 }
 
-config = utils.Configuration.from_env()
-settings = dict(config.items())['app:main']
-
-ROBOTS = [i.strip() for i in open(settings.get('robots_file', 'robots.txt'))]
-APACHE_LOG_FORMAT = settings.get('log_format', r'= %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"')
+ROBOTS = [i.strip() for i in open(utils.settings.get('robots_file', 'robots.txt'))]
+APACHE_LOG_FORMAT = utils.settings.get(
+    'log_format',
+    r'= %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"')
 COMPILED_ROBOTS = [re.compile(i.lower()) for i in ROBOTS]
-REGEX_ISSN = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]$")
-REGEX_ISSUE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}$")
-REGEX_ARTICLE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}[0-9]{5}$")
-REGEX_FBPE = re.compile("^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$")
+REGEX_ISSN = re.compile(
+    "^[0-9]{4}-[0-9]{3}[0-9xX]$")
+REGEX_ISSUE = re.compile(
+    "^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}$")
+REGEX_ARTICLE = re.compile(
+    "^[0-9]{4}-[0-9]{3}[0-9xX][0-2][0-9]{3}[0-9]{4}[0-9]{5}$")
+REGEX_FBPE = re.compile(
+    "^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$")
+
+am_client = articlemeta(
+    utils.settings.get('articlemeta', 'articlemeta.scielo.org:11720')
+)
 
 
 class AccessChecker(object):
@@ -44,7 +55,7 @@ class AccessChecker(object):
         self._parser = apachelog.parser(APACHE_LOG_FORMAT)
         allowed_collections = self._allowed_collections()
 
-        if not collection in allowed_collections:
+        if collection not in allowed_collections:
             raise ValueError('Invalid collection id ({0}), you must select one of these {1}'.format(collection, str(allowed_collections)))
 
         self.collection = collection
@@ -54,38 +65,25 @@ class AccessChecker(object):
     def _allowed_collections(self):
         allowed_collections = []
 
-        query_url = 'http://articlemeta.scielo.org/api/v1/collection/identifiers'
         try:
-            json_network = urllib2.urlopen(query_url, timeout=10).read()
+            collections = am_client.collections()
         except:
-            raise urllib2.URLError('Was not possible to connect to articlemeta api (%s), try again later!' % query_url)
+            logger.error('Fail to retrieve collections from thrift server')
 
-        network = json.loads(json_network)
-
-        for collection in network:
-            allowed_collections.append(collection['acron'])
-
-        return allowed_collections
+        return [i.code for i in collections]
 
     def _acronym_to_issn_dict(self):
         """
         Create a acronym dictionay with valid issns. The issn's are the issn's
         used as id in the SciELO Website.
         """
-        query_url = 'http://articlemeta.scielo.org/api/v1/journal?collection=%s' % self.collection
-
         try:
-            titles_json = urllib2.urlopen(query_url, timeout=10).read()
+
+            journals = am_client.journals(collection=self.collection)
         except:
-            raise urllib2.URLError('Was not possible to connect to articlemeta api (%s), try again later!' % query_url)
+            logger.error('Fail to retrieve journals issns form thrift server')
 
-        titles = json.loads(titles_json)
-
-        title_dict = {}
-        for title in titles:
-            title_dict[title['v68'][0]['_']] = title['v400'][0]['_']
-
-        return title_dict
+        return {i.acronym: i.scielo_issn for i in journals}
 
     def _allowed_issns(self, acronym_to_issn):
         issns = []
@@ -113,7 +111,7 @@ class AccessChecker(object):
         except IndexError:
             return None
 
-        qs = dict((k,v[0]) for k,v in urlparse.parse_qs(urlparse.urlparse(url).query).items())
+        qs = dict((k, v[0]) for k, v in urlparse.parse_qs(urlparse.urlparse(url).query).items())
 
         if len(qs) > 0:
             return qs
@@ -170,8 +168,9 @@ class AccessChecker(object):
 
     def _is_valid_pdf_request(self, filepath):
         """
-        This method checks if the pdf path represents a valid pdf request. If it is valid, this
-        methof will retrieve a dictionary with the filepath and the journal issn.
+        This method checks if the pdf path represents a valid pdf request.
+        If it is valid, this method will retrieve a dictionary with the filepath
+        and the journal issn.
         """
         data = {}
 
@@ -236,7 +235,7 @@ class AccessChecker(object):
             if not data['query_string']:
                 return None
 
-            if not 'script' in data['query_string'] or not 'pid' in data['query_string']:
+            if 'script' not in data['query_string'] or 'pid' not in data['query_string']:
                 return None
 
             if not self._is_valid_html_request(data['query_string']['script'],

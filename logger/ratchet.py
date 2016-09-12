@@ -12,6 +12,7 @@ import pymongo
 
 _logger = logging.getLogger(__name__)
 
+
 def dorequest(url):
 
     attempts = 0
