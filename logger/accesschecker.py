@@ -45,7 +45,7 @@ REGEX_FBPE = re.compile(
     "^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$")
 
 am_client = articlemeta(
-    utils.settings.get('articlemeta', 'articlemeta.scielo.org:11720')
+    utils.settings.get('articlemeta', 'articlemeta.scielo.org:11620')
 )
 
 
