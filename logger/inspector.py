@@ -24,7 +24,7 @@ from thrift_clients.clients import articlemeta
 logger = logging.getLogger(__name__)
 
 REGEX_FILENAME = re.compile(
-    r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<collection>.*?)\.log\.gz$')
+    r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<collection>.*?)\.*[0-9]*\.log\.gz$')
 
 
 am_client = articlemeta(
@@ -59,6 +59,7 @@ def _config_logging(logging_level='INFO', logging_file=None):
 
 
 def collections():
+    collections = {}
     try:
         collections = am_client.collections()
     except:

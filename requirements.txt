@@ -5,4 +5,4 @@ thriftpy==0.3.1
 watchdog==0.8.3
 celery==3.1.18
 -e git+https://github.com/scieloorg/xylose@1.16.5#egg=xylose
--e git+https://github.com/scieloorg/logger@0.4.13#egg=logger
+-e git+https://github.com/scieloorg/logger@0.5.13#egg=logger
