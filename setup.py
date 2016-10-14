@@ -17,7 +17,8 @@ install_requires = [
     'apachelog>=1.0',
     'pymongo>=2.8',
     'celery>=3.1.18',
-    'watchdog>=0.8.3'
+    'watchdog>=0.8.3',
+    'thriftpy>=0.3.1'
 ]
 
 tests_require = [
