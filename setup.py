@@ -18,7 +18,8 @@ install_requires = [
     'pymongo>=2.8',
     'celery>=3.1.18',
     'watchdog>=0.8.3',
-    'thriftpy>=0.3.1'
+    'thriftpy>=0.3.1',
+    'xylose'
 ]
 
 tests_require = [
@@ -43,7 +44,9 @@ setup(
         "Topic :: System",
         "Topic :: Utilities",
     ],
-    dependency_links=[],
+    dependency_links=[
+        "git+https://github.com/scieloorg/xylose@1.16.5#egg=xylose",
+    ],
     install_requires=install_requires,
     setup_requires=["nose>=1.0", "coverage"],
     tests_require=tests_require,
