@@ -19,7 +19,7 @@ from watchdog.events import FileSystemEventHandler
 
 from logger import utils
 from logger.tasks import readlog
-from articlemetaapi.client import ThriftClient
+from articlemeta.client import ThriftClient
 
 logger = logging.getLogger(__name__)
 

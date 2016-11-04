@@ -11,7 +11,7 @@ import logging
 import apachelog
 
 from logger import utils
-from articlemetaapi.client import ThriftClient
+from articlemeta.client import ThriftClient
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ REGEX_ARTICLE = re.compile(
 REGEX_FBPE = re.compile(
     "^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$")
 
-am_client = ThriftClient()
+am_client = ThrifitClient(domain='articlemeta.scielo.org:11720')
 
 
 class AccessChecker(object):
