@@ -13,13 +13,14 @@ with open(os.path.join(here, 'CHANGES.rst')) as f:
     CHANGES = f.read()
 
 install_requires = [
-    'requests>=2.6.0',
+    'requests>=2.8.1',
     'apachelog>=1.0',
     'pymongo>=2.8',
     'celery>=3.1.18',
     'watchdog>=0.8.3',
     'thriftpy>=0.3.1',
-    'xylose'
+    'xylose>=1.16.5',
+    'articlemetaapi>=1.5.10',
 ]
 
 tests_require = [
@@ -28,7 +29,7 @@ tests_require = [
 
 setup(
     name="logger",
-    version='0.5.13',
+    version='1.5.13',
     description="A SciELO tool to load apache log files and register access into Ratchet.",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
@@ -44,9 +45,7 @@ setup(
         "Topic :: System",
         "Topic :: Utilities",
     ],
-    dependency_links=[
-        "git+https://github.com/scieloorg/xylose@1.16.5#egg=xylose",
-    ],
+    dependency_links=[],
     install_requires=install_requires,
     setup_requires=["nose>=1.0", "coverage"],
     tests_require=tests_require,

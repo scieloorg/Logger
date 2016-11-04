@@ -19,7 +19,7 @@ from watchdog.events import FileSystemEventHandler
 
 from logger import utils
 from logger.tasks import readlog
-from thrift_clients.clients import articlemeta
+from articlemetaapi.client import ThriftClient
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +27,7 @@ REGEX_FILENAME = re.compile(
     r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<collection>.*?)\.*[0-9]*\.log\.gz$')
 
 
-am_client = articlemeta(
-    utils.settings.get('articlemeta', 'articlemeta.scielo.org:11720')
-)
+am_client = ThrifitClient(domain='articlemeta.scielo.org:11720')
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
