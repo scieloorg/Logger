@@ -27,7 +27,7 @@ REGEX_FILENAME = re.compile(
     r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<collection>.*?)\.*[0-9]*\.log\.gz$')
 
 
-am_client = ThriftClient(domain='articlemeta.scielo.org:11720')
+am_client = ThriftClient(domain='articlemeta.scielo.org:11620')
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
