@@ -20,7 +20,7 @@ install_requires = [
     'watchdog>=0.8.3',
     'thriftpy>=0.3.1',
     'xylose>=1.16.5',
-    'articlemetaapi>=1.6.16',
+    'articlemetaapi>=1.14.19',
 ]
 
 tests_require = [
