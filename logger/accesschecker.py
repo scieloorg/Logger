@@ -125,10 +125,10 @@ class AccessChecker(object):
             return None
 
     def _pdf_or_html_access(self, get):
-        if "GET" in get and ".pdf" in get:
+        if "GET" in get and (".pdf" in get or "/pdf/" in get):
             return "PDF"
 
-        if "GET" in get and "scielo.php" in get and "script" in get and "pid" in get:
+        if "GET" in get and ("scielo.php" in get and "script" in get and "pid" in get) or ("/article/" in get):
             return "HTML"
 
         return None
@@ -177,7 +177,7 @@ class AccessChecker(object):
         url = filepath.split(" ")[1]
         data['pdf_path'] = urlparse.urlparse(url).path
 
-        if not data['pdf_path'][-3:].lower() == 'pdf':
+        if 'pdf' not in data['pdf_path'].lower():
             return None
 
         try:
@@ -195,7 +195,6 @@ class AccessChecker(object):
         return False
 
     def parsed_access(self, raw_line):
-
         parsed_line = self._parse_line(raw_line)
 
         if not parsed_line:
@@ -228,29 +227,40 @@ class AccessChecker(object):
             return None
 
         if data['access_type'] == u'HTML':
+            match = re.search(r'/article/.+?/.+?/.+?(?=/)', parsed_line['%r'])
+            if match:
+                data['code'] = match.group()
+                data['script'] = ''
 
-            if not data['query_string']:
-                return None
+            else:
+                if not data['query_string']:
+                    return None
 
-            if 'script' not in data['query_string'] or 'pid' not in data['query_string']:
-                return None
+                if 'script' not in data['query_string'] or 'pid' not in data['query_string']:
+                    return None
 
-            if not self._is_valid_html_request(data['query_string']['script'],
-                                               data['query_string']['pid']):
-                return None
+                if not self._is_valid_html_request(data['query_string']['script'],
+                                                   data['query_string']['pid']):
+                    return None
 
-            data['code'] = data['query_string']['pid']
-            data['script'] = data['query_string']['script']
+                data['code'] = data['query_string']['pid']
+                data['script'] = data['query_string']['script']
 
         pdf_request = self._is_valid_pdf_request(parsed_line['%r'])
 
         if data['access_type'] == u'PDF':
-            if not pdf_request:
+            match = re.search(r'/pdf/.+?/.+?/.+?(?=\s)', parsed_line['%r'])
+            if match:
+                data['code'] = re.sub(r'/(en|es|pt)/?$', r'', match.group())
+                data['script'] = ''
+
+            else:
+                data['code'] = pdf_request['pdf_path'].lower()
+                data['script'] = ''
+
+            if pdf_request:
+                data.update(pdf_request)
+            else:
                 return None
-
-            data['code'] = pdf_request['pdf_path'].lower()
-            data['script'] = ''
-
-            data.update(pdf_request)
 
         return data

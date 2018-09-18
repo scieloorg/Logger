@@ -86,6 +86,24 @@ class AccessCheckerTests(MockerTestCase):
 
         self.assertEqual(ac.is_robot(agent), False)
 
+    def test_pdf_or_html_access_for_html_on_new_site(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result(['scl', 'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        request = u'GET http://www.scielo.br/article/abcd/2018.v31n3/e1382/pt/ HTTP/1.1'
+
+        self.assertEqual(ac._pdf_or_html_access(request), u'HTML')
+
+        request = u'GET /article/abcd/2018.v31n3/e1382/pt/ HTTP/1.1'
+
+        self.assertEqual(ac._pdf_or_html_access(request), u'HTML')
+
     def test_pdf_or_html_access_for_html(self):
         accesschecker = self.mocker.patch(AccessChecker)
         accesschecker._allowed_collections()
@@ -103,6 +121,25 @@ class AccessCheckerTests(MockerTestCase):
         request = u'GET /scielo.php?pid=S0100-736X2000000300007&script=sci_arttext HTTP/1.1'
 
         self.assertEqual(ac._pdf_or_html_access(request), u'HTML')
+
+    def test_pdf_or_html_access_for_pdf_on_new_site(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result(['scl', 'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        request = u'GET https://www.scielo.br/pdf/abcd/2018.v31n3/e1382/en HTTP/1.1'
+
+        self.assertEqual(ac._pdf_or_html_access(request), u'PDF')
+
+        request = u'GET /pdf/abcd/2018.v31n3/e1382/en HTTP/1.1'
+
+        self.assertEqual(ac._pdf_or_html_access(request), u'PDF')
 
     def test_pdf_or_html_access_for_pdf(self):
         accesschecker = self.mocker.patch(AccessChecker)
@@ -122,6 +159,25 @@ class AccessCheckerTests(MockerTestCase):
         request = u'GET /pdf/isz/v96n2/a18v96n2.pdf HTTP/1.1'
 
         self.assertEqual(ac._pdf_or_html_access(request), u'PDF')
+
+    def test_pdf_or_html_access_for_files_on_new_site(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        request = u'GET http://www.scielo.br/static/img/favicon.ico HTTP/1.1'
+
+        self.assertEqual(ac._pdf_or_html_access(request), None)
+
+        request = u'GET /static/img/favicon.ico HTTP/1.1'
+
+        self.assertEqual(ac._pdf_or_html_access(request), None)
 
     def test_pdf_or_html_access_for_files(self):
         accesschecker = self.mocker.patch(AccessChecker)
@@ -598,6 +654,66 @@ class AccessCheckerTests(MockerTestCase):
 
         self.assertEqual(ac.parsed_access(line), expected)
 
+    def test_parsed_access_valid_html_access_on_new_site(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  https://www.scielo.br/article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = {
+                        'ip': '187.19.211.179',
+                        'code': '/article/bjmbr/2018.v51n11/e7704',
+                        'access_type': 'HTML',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'query_string': None,
+                        'day': '30',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
+                        'script': '',
+                        'month': '05'
+                    }
+
+        self.assertEqual(ac.parsed_access(line), expected)
+
+    def test_parsed_access_valid_html_access_on_new_site_path_only(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  /article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = {
+                        'ip': '187.19.211.179',
+                        'code': '/article/bjmbr/2018.v51n11/e7704',
+                        'access_type': 'HTML',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'query_string': None,
+                        'day': '30',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
+                        'script': '',
+                        'month': '05'
+                    }
+
+        self.assertEqual(ac.parsed_access(line), expected)
+
     def test_parsed_access_invalid_article_access_without_script(self):
         accesschecker = self.mocker.patch(AccessChecker)
         accesschecker._allowed_collections()
@@ -704,6 +820,70 @@ class AccessCheckerTests(MockerTestCase):
                         'pdf_issn': u'1414-431X',
                         'script': '',
                         'pdf_path': '/pdf/bjmbr/v14n4/03.pdf'
+                    }
+
+        self.assertEqual(ac.parsed_access(line), expected)
+
+    def test_parsed_access_valid_pdf_access_on_new_site(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 206 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = {
+                        'ip': '201.14.120.2',
+                        'code': '/pdf/bjmbr/2018.v51n11/e7704',
+                        'access_type': 'PDF',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'day': '30',
+                        'month': '05',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
+                        'query_string': None,
+                        'pdf_issn': u'1414-431X',
+                        'script': '',
+                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/en'
+                    }
+
+        self.assertEqual(ac.parsed_access(line), expected)
+
+    def test_parsed_access_valid_pdf_access_on_new_site_path_only(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET /pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 206 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = {
+                        'ip': '201.14.120.2',
+                        'code': '/pdf/bjmbr/2018.v51n11/e7704',
+                        'access_type': 'PDF',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'day': '30',
+                        'month': '05',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
+                        'query_string': None,
+                        'pdf_issn': u'1414-431X',
+                        'script': '',
+                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/en'
                     }
 
         self.assertEqual(ac.parsed_access(line), expected)
