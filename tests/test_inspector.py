@@ -1,9 +1,10 @@
 import unittest
 
 from logger import inspector
+from mocker import ANY, MockerTestCase
 
 
-class TestInspectorTests(unittest.TestCase):
+class TestInspectorTests(MockerTestCase):
 
     def test_is_valid_filename_node1(self):
         insp = inspector.Inspector('/var/www/scielo.br/2015-12-30_scielo.br.1.log.gz')
@@ -41,13 +42,20 @@ class TestInspectorTests(unittest.TestCase):
         self.assertFalse(insp._is_valid_date())
 
     def test_is_valid_collection_in_filename(self):
+        _insp = self.mocker.patch(inspector.Inspector)
+        _insp.collections
+        self.mocker.result({'br': None})
+        self.mocker.replay()
         insp = inspector.Inspector('/var/www/scielo.br/2015-12-30_scielo.br.log.gz')
-
         self.assertTrue(insp._is_valid_collection())
 
-    def test_is_valid_collection_in_filename(self):
-        insp = inspector.Inspector('/var/www/scielo.br/2015-12-30_scielo.xxx.log.gz')
+    def test_is_invalid_collection_in_filename(self):
+        _insp = self.mocker.patch(inspector.Inspector)
+        _insp.collections
+        self.mocker.result({'br': None})
+        self.mocker.replay()
 
+        insp = inspector.Inspector('/var/www/scielo.br/2015-12-30_scielo.xxx.log.gz')
         self.assertFalse(insp._is_valid_collection())
 
     def test_is_valid_source_directory(self):
