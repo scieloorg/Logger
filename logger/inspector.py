@@ -60,10 +60,11 @@ def collections():
     collections = {}
     try:
         collections = am_client.collections()
+        return {i.acronym2letters: i for i in collections}
     except:
         logger.error('Fail to retrieve collections')
+    return {}
 
-    return {i.acronym2letters: i for i in collections}
 
 COLLECTIONS = collections()
 
@@ -76,6 +77,10 @@ class Inspector(object):
         self._file = filename
         self._filename = filename.split('/')[-1]
         self._parsed_fn = REGEX_FILENAME.match(self._filename)
+
+    @property
+    def collections(self):
+        return COLLECTIONS
 
     def _is_valid_filename(self):
         if not self._parsed_fn:
@@ -113,7 +118,7 @@ class Inspector(object):
         if not self._is_valid_filename:
             return False
 
-        if self.collection not in COLLECTIONS:
+        if self.collection not in self.collections:
             logger.warning(
                 'Invalid collection in filename: %s' % self._filename)
             return False
@@ -148,7 +153,7 @@ class Inspector(object):
     @property
     def collection_acron_3(self):
 
-        collection = COLLECTIONS.get(
+        collection = self.collections.get(
             self._parsed_fn.groupdict().get('collection', None), None
         )
 
