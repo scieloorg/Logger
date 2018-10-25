@@ -174,7 +174,12 @@ class AccessChecker(object):
         if not filepath.strip():
             return None
 
-        url = filepath.split(" ")[1]
+        match = re.search(r'/pdf/.+?/.+?/.+?(?=\s)', filepath)
+        if match:
+            url = match.group()
+            if not url.lower().endswith('.pdf'):
+                url = re.sub(r'/(\D\D)?$', r'/', url)
+
         data['pdf_path'] = urlparse.urlparse(url).path
 
         if 'pdf' not in data['pdf_path'].lower():
@@ -227,7 +232,7 @@ class AccessChecker(object):
             return None
 
         if data['access_type'] == u'HTML':
-            match = re.search(r'/article/.+?/.+?/.+?(?=/)', parsed_line['%r'])
+            match = re.search(r'/article/.+?/.+?/.+?/', parsed_line['%r'])
             if match:
                 data['code'] = match.group()
                 data['script'] = ''
@@ -246,19 +251,11 @@ class AccessChecker(object):
                 data['code'] = data['query_string']['pid']
                 data['script'] = data['query_string']['script']
 
-        pdf_request = self._is_valid_pdf_request(parsed_line['%r'])
-
         if data['access_type'] == u'PDF':
-            match = re.search(r'/pdf/.+?/.+?/.+?(?=\s)', parsed_line['%r'])
-            if match:
-                data['code'] = re.sub(r'/(en|es|pt)/?$', r'', match.group())
-                data['script'] = ''
-
-            else:
-                data['code'] = pdf_request['pdf_path'].lower()
-                data['script'] = ''
-
+            pdf_request = self._is_valid_pdf_request(parsed_line['%r'])
             if pdf_request:
+                data['code'] = pdf_request['pdf_path']
+                data['script'] = ''
                 data.update(pdf_request)
             else:
                 return None

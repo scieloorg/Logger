@@ -37,6 +37,7 @@ setup(
     url="http://docs.scielo.org",
     packages=['logger'],
     classifiers=[
+        "Programming Language :: Python :: 2.7",
         "Development Status :: 1 - Planning",
         "Intended Audience :: Internal Service",
         "License :: OSI Approved :: BSD License",

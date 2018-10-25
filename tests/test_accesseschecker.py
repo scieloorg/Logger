@@ -591,6 +591,36 @@ class AccessCheckerTests(MockerTestCase):
 
         self.assertEqual(ac._is_valid_pdf_request(request), {'pdf_issn': u'1984-4670', 'pdf_path': u'/pdf/zool/v29n4/18781.pdf'})
 
+    def test_pid_is_valid_pdf_request_new_site(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        request = u'GET https://www.scielo.br/pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1'
+
+        self.assertEqual(ac._is_valid_pdf_request(request), {'pdf_issn': u'1414-431X', 'pdf_path': u'/pdf/bjmbr/2018.v51n11/e7704/'})
+
+    def test_pid_is_valid_pdf_request_GET_without_domain_new_site(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        request = u'GET /pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1'
+
+        self.assertEqual(ac._is_valid_pdf_request(request), {'pdf_issn': u'1414-431X', 'pdf_path': u'/pdf/bjmbr/2018.v51n11/e7704/'})
+
     def test_pid_is_valid_pdf_request_empty_file_path(self):
         accesschecker = self.mocker.patch(AccessChecker)
         accesschecker._allowed_collections()
@@ -669,7 +699,7 @@ class AccessCheckerTests(MockerTestCase):
 
         expected = {
                         'ip': '187.19.211.179',
-                        'code': '/article/bjmbr/2018.v51n11/e7704',
+                        'code': '/article/bjmbr/2018.v51n11/e7704/',
                         'access_type': 'HTML',
                         'iso_date': '2013-05-30',
                         'iso_datetime': '2013-05-30T00:01:01',
@@ -699,7 +729,7 @@ class AccessCheckerTests(MockerTestCase):
 
         expected = {
                         'ip': '187.19.211.179',
-                        'code': '/article/bjmbr/2018.v51n11/e7704',
+                        'code': '/article/bjmbr/2018.v51n11/e7704/',
                         'access_type': 'HTML',
                         'iso_date': '2013-05-30',
                         'iso_datetime': '2013-05-30T00:01:01',
@@ -839,7 +869,7 @@ class AccessCheckerTests(MockerTestCase):
 
         expected = {
                         'ip': '201.14.120.2',
-                        'code': '/pdf/bjmbr/2018.v51n11/e7704',
+                        'code': '/pdf/bjmbr/2018.v51n11/e7704/',
                         'access_type': 'PDF',
                         'iso_date': '2013-05-30',
                         'iso_datetime': '2013-05-30T00:01:01',
@@ -851,7 +881,7 @@ class AccessCheckerTests(MockerTestCase):
                         'query_string': None,
                         'pdf_issn': u'1414-431X',
                         'script': '',
-                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/en'
+                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/'
                     }
 
         self.assertEqual(ac.parsed_access(line), expected)
@@ -871,7 +901,7 @@ class AccessCheckerTests(MockerTestCase):
 
         expected = {
                         'ip': '201.14.120.2',
-                        'code': '/pdf/bjmbr/2018.v51n11/e7704',
+                        'code': '/pdf/bjmbr/2018.v51n11/e7704/',
                         'access_type': 'PDF',
                         'iso_date': '2013-05-30',
                         'iso_datetime': '2013-05-30T00:01:01',
@@ -883,7 +913,7 @@ class AccessCheckerTests(MockerTestCase):
                         'query_string': None,
                         'pdf_issn': u'1414-431X',
                         'script': '',
-                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/en'
+                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/'
                     }
 
         self.assertEqual(ac.parsed_access(line), expected)
