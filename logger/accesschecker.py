@@ -179,6 +179,8 @@ class AccessChecker(object):
             url = match.group()
             if not url.lower().endswith('.pdf'):
                 url = re.sub(r'/(\D\D)?$', r'/', url)
+        else:
+            return None
 
         data['pdf_path'] = urlparse.urlparse(url).path
 
