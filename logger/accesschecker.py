@@ -226,7 +226,11 @@ class AccessChecker(object):
         data['day'] = data['iso_date'][8:10]
         data['month'] = data['iso_date'][5:7]
         data['year'] = data['iso_date'][0:4]
+        data['http_code'] = parsed_line['%>s']
 
+        if not data['http_code'] or data['http_code'] not in ['200', '304']:
+            return None
+ 
         if not data['access_type']:
             return None
 
