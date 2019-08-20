@@ -753,6 +753,3 @@ class RatchetBulkTests(unittest.TestCase):
         self.assertEqual(
             sorted(['%s:%s' % (k, v) for k, v in self.rb.bulk_data['S1414-431X2014000100005'].items()]), expected
         )
-
-
-
