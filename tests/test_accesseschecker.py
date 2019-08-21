@@ -685,6 +685,23 @@ class AccessCheckerTests(MockerTestCase):
 
         self.assertEqual(ac.parsed_access(line), expected)
 
+    def test_parsed_access_invalid_http_status_code(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?pid=S1414-431X2000000300007&script=sci_arttext HTTP/1.1" 404 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = None
+
+        self.assertEqual(ac.parsed_access(line), expected)
+
     def test_parsed_access_valid_html_access_on_new_site(self):
         accesschecker = self.mocker.patch(AccessChecker)
         accesschecker._allowed_collections()
