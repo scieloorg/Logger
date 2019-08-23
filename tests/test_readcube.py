@@ -121,6 +121,3 @@ class ReadCubeBulkTests(unittest.TestCase):
         am = readcube.AccessMap(sample_line)
 
         self.assertEqual(am.downloaded, '1')
-
-
-

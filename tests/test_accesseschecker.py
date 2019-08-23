@@ -676,11 +676,29 @@ class AccessCheckerTests(MockerTestCase):
                             'script': 'sci_arttext'
                         },
                         'day': '30',
+                        'http_code': '200',
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': 'sci_arttext',
                         'month': '05'
                     }
+
+        self.assertEqual(ac.parsed_access(line), expected)
+
+    def test_parsed_access_invalid_http_status_code(self):
+        accesschecker = self.mocker.patch(AccessChecker)
+        accesschecker._allowed_collections()
+        self.mocker.result([u'scl', u'arg'])
+        accesschecker._acronym_to_issn_dict()
+        self.mocker.result({u'zool': u'1984-4670', u'bjmbr': u'1414-431X'})
+
+        self.mocker.replay()
+
+        ac = AccessChecker(collection='scl')
+
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?pid=S1414-431X2000000300007&script=sci_arttext HTTP/1.1" 404 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = None
 
         self.assertEqual(ac.parsed_access(line), expected)
 
@@ -706,6 +724,7 @@ class AccessCheckerTests(MockerTestCase):
                         'year': '2013',
                         'query_string': None,
                         'day': '30',
+                        'http_code': '200',
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
@@ -736,6 +755,7 @@ class AccessCheckerTests(MockerTestCase):
                         'year': '2013',
                         'query_string': None,
                         'day': '30',
+                        'http_code': '200',
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
@@ -811,6 +831,7 @@ class AccessCheckerTests(MockerTestCase):
                         'year': '2013',
                         'day': '30',
                         'month': '05',
+                        'http_code': '200',
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'query_string': None,
@@ -833,7 +854,7 @@ class AccessCheckerTests(MockerTestCase):
 
         ac = AccessChecker(collection='scl')
 
-        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/pdf/bjmbr/v14n4/03.pdf HTTP/1.1" 206 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/pdf/bjmbr/v14n4/03.pdf HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
         expected = {
                         'ip': '201.14.120.2',
@@ -844,6 +865,7 @@ class AccessCheckerTests(MockerTestCase):
                         'year': '2013',
                         'day': '30',
                         'month': '05',
+                        'http_code': '200',
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'query_string': None,
@@ -865,7 +887,7 @@ class AccessCheckerTests(MockerTestCase):
 
         ac = AccessChecker(collection='scl')
 
-        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 206 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
         expected = {
                         'ip': '201.14.120.2',
@@ -876,6 +898,7 @@ class AccessCheckerTests(MockerTestCase):
                         'year': '2013',
                         'day': '30',
                         'month': '05',
+                        'http_code': '200',
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'query_string': None,
@@ -897,7 +920,7 @@ class AccessCheckerTests(MockerTestCase):
 
         ac = AccessChecker(collection='scl')
 
-        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET /pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 206 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET /pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
         expected = {
                         'ip': '201.14.120.2',
@@ -908,6 +931,7 @@ class AccessCheckerTests(MockerTestCase):
                         'year': '2013',
                         'day': '30',
                         'month': '05',
+                        'http_code': '200',
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'query_string': None,
@@ -947,21 +971,3 @@ class AccessCheckerTests(MockerTestCase):
         line = '177.191.212.233 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/img/pt/author.gif HTTP/1.1" 304 0 "http://www.scielo.br/scielo.php?script=sci_serial&pid=1415-4757&nrm=iso&rep=&lng=pt" "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36"'
 
         self.assertEqual(ac.parsed_access(line), None)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

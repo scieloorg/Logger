@@ -56,19 +56,6 @@ def _config_logging(logging_level='INFO', logging_file=None):
     logger.addHandler(hl)
 
 
-def collections():
-    collections = {}
-    try:
-        collections = am_client.collections()
-        return {i.acronym2letters: i for i in collections}
-    except:
-        logger.error('Fail to retrieve collections')
-    return {}
-
-
-COLLECTIONS = collections()
-
-
 class Inspector(object):
 
     def __init__(self, filename):
@@ -77,10 +64,16 @@ class Inspector(object):
         self._file = filename
         self._filename = filename.split('/')[-1]
         self._parsed_fn = REGEX_FILENAME.match(self._filename)
+        self.collections = self.get_collections()
 
-    @property
-    def collections(self):
-        return COLLECTIONS
+    def get_collections(self):
+        collections = {}
+        try:
+            collections = am_client.collections()
+            return {i.acronym2letters: i for i in collections}
+        except:
+            logger.error('Fail to retrieve collections')
+        return {}
 
     def _is_valid_filename(self):
         if not self._parsed_fn:
