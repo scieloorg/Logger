@@ -1,9 +1,9 @@
 [app:main]
 mongo_uri = mongodb://127.0.0.1:27017/database_name
+rabbitmq = amqp://guest@localhost//
 #logs_source = /var/www/logger/data/logs
 #readcube_logs_source = /var/www/logger/data/readcube/logs
 robots_file = logger/robots.txt
-celery = amqp://guest@localhost//
 
 # COUNTER MODE
 counter_compliant = 1
