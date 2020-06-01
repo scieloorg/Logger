@@ -47,40 +47,49 @@ REGEX_FBPE = re.compile(
 am_client = ThriftClient(domain='articlemeta.scielo.org:11621')
 
 
+def _allowed_collections():
+    """Obtém a lista das coleções a partir do ArticleMeta
+    """
+    allowed_collections = []
+
+    try:
+        collections = am_client.collections()
+    except:
+        logger.error('Fail to retrieve collections from thrift server')
+
+    return [i.code for i in collections]
+
+
+def _acronym_to_issn_dict(collection):
+    """Produz um dicionário que mapeia acrônimo de periódico para seu ISSN 
+    SciELO
+    """
+    try:
+        journals = am_client.journals(collection)
+    except:
+        logger.error('Fail to retrieve journals issns form thrift server')
+
+    return {i.acronym: i.scielo_issn for i in journals}
+
+
 class AccessChecker(object):
 
-    def __init__(self, collection=None, counter_compliant=False):
+    def __init__(
+            self, 
+            collection=None, 
+            counter_compliant=False, 
+            allowed_collections=_allowed_collections, 
+            acronym_to_issn_dict=_acronym_to_issn_dict
+        ):
         self._parser = apachelog.parser(APACHE_LOG_FORMAT)
-        allowed_collections = self._allowed_collections()
+        allowed_collections = allowed_collections()
 
         if collection not in allowed_collections:
             raise ValueError('Invalid collection id ({0}), you must select one of these {1}'.format(collection, str(allowed_collections)))
 
         self.collection = collection
-        self.acronym_to_issn_dict = self._acronym_to_issn_dict()
+        self.acronym_to_issn_dict = acronym_to_issn_dict(self.collection)
         self.allowed_issns = self._allowed_issns(self.acronym_to_issn_dict)
-
-    def _allowed_collections(self):
-        allowed_collections = []
-
-        try:
-            collections = am_client.collections()
-        except:
-            logger.error('Fail to retrieve collections from thrift server')
-
-        return [i.code for i in collections]
-
-    def _acronym_to_issn_dict(self):
-        """
-        Create a acronym dictionay with valid issns. The issn's are the issn's
-        used as id in the SciELO Website.
-        """
-        try:
-            journals = am_client.journals(collection=self.collection)
-        except:
-            logger.error('Fail to retrieve journals issns form thrift server')
-
-        return {i.acronym: i.scielo_issn for i in journals}
 
     def _allowed_issns(self, acronym_to_issn):
         issns = []
