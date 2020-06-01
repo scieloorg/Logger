@@ -134,11 +134,20 @@ class AccessChecker(object):
             return None
 
     def _pdf_or_html_access(self, get):
-        if "GET" in get and (".pdf" in get or "/pdf/" in get):
-            return "PDF"
+        if "GET" in get:
+            if re.search(r"[\./]pdf", get):
+                return "PDF"
 
-        if "GET" in get and ("scielo.php" in get and "script" in get and "pid" in get) or ("/article/" in get):
-            return "HTML"
+            elif (
+                    "scielo.php" in get \
+                    and "script" in get \
+                    and "pid" in get
+                ) \
+                or "format=html" in get \
+                or "/article/" in get \
+                or "/a/" in get:
+
+                return "HTML"
 
         return None
 
