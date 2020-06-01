@@ -33,14 +33,28 @@ class AccessCheckerTests(unittest.TestCase):
         agent = '"Mozilla/5.0 (Windows NT 5.1; rv:26.0) Gecko/20100101 Firefox/26.0"'
         self.assertEqual(self.ac.is_robot(agent), False)
 
-    def test_pdf_or_html_access_for_html_on_new_site(self):
+    def test_pdf_or_html_access_identifies_urls_of_documents_in_html_v1(self):
         request = u'GET http://www.scielo.br/article/abcd/2018.v31n3/e1382/pt/ HTTP/1.1'
         self.assertEqual(self.ac._pdf_or_html_access(request), u'HTML')
 
         request = u'GET /article/abcd/2018.v31n3/e1382/pt/ HTTP/1.1'
         self.assertEqual(self.ac._pdf_or_html_access(request), u'HTML')
 
-    def test_pdf_or_html_access_for_html(self):
+    def test_pdf_or_html_access_identifies_urls_of_documents_in_html_v2(self):
+        request = u'GET http://www.scielo.br/j/abdc/a/MYJY5Rgw5gc7mBpqYzBCVJR HTTP/1.1'
+        self.assertEqual(self.ac._pdf_or_html_access(request), u'HTML')
+
+        request = u'GET /j/abdc/a/MYJY5Rgw5gc7mBpqYzBCVJR HTTP/1.1'
+        self.assertEqual(self.ac._pdf_or_html_access(request), u'HTML')
+
+    def test_pdf_or_html_access_identifies_urls_of_documents_in_html_v3(self):
+        request = u'GET http://www.scielo.br/j/abdc/a/MYJY5Rgw5gc7mBpqYzBCVJR?format=html HTTP/1.1'
+        self.assertEqual(self.ac._pdf_or_html_access(request), u'HTML')
+
+        request = u'GET /j/abdc/a/MYJY5Rgw5gc7mBpqYzBCVJR?format=html HTTP/1.1'
+        self.assertEqual(self.ac._pdf_or_html_access(request), u'HTML')
+
+    def test_pdf_or_html_access_identifies_urls_of_documents_in_html_v4(self):
         request = u'GET http://www.scielo.br/scielo.php?pid=S0100-736X2000000300007&script=sci_arttext HTTP/1.1'
         self.assertEqual(self.ac._pdf_or_html_access(request), u'HTML')
 
