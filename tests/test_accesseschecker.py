@@ -13,23 +13,23 @@ class AccessCheckerTests(unittest.TestCase):
         )
 
 
-    def test_is_bot_GoogleBot_sample(self):
+    def test_GoogleBot_bot_is_not_parsed(self):
         line = '66.249.75.131 - - [24/Dec/2013:04:49:09 -0200] "GET http://www.scielo.br/scielo.php?script=sci_arttext&pid=S0102-79722002000200013 HTTP/1.1" 200 102967 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"'
         self.assertEqual(self.ac.parsed_access(line), None)
 
-    def test_is_bot_Bing_sample(self):
+    def test_Bing_bot_is_not_parsed(self):
         line = '13245  157.56.92.164 - - [30/Nov/2013:03:53:26 -0200] "GET http://www.scielo.br/scielo.php?script=sci_arttext&pid=S0104-87752010000200013 HTTP/1.1" 200 108777 "-" "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)"'
         self.assertEqual(self.ac.parsed_access(line), None)
 
-    def test_is_bot_Spider_sample(self):
+    def test_Spider_bot_sample(self):
         line = '180.76.5.118 - - [24/Dec/2013:04:49:09 -0200] "GET http://www.scielo.br/pdf/csc/v11n2/30434.pdf HTTP/1.1" 200 79618 "-" "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)"'
         self.assertEqual(self.ac.parsed_access(line), None)
 
-    def test_is_bot_method_with_bot_agent(self):
+    def test_is_robot_detects_bot_useragent(self):
         agent = '"Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)"'
         self.assertEqual(self.ac.is_robot(agent), True)
 
-    def test_is_bot_method_with_common_user_agent(self):
+    def test_is_robot_detects_mozilla_useragent(self):
         agent = '"Mozilla/5.0 (Windows NT 5.1; rv:26.0) Gecko/20100101 Firefox/26.0"'
         self.assertEqual(self.ac.is_robot(agent), False)
 
@@ -231,9 +231,131 @@ class AccessCheckerTests(unittest.TestCase):
         request = u'GET http://www.scielo.br/pdf/not_allowed_acronym/v96n2/a18v96n2.xxx HTTP/1.1'
         self.assertEqual(self.ac._is_valid_pdf_request(request), None)
 
-    def test_parsed_access_valid_html_access(self):
-        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?pid=S1414-431X2000000300007&script=sci_arttext HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
+class OPACURLParsingTests(unittest.TestCase):
+    def setUp(self):
+        self.ac = AccessChecker(
+            collection="scl", 
+            allowed_collections=lambda: [u"scl", u"arg"],
+            acronym_to_issn_dict=lambda col: {u'zool': u'1984-4670', u'bjmbr': u'1414-431X'},
+        )
+
+    def test_document_url(self):
+        """URL de artigo em HTML no padrão do novo site. Este padrão já foi
+        suplantado, mas podem haver instâncias que o utilizam. 
+        """
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  https://www.scielo.br/article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = {
+                        'ip': '187.19.211.179',
+                        'code': '/article/bjmbr/2018.v51n11/e7704/',
+                        'access_type': 'HTML',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'query_string': None,
+                        'day': '30',
+                        'http_code': '200',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
+                        'script': '',
+                        'month': '05'
+                    }
+
+        self.assertEqual(self.ac.parsed_access(line), expected)
+
+    def test_document_relative_url(self):
+        """URL de artigo em HTML no padrão do novo site. Trata-se da mesma URL
+        do caso `test_document_url` mas com a URL relativa e não absoluta.
+        """
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  /article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = {
+                        'ip': '187.19.211.179',
+                        'code': '/article/bjmbr/2018.v51n11/e7704/',
+                        'access_type': 'HTML',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'query_string': None,
+                        'day': '30',
+                        'http_code': '200',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
+                        'script': '',
+                        'month': '05'
+                    }
+        self.assertEqual(self.ac.parsed_access(line), expected)
+
+    def test_pdf_url(self):
+        """URL de artigo em PDF no padrão do novo site. Este padrão já foi
+        suplantado, mas podem haver instâncias que o utilizam. 
+        """
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        expected = {
+                        'ip': '201.14.120.2',
+                        'code': '/pdf/bjmbr/2018.v51n11/e7704/',
+                        'access_type': 'PDF',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'day': '30',
+                        'month': '05',
+                        'http_code': '200',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
+                        'query_string': None,
+                        'pdf_issn': u'1414-431X',
+                        'script': '',
+                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/'
+                    }
+        self.assertEqual(self.ac.parsed_access(line), expected)
+
+    def test_pdf_relative_url(self):
+        """URL de artigo em PDF no padrão do novo site. Trata-se da mesma URL
+        do caso `test_pdf_url` mas com a URL relativa e não absoluta.
+        """
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET /pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        expected = {
+                        'ip': '201.14.120.2',
+                        'code': '/pdf/bjmbr/2018.v51n11/e7704/',
+                        'access_type': 'PDF',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'day': '30',
+                        'month': '05',
+                        'http_code': '200',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
+                        'query_string': None,
+                        'pdf_issn': u'1414-431X',
+                        'script': '',
+                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/'
+                    }
+        self.assertEqual(self.ac.parsed_access(line), expected)
+
+
+class ClassicSiteURLParsingTests(unittest.TestCase):
+    def setUp(self):
+        self.ac = AccessChecker(
+            collection="scl", 
+            allowed_collections=lambda: [u"scl", u"arg"],
+            acronym_to_issn_dict=lambda col: {u'zool': u'1984-4670', u'bjmbr': u'1414-431X'},
+        )
+
+    def test_404_responses_must_return_None(self):
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?pid=S1414-431X2000000300007&script=sci_arttext HTTP/1.1" 404 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        self.assertEqual(self.ac.parsed_access(line), None)
+
+    def test_site_assets_must_return_None(self):
+        line = '177.191.212.233 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/img/pt/author.gif HTTP/1.1" 304 0 "http://www.scielo.br/scielo.php?script=sci_serial&pid=1415-4757&nrm=iso&rep=&lng=pt" "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36"'
+        self.assertEqual(self.ac.parsed_access(line), None)
+
+    def test_document_url(self):
+        """URL de artigo em HTML no padrão do site clássico.
+        """
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?pid=S1414-431X2000000300007&script=sci_arttext HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
         expected = {
                         'ip': '187.19.211.179',
                         'code': 'S1414-431X2000000300007',
@@ -255,66 +377,20 @@ class AccessCheckerTests(unittest.TestCase):
 
         self.assertEqual(self.ac.parsed_access(line), expected)
 
-    def test_parsed_access_invalid_http_status_code(self):
-        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?pid=S1414-431X2000000300007&script=sci_arttext HTTP/1.1" 404 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
-        self.assertEqual(self.ac.parsed_access(line), None)
-
-    def test_parsed_access_valid_html_access_on_new_site(self):
-        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  https://www.scielo.br/article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
-
-        expected = {
-                        'ip': '187.19.211.179',
-                        'code': '/article/bjmbr/2018.v51n11/e7704/',
-                        'access_type': 'HTML',
-                        'iso_date': '2013-05-30',
-                        'iso_datetime': '2013-05-30T00:01:01',
-                        'year': '2013',
-                        'query_string': None,
-                        'day': '30',
-                        'http_code': '200',
-                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
-                        'original_date': '[30/May/2013:00:01:01 -0300]',
-                        'script': '',
-                        'month': '05'
-                    }
-
-        self.assertEqual(self.ac.parsed_access(line), expected)
-
-    def test_parsed_access_valid_html_access_on_new_site_path_only(self):
-        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  /article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
-
-        expected = {
-                        'ip': '187.19.211.179',
-                        'code': '/article/bjmbr/2018.v51n11/e7704/',
-                        'access_type': 'HTML',
-                        'iso_date': '2013-05-30',
-                        'iso_datetime': '2013-05-30T00:01:01',
-                        'year': '2013',
-                        'query_string': None,
-                        'day': '30',
-                        'http_code': '200',
-                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
-                        'original_date': '[30/May/2013:00:01:01 -0300]',
-                        'script': '',
-                        'month': '05'
-                    }
-        self.assertEqual(self.ac.parsed_access(line), expected)
-
-    def test_parsed_access_invalid_article_access_without_script(self):
+    def test_document_url_missing_script(self):
         line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?pid=S1414-431X2000000300007 HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
         self.assertEqual(self.ac.parsed_access(line), None)
 
-    def test_parsed_access_invalid_article_access_without_pid(self):
+    def test_document_url_missing_pid(self):
         line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?script=sci_arttext HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
         self.assertEqual(self.ac.parsed_access(line), None)
 
-    def test_parsed_access_invalid_article_access_without_query_string(self):
+    def test_main_module_without_querystring(self):
         line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
         self.assertEqual(self.ac.parsed_access(line), None)
 
-    def test_parsed_access_valid_pdf_access_GET_string_without_domain(self):
+    def test_document_pdf_relative_url(self):
         line = '66.249.73.80 - - [30/May/2013:00:01:01 -0300] "GET /pdf/bjmbr/v29n4/18781.pdf HTTP/1.1" 200 32061 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
-
         expected = {
                         'ip': '66.249.73.80',
                         'code': '/pdf/bjmbr/v29n4/18781.pdf',
@@ -334,8 +410,7 @@ class AccessCheckerTests(unittest.TestCase):
                     }
         self.assertEqual(self.ac.parsed_access(line), expected)
 
-
-    def test_parsed_access_valid_pdf_access(self):
+    def test_document_pdf_url(self):
         line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/pdf/bjmbr/v14n4/03.pdf HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
         expected = {
                         'ip': '201.14.120.2',
@@ -356,52 +431,7 @@ class AccessCheckerTests(unittest.TestCase):
                     }
         self.assertEqual(self.ac.parsed_access(line), expected)
 
-    def test_parsed_access_valid_pdf_access_on_new_site(self):
-        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
-        expected = {
-                        'ip': '201.14.120.2',
-                        'code': '/pdf/bjmbr/2018.v51n11/e7704/',
-                        'access_type': 'PDF',
-                        'iso_date': '2013-05-30',
-                        'iso_datetime': '2013-05-30T00:01:01',
-                        'year': '2013',
-                        'day': '30',
-                        'month': '05',
-                        'http_code': '200',
-                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
-                        'original_date': '[30/May/2013:00:01:01 -0300]',
-                        'query_string': None,
-                        'pdf_issn': u'1414-431X',
-                        'script': '',
-                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/'
-                    }
-        self.assertEqual(self.ac.parsed_access(line), expected)
-
-    def test_parsed_access_valid_pdf_access_on_new_site_path_only(self):
-        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET /pdf/bjmbr/2018.v51n11/e7704/en HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
-        expected = {
-                        'ip': '201.14.120.2',
-                        'code': '/pdf/bjmbr/2018.v51n11/e7704/',
-                        'access_type': 'PDF',
-                        'iso_date': '2013-05-30',
-                        'iso_datetime': '2013-05-30T00:01:01',
-                        'year': '2013',
-                        'day': '30',
-                        'month': '05',
-                        'http_code': '200',
-                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
-                        'original_date': '[30/May/2013:00:01:01 -0300]',
-                        'query_string': None,
-                        'pdf_issn': u'1414-431X',
-                        'script': '',
-                        'pdf_path': '/pdf/bjmbr/2018.v51n11/e7704/'
-                    }
-        self.assertEqual(self.ac.parsed_access(line), expected)
-
-    def test_parsed_access_valid_pdf_with_not_allowed_acronym(self):
-        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/pdf/not_allowed_acronym/v14n4/03.pdf HTTP/1.1" 206 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+    def test_document_pdf_with_unknown_journal_acronym(self):
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/pdf/not_allowed_acronym/v14n4/03.pdf HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
         self.assertEqual(self.ac.parsed_access(line), None)
 
-    def test_parsed_access_valid_pdf_with_any_different_access(self):
-        line = '177.191.212.233 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/img/pt/author.gif HTTP/1.1" 304 0 "http://www.scielo.br/scielo.php?script=sci_serial&pid=1415-4757&nrm=iso&rep=&lng=pt" "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36"'
-        self.assertEqual(self.ac.parsed_access(line), None)
