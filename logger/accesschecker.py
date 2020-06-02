@@ -135,7 +135,7 @@ class AccessChecker(object):
 
     def _pdf_or_html_access(self, get):
         if "GET" in get:
-            if re.search(r"[\./]pdf", get):
+            if re.search(r"[\./(format=)]pdf", get):
                 return "PDF"
 
             elif (
