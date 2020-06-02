@@ -61,18 +61,25 @@ class AccessCheckerTests(unittest.TestCase):
         request = u'GET /scielo.php?pid=S0100-736X2000000300007&script=sci_arttext HTTP/1.1'
         self.assertEqual(self.ac._pdf_or_html_access(request), u'HTML')
 
-    def test_pdf_or_html_access_for_pdf_on_new_site(self):
+    def test_pdf_or_html_access_identifies_urls_of_documents_in_pdf_v1(self):
         request = u'GET https://www.scielo.br/pdf/abcd/2018.v31n3/e1382/en HTTP/1.1'
         self.assertEqual(self.ac._pdf_or_html_access(request), u'PDF')
 
         request = u'GET /pdf/abcd/2018.v31n3/e1382/en HTTP/1.1'
         self.assertEqual(self.ac._pdf_or_html_access(request), u'PDF')
 
-    def test_pdf_or_html_access_for_pdf(self):
+    def test_pdf_or_html_access_identifies_urls_of_documents_in_pdf_v2(self):
         request = u'GET http://www.scielo.br/pdf/isz/v96n2/a18v96n2.pdf HTTP/1.1'
         self.assertEqual(self.ac._pdf_or_html_access(request), u'PDF')
 
         request = u'GET /pdf/isz/v96n2/a18v96n2.pdf HTTP/1.1'
+        self.assertEqual(self.ac._pdf_or_html_access(request), u'PDF')
+
+    def test_pdf_or_html_access_identifies_urls_of_documents_in_pdf_v3(self):
+        request = u'GET http://www.scielo.br/j/abdc/a/MYJY5Rgw5gc7mBpqYzBCVJR?format=pdf HTTP/1.1'
+        self.assertEqual(self.ac._pdf_or_html_access(request), u'PDF')
+
+        request = u'GET /j/abdc/a/MYJY5Rgw5gc7mBpqYzBCVJR?format=pdf HTTP/1.1'
         self.assertEqual(self.ac._pdf_or_html_access(request), u'PDF')
 
     def test_pdf_or_html_access_for_files_on_new_site(self):
