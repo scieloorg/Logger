@@ -227,14 +227,17 @@ class AccessChecker(object):
         parsed_line = self._parse_line(raw_line)
 
         if not parsed_line:
+            logger.debug('cannot parse log line "%s"', raw_line)
             return None
 
         if self.is_robot(parsed_line['%{User-Agent}i']):
+            logger.debug('cannot count log line "%s": the user-agent is blacklisted', raw_line)
             return None
 
         access_date = self._access_date(parsed_line['%t'])
 
         if not access_date:
+            logger.debug('cannot count log line "%s": missing access date', raw_line)
             return None
 
         data = {}
@@ -251,12 +254,15 @@ class AccessChecker(object):
         data['http_code'] = parsed_line['%>s']
 
         if not data['http_code'] or data['http_code'] not in ['200', '304']:
+            logger.debug('cannot count log line "%s": unsupported html status code', raw_line)
             return None
  
         if not data['access_type']:
+            logger.debug('cannot count log line "%s": missing document type', raw_line)
             return None
 
         if not data['iso_date']:
+            logger.debug('cannot count log line "%s": missing iso date', raw_line)
             return None
 
         if data['access_type'] == u'HTML':
@@ -274,13 +280,16 @@ class AccessChecker(object):
                 else:
                     # URLs do site clássico
                     if not data['query_string']:
+                        logger.debug('cannot count log line "%s": missing querystring', raw_line)
                         return None
 
                     if 'script' not in data['query_string'] or 'pid' not in data['query_string']:
+                        logger.debug('cannot count log line "%s": missing script or pid in querystring', raw_line)
                         return None
 
                     if not self._is_valid_html_request(data['query_string']['script'],
                                                        data['query_string']['pid']):
+                        logger.debug('cannot count log line "%s": request is invalid', raw_line)
                         return None
 
                     data['code'] = data['query_string']['pid']
@@ -299,6 +308,7 @@ class AccessChecker(object):
                     data['code'] = match.groupdict()['pid'] + "_pdf"
                     data['script'] = ''
                 else:
+                    logger.debug('cannot count log line "%s": request is invalid', raw_line)
                     return None
 
         return data
