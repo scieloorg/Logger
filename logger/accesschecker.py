@@ -198,7 +198,11 @@ class AccessChecker(object):
             if not url.lower().endswith('.pdf'):
                 url = re.sub(r'/(\D\D)?$', r'/', url)
         else:
-            return None
+             match = re.search(r'/a/([a-zA-Z0-9]{23})', filepath)
+             if match:
+                url= match.group()
+             else:
+                 return None
 
         data['pdf_path'] = urlparse.urlparse(url).path
 
@@ -262,18 +266,25 @@ class AccessChecker(object):
                 data['script'] = ''
 
             else:
-                if not data['query_string']:
-                    return None
+                match = re.search(r'/a/(?P<pid>[a-zA-Z0-9]{23})', parsed_line['%r'])
+                if match:
+                    # URLs do OPAC
+                    data['code'] = match.groupdict()['pid']
+                    data['script'] = ''
+                else:
+                    # URLs do site clássico
+                    if not data['query_string']:
+                        return None
 
-                if 'script' not in data['query_string'] or 'pid' not in data['query_string']:
-                    return None
+                    if 'script' not in data['query_string'] or 'pid' not in data['query_string']:
+                        return None
 
-                if not self._is_valid_html_request(data['query_string']['script'],
-                                                   data['query_string']['pid']):
-                    return None
+                    if not self._is_valid_html_request(data['query_string']['script'],
+                                                       data['query_string']['pid']):
+                        return None
 
-                data['code'] = data['query_string']['pid']
-                data['script'] = data['query_string']['script']
+                    data['code'] = data['query_string']['pid']
+                    data['script'] = data['query_string']['script']
 
         if data['access_type'] == u'PDF':
             pdf_request = self._is_valid_pdf_request(parsed_line['%r'])
@@ -282,6 +293,12 @@ class AccessChecker(object):
                 data['script'] = ''
                 data.update(pdf_request)
             else:
-                return None
+                match = re.search(r'/a/(?P<pid>[a-zA-Z0-9]{23})', parsed_line['%r'])
+                if match:
+                    # URLs do OPAC
+                    data['code'] = match.groupdict()['pid'] + "_pdf"
+                    data['script'] = ''
+                else:
+                    return None
 
         return data
