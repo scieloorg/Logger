@@ -48,9 +48,8 @@ setup(
     ],
     dependency_links=[],
     install_requires=install_requires,
-    setup_requires=["nose>=1.0", "coverage"],
     tests_require=tests_require,
-    test_suite="nose.collector",
+    test_suite="tests",
     entry_points="""\
     [console_scripts]
     logger_loadlogs_scielo = logger.scielo:main
