@@ -500,6 +500,14 @@ class ClassicSiteURLParsingTests(unittest.TestCase):
                     }
         self.assertEqual(self.ac.parsed_access(line), expected)
 
+    def test_document_pdf_url_v2(self):
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?pid=S0044-59672020000100012&script=sci_pdf&tlng=en HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        self.assertEqual(self.ac.parsed_access(line), None)
+
+    def test_journal_homepage(self):
+        line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/scielo.php?script=sci_serial&pid=0100-879X&lng=en&nrm=iso HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        self.assertEqual(self.ac.parsed_access(line), None)
+
     def test_document_pdf_with_unknown_journal_acronym(self):
         line = '201.14.120.2 - - [30/May/2013:00:01:01 -0300] "GET http://www.scielo.br/pdf/not_allowed_acronym/v14n4/03.pdf HTTP/1.1" 200 4608 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
         self.assertEqual(self.ac.parsed_access(line), None)
