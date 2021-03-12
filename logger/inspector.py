@@ -12,6 +12,7 @@ import time
 import os
 import traceback
 import sys
+import shutil
 
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
@@ -177,9 +178,10 @@ class Inspector(object):
 
 class EventHandler(FileSystemEventHandler):
 
-    def __init__(self):
+    def __init__(self, safecopy_dir):
         self.logfilename = 'report.log'
         self.files = {}
+        self.safecopy_dir = safecopy_dir
 
     def is_file_size_stucked(self, logpath):
         status = self.files.setdefault(logpath, 0)
@@ -218,6 +220,9 @@ class EventHandler(FileSystemEventHandler):
                 self.write_log(event.src_path, msg)
                 return False
 
+            shutil.copy2(event.src_path, self.safecopy_dir)
+            logger.info('file "%s" was copied to "%s"', event.src_path, self.safecopy_dir)
+
             msg = 'New file detected: %s' % event.src_path
             logger.info(msg)
             self.write_log(event.src_path, msg)
@@ -252,9 +257,9 @@ class EventHandler(FileSystemEventHandler):
             logger.exception(sys.exc_info()[0])
 
 
-def watcher(logs_source):
+def watcher(logs_source, safecopy_dir):
 
-    event_handler = EventHandler()
+    event_handler = EventHandler(safecopy_dir)
     observer = Observer()
     observer.schedule(event_handler, logs_source, recursive=True)
     observer.start()
@@ -280,6 +285,12 @@ def main():
     )
 
     parser.add_argument(
+        '--safecopy_dir',
+        '-c',
+        help='Full path to the directory to send copies of all received log files'
+    )
+
+    parser.add_argument(
         '--logging_file',
         '-o',
         help='Full path to the log file'
@@ -297,4 +308,4 @@ def main():
 
     _config_logging(args.logging_level, args.logging_file)
 
-    watcher(args.logs_source)
+    watcher(args.logs_source, args.safecopy_dir)
