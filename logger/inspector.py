@@ -14,7 +14,7 @@ import traceback
 import sys
 import shutil
 
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserverVFS
 from watchdog.events import LoggingEventHandler
 from watchdog.events import FileSystemEventHandler
 
@@ -257,10 +257,14 @@ class EventHandler(FileSystemEventHandler):
             logger.exception(sys.exc_info()[0])
 
 
-def watcher(logs_source, safecopy_dir):
+def watcher(logs_source, safecopy_dir, polling_interval):
 
     event_handler = EventHandler(safecopy_dir)
-    observer = Observer()
+    observer = PollingObserverVFS(
+        os.stat, 
+        os.listdir, 
+        polling_interval=polling_interval
+    )
     observer.schedule(event_handler, logs_source, recursive=True)
     observer.start()
     logger.info('Starting listening directory: %s' % logs_source)
@@ -291,6 +295,14 @@ def main():
     )
 
     parser.add_argument(
+        '--polling_interval',
+        '-i',
+        type=int,
+        default=600,
+        help='Polling interval in seconds. Defaults to 600 seconds.'
+    )
+
+    parser.add_argument(
         '--logging_file',
         '-o',
         help='Full path to the log file'
@@ -308,4 +320,4 @@ def main():
 
     _config_logging(args.logging_level, args.logging_file)
 
-    watcher(args.logs_source, args.safecopy_dir)
+    watcher(args.logs_source, args.safecopy_dir, args.polling_interval)
