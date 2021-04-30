@@ -220,6 +220,7 @@ class EventHandler(FileSystemEventHandler):
                 self.write_log(event.src_path, msg)
                 return False
 
+            time.sleep(600)
             shutil.copy2(event.src_path, self.safecopy_dir)
             logger.info('file "%s" was copied to "%s"', event.src_path, self.safecopy_dir)
 
