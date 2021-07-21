@@ -59,6 +59,10 @@ class TestInspectorTests(TestCase):
         insp = Inspector('/var/www/scielo.br/2015-12-30_scielo.br.log.gz')
         self.assertTrue(insp._is_valid_collection())
 
+    def test_nbr_is_valid_collection_in_filename(self, mock_):
+        insp = Inspector('/var/www/scielo.br/2015-12-30_scielo.nbr.log.gz')
+        self.assertTrue(insp._is_valid_collection())
+
     def test_is_invalid_collection_in_filename(self, mock_):
         insp = Inspector('/var/www/scielo.br/2015-12-30_scielo.xxx.log.gz')
         self.assertFalse(insp._is_valid_collection())

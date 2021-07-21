@@ -36,7 +36,7 @@ class Collections(object):
         # New websites config file_path
         self._new_websites_config_file_path = (
             new_websites_config_file_path or
-            "./logger/new_websites.json"
+            "new_websites.json"
         )
         self.__am_collections = None
         self.__new_collections = None
@@ -48,7 +48,6 @@ class Collections(object):
             self.__am_collections or
             try_get_collections(self._am_client)
         )
-        print("__am_collections", self.__am_collections)
         return self.__am_collections or []
 
     @property
@@ -76,7 +75,6 @@ class Collections(object):
                         new_col.acronym = new
                         new_col.acronym2letters = new
                         self.__new_collections.append(new_col)
-        print("__new_collections", self.__new_collections)
         return self.__new_collections
 
     def index_by_code(self, items):
@@ -104,7 +102,6 @@ class Collections(object):
         return list(self._am_collections) + self._new_collections
 
     def get_code(self, acron):
-        print(self.collections)
         try:
             return self.indexed_by_acron_found_in_zip_filename.get(acron).code
         except AttributeError:
