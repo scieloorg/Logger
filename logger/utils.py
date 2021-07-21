@@ -1,10 +1,117 @@
 #coding: utf-8
 import os
+import logging
+import json
 import weakref
 import datetime
 import gzip
+from copy import deepcopy
+from time import sleep
 
 from ConfigParser import SafeConfigParser
+
+
+logger = logging.getLogger(__name__)
+
+
+def try_get_collections(am_client):
+    for i in (1, 2, 5, 10):
+        try:
+            return am_client.collections()
+        except Exception as e:
+            print(e)
+            sleep(i*60*60)
+            logger.info("%s. Tenta novamente após %s." % (str(e), i))
+
+
+class Collections(object):
+    """
+    Junta coleções presentes no AM e
+    coleções que o site antigo e o novo estão contabilizando acessos
+    """
+
+    def __init__(self, am_client, new_websites_config_file_path=None):
+        # AM client
+        self._am_client = am_client
+        # New websites config file_path
+        self._new_websites_config_file_path = (
+            new_websites_config_file_path or
+            "./logger/new_websites.json"
+        )
+        self.__am_collections = None
+        self.__new_collections = None
+        self._indexed_by_acron_found_in_zip_filename = None
+
+    @property
+    def _am_collections(self):
+        self.__am_collections = (
+            self.__am_collections or
+            try_get_collections(self._am_client)
+        )
+        print("__am_collections", self.__am_collections)
+        return self.__am_collections or []
+
+    @property
+    def _new_collections(self):
+        if not self.__new_collections:
+            self.__new_collections = []
+            try:
+                with open(self._new_websites_config_file_path, "r") as fp:
+                    new_websites_data = json.loads(fp.read())
+            except IOError:
+                new_websites_data = None
+            else:
+                indexed = self.index_by_acronym2letters(self._am_collections)
+                indexed.update(self.index_by_code(self._am_collections))
+
+                for data in new_websites_data:
+                    old = data.get('old')
+                    new = data.get("new")
+                    if not old or not new:
+                        continue
+                    col = indexed.get(old)
+                    if col:
+                        new_col = deepcopy(col)
+                        new_col.code = new
+                        new_col.acronym = new
+                        new_col.acronym2letters = new
+                        self.__new_collections.append(new_col)
+        print("__new_collections", self.__new_collections)
+        return self.__new_collections
+
+    def index_by_code(self, items):
+        return {i.code: i for i in items}
+
+    def index_by_acronym2letters(self, items):
+        return {i.acronym2letters: i for i in items}
+
+    @property
+    def indexed_by_acron_found_in_zip_filename(self):
+        if not self._indexed_by_acron_found_in_zip_filename:
+            self._indexed_by_acron_found_in_zip_filename = (
+                self.index_by_acronym2letters(self.collections)
+            )
+        return self._indexed_by_acron_found_in_zip_filename or {}
+
+    @property
+    def indexed_by_code(self):
+        if not self._indexed_by_code:
+            self._indexed_by_code = self.index_by_code(self.collections)
+        return self._indexed_by_code or {}
+
+    @property
+    def collections(self):
+        return list(self._am_collections) + self._new_collections
+
+    def get_code(self, acron):
+        print(self.collections)
+        try:
+            return self.indexed_by_acron_found_in_zip_filename.get(acron).code
+        except AttributeError:
+            raise ValueError("Collection '%s' not found" % acron)
+
+    def codes(self):
+        return self.indexed_by_code.keys()
 
 
 class SingletonMixin(object):
