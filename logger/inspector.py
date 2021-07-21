@@ -5,17 +5,14 @@ from the SciELO Network.
 """
 import logging
 import argparse
-import requests
 import re
 import datetime
 import time
 import os
-import traceback
 import sys
 import shutil
 
 from watchdog.observers.polling import PollingObserverVFS
-from watchdog.events import LoggingEventHandler
 from watchdog.events import FileSystemEventHandler
 
 from logger import utils
@@ -29,6 +26,7 @@ REGEX_FILENAME = re.compile(
 
 
 am_client = ThriftClient(domain='articlemeta.scielo.org:11621')
+COLLECTIONS = utils.Collections(am_client)
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
@@ -57,6 +55,19 @@ def _config_logging(logging_level='INFO', logging_file=None):
     logger.addHandler(hl)
 
 
+def _get_collections():
+    return COLLECTIONS.indexed_by_acron_found_in_zip_filename
+
+
+def _get_collection_code(acron_gotten_from_zipfilename):
+    try:
+        return COLLECTIONS.get_code(acron_gotten_from_zipfilename)
+    except:
+        logger.error(
+            'Fail to retrieve collection code for %s' %
+            acron_gotten_from_zipfilename)
+
+
 class Inspector(object):
 
     def __init__(self, filename):
@@ -65,16 +76,14 @@ class Inspector(object):
         self._file = filename
         self._filename = filename.split('/')[-1]
         self._parsed_fn = REGEX_FILENAME.match(self._filename)
+        self.collection_acron_3 = _get_collection_code(self.collection)
+
+        # aparentemente desnecessário e deveria ser externo a esta classe
+        # mantido para não quebrar expectativas
         self.collections = self.get_collections()
 
     def get_collections(self):
-        collections = {}
-        try:
-            collections = am_client.collections()
-            return {i.acronym2letters: i for i in collections}
-        except:
-            logger.error('Fail to retrieve collections')
-        return {}
+        return _get_collections()
 
     def _is_valid_filename(self):
         if not self._parsed_fn:
@@ -108,11 +117,10 @@ class Inspector(object):
         return True
 
     def _is_valid_collection(self):
-
         if not self._is_valid_filename:
             return False
 
-        if self.collection not in self.collections:
+        if not self.collection_acron_3:
             logger.warning(
                 'Invalid collection in filename: %s' % self._filename)
             return False
@@ -138,20 +146,14 @@ class Inspector(object):
 
     @property
     def datelog(self):
-        return self._parsed_fn.groupdict().get('date', None)
+        if self._parsed_fn:
+            return self._parsed_fn.groupdict().get('date', None)
 
     @property
     def collection(self):
-        return self._parsed_fn.groupdict().get('collection', None)
-
-    @property
-    def collection_acron_3(self):
-
-        collection = self.collections.get(
-            self._parsed_fn.groupdict().get('collection', None), None
-        )
-
-        return collection.code if collection else None
+        """Acronimo encontrado no nome do arquivo zip"""
+        if self._parsed_fn:
+            return self._parsed_fn.groupdict().get('collection', None)
 
     def is_valid(self):
 

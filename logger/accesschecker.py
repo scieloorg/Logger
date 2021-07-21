@@ -1,8 +1,5 @@
 # coding: utf-8
 
-import os
-import urllib2
-import json
 import datetime
 import urlparse
 import re
@@ -48,16 +45,8 @@ am_client = ThriftClient(domain='articlemeta.scielo.org:11621')
 
 
 def _allowed_collections():
-    """Obtém a lista das coleções a partir do ArticleMeta
-    """
-    allowed_collections = []
-
-    try:
-        collections = am_client.collections()
-    except:
-        logger.error('Fail to retrieve collections from thrift server')
-
-    return [i.code for i in collections]
+    COLLECTIONS = utils.Collections(am_client)
+    return COLLECTIONS.codes()
 
 
 def _acronym_to_issn_dict(collection):
