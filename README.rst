@@ -44,6 +44,20 @@ Passos para Configurações de Websites da Metodologia SPF
 Crie ou edite o arquivo `new_websites.json` (baseado no `new_websites.json.template`).
 
 
+```json
+[
+  {
+    "new": "nbr",
+    "old: "scl"
+  },
+  {
+    "new": "acron_novo",
+    "old: "acron_antigo"
+  }
+]
+```
+
+
 Passos para Configurações
 -------------------------
 
