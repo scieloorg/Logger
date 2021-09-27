@@ -41,6 +41,7 @@ class Collections(object):
         self.__am_collections = None
         self.__new_collections = None
         self._indexed_by_acron_found_in_zip_filename = None
+        self._indexed_by_code = None
 
     @property
     def _am_collections(self):
