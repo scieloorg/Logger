@@ -216,6 +216,13 @@ class EventHandler(FileSystemEventHandler):
                 msg = 'New directory detected: %s' % event.src_path
                 logger.debug(msg)
                 self.write_log(event.src_path, msg)
+
+                if os.path.basename(event.src_path).startswith("scielo."):
+                    msg = 'New Directory to receive logs: %s' % event.src_path
+                    logger.debug(msg)
+                    self.write_log(event.src_path, msg)
+                    return False
+
                 os.rmdir(event.src_path)
                 msg = 'Directory removed: %s' % event.src_path
                 logger.debug(msg)
