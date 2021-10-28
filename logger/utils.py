@@ -79,11 +79,15 @@ settings = dict(Configuration.from_env().items())['app:main']
 def try_get_collections(am_client):
     for i in (1, 2, 5, 10):
         try:
-            return am_client.collections()
+            # gerador
+            g = am_client.collections()
         except Exception as e:
             print(e)
             sleep(i*60*60)
             logger.info("%s. Tenta novamente após %s." % (str(e), i))
+        else:
+            # retorna lista e não um gerador
+            return list(g)
 
 
 class Collections(object):
@@ -125,11 +129,15 @@ class Collections(object):
             )
 
     @property
+    def _am_collections_info(self):
+        cols = [c.code for c in self._am_collections]
+        return "Found %i collections in AM: %s" % (len(cols), ", ".join(cols))
+
+    @property
     def _am_collections(self):
-        self.__am_collections = (
-            self.__am_collections or
-            try_get_collections(self._am_client)
-        )
+        if not self.__am_collections:
+            self.__am_collections = try_get_collections(self._am_client)
+            logger.info(self._am_collections_info)
         return self.__am_collections or []
 
     @property
@@ -179,7 +187,7 @@ class Collections(object):
 
     @property
     def collections(self):
-        return list(self._am_collections) + self._new_collections
+        return self._am_collections + self._new_collections
 
     def get_code(self, acron):
         try:
