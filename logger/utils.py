@@ -142,28 +142,27 @@ class Collections(object):
 
     @property
     def _new_collections(self):
-        if not self.__new_collections:
-            self.__new_collections = []
-
-            new_websites_data = self.new_websites_data
-            if new_websites_data:
-
-                indexed = self.index_by_acronym2letters(self._am_collections)
-                indexed.update(self.index_by_code(self._am_collections))
-
-                for data in new_websites_data:
-                    old = data.get('old')
-                    new = data.get("new")
-                    if not old or not new:
-                        continue
-                    col = indexed.get(old)
-                    if col:
-                        new_col = deepcopy(col)
-                        new_col.code = new
-                        new_col.acronym = new
-                        new_col.acronym2letters = new
-                        self.__new_collections.append(new_col)
-        return self.__new_collections
+        new_cols = []
+        new_websites_data = self.new_websites_data
+        if new_websites_data:
+            indexed = self.index_by_acronym2letters(self._am_collections)
+            indexed.update(self.index_by_code(self._am_collections))
+            for data in new_websites_data:
+                old = data.get('old')
+                new = data.get("new")
+                if not old or not new:
+                    continue
+                col = indexed.get(old)
+                if not col:
+                    logger.info("NOT FOUND %s in AM Collections" % old)
+                    logger.info(self._am_collections_info)
+                    continue
+                new_col = deepcopy(col)
+                new_col.code = new
+                new_col.acronym = new
+                new_col.acronym2letters = new
+                new_cols.append(new_col)
+        return new_cols
 
     def index_by_code(self, items):
         return {i.code: i for i in items}
