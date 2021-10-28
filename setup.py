@@ -27,7 +27,7 @@ tests_require = [
 
 setup(
     name="logger",
-    version='2.3.1',
+    version='2.3.2',
     description="A SciELO tool to load apache log files and register access into Ratchet.",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",

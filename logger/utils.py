@@ -14,104 +14,6 @@ from ConfigParser import SafeConfigParser
 logger = logging.getLogger(__name__)
 
 
-def try_get_collections(am_client):
-    for i in (1, 2, 5, 10):
-        try:
-            return am_client.collections()
-        except Exception as e:
-            print(e)
-            sleep(i*60*60)
-            logger.info("%s. Tenta novamente após %s." % (str(e), i))
-
-
-class Collections(object):
-    """
-    Junta coleções presentes no AM e
-    coleções que o site antigo e o novo estão contabilizando acessos
-    """
-
-    def __init__(self, am_client, new_websites_config_file_path=None):
-        # AM client
-        self._am_client = am_client
-        # New websites config file_path
-        self._new_websites_config_file_path = (
-            new_websites_config_file_path or
-            "new_websites.json"
-        )
-        self.__am_collections = None
-        self.__new_collections = None
-        self._indexed_by_acron_found_in_zip_filename = None
-        self._indexed_by_code = None
-
-    @property
-    def _am_collections(self):
-        self.__am_collections = (
-            self.__am_collections or
-            try_get_collections(self._am_client)
-        )
-        return self.__am_collections or []
-
-    @property
-    def _new_collections(self):
-        if not self.__new_collections:
-            self.__new_collections = []
-            try:
-                with open(self._new_websites_config_file_path, "r") as fp:
-                    new_websites_data = json.loads(fp.read())
-            except IOError:
-                new_websites_data = None
-            else:
-                indexed = self.index_by_acronym2letters(self._am_collections)
-                indexed.update(self.index_by_code(self._am_collections))
-
-                for data in new_websites_data:
-                    old = data.get('old')
-                    new = data.get("new")
-                    if not old or not new:
-                        continue
-                    col = indexed.get(old)
-                    if col:
-                        new_col = deepcopy(col)
-                        new_col.code = new
-                        new_col.acronym = new
-                        new_col.acronym2letters = new
-                        self.__new_collections.append(new_col)
-        return self.__new_collections
-
-    def index_by_code(self, items):
-        return {i.code: i for i in items}
-
-    def index_by_acronym2letters(self, items):
-        return {i.acronym2letters: i for i in items}
-
-    @property
-    def indexed_by_acron_found_in_zip_filename(self):
-        if not self._indexed_by_acron_found_in_zip_filename:
-            self._indexed_by_acron_found_in_zip_filename = (
-                self.index_by_acronym2letters(self.collections)
-            )
-        return self._indexed_by_acron_found_in_zip_filename or {}
-
-    @property
-    def indexed_by_code(self):
-        if not self._indexed_by_code:
-            self._indexed_by_code = self.index_by_code(self.collections)
-        return self._indexed_by_code or {}
-
-    @property
-    def collections(self):
-        return list(self._am_collections) + self._new_collections
-
-    def get_code(self, acron):
-        try:
-            return self.indexed_by_acron_found_in_zip_filename.get(acron).code
-        except AttributeError:
-            raise ValueError("Collection '%s' not found" % acron)
-
-    def codes(self):
-        return self.indexed_by_code.keys()
-
-
 class SingletonMixin(object):
     """
     Adds a singleton behaviour to an existing class.
@@ -170,7 +72,130 @@ class Configuration(SingletonMixin):
         return [(section, dict(self.conf.items(section, raw=True))) for \
             section in [section for section in self.conf.sections()]]
 
+
 settings = dict(Configuration.from_env().items())['app:main']
+
+
+def try_get_collections(am_client):
+    for i in (1, 2, 5, 10):
+        try:
+            # gerador
+            g = am_client.collections()
+        except Exception as e:
+            print(e)
+            sleep(i*60*60)
+            logger.info("%s. Tenta novamente após %s." % (str(e), i))
+        else:
+            # retorna lista e não um gerador
+            return list(g)
+
+
+class Collections(object):
+    """
+    Junta coleções presentes no AM e
+    coleções que o site antigo e o novo estão contabilizando acessos
+    """
+
+    def __init__(self, am_client):
+        # AM client
+        self._am_client = am_client
+        self.__am_collections = None
+        self.__new_collections = None
+        self._indexed_by_acron_found_in_zip_filename = None
+        self._indexed_by_code = None
+
+    @property
+    def new_websites_data(self):
+        """
+        Retorna None ou uma lista de dicionários contendo os acrônimos
+        de coleções: new e old. Ex.:
+
+        Returns
+        -------
+        list of {"new": "nbr", "old": "scl"}
+        """
+        try:
+            # obtém o caminho do arquivo new_websites.json
+            new_websites_config_file_path = settings.get("new_websites_config")
+            if not new_websites_config_file_path:
+                raise ValueError(
+                    "Invalid value for new_websites_config_file_path")
+            # lê a configuração de websites que estão com nova interface
+            with open(new_websites_config_file_path, "r") as fp:
+                return json.loads(fp.read())
+        except (ValueError, IOError) as e:
+            logger.info(
+                "WARNING: Unable to get new websites configuration. %s" % e
+            )
+
+    @property
+    def _am_collections_info(self):
+        cols = [c.code for c in self._am_collections]
+        return "Found %i collections in AM: %s" % (len(cols), ", ".join(cols))
+
+    @property
+    def _am_collections(self):
+        if not self.__am_collections:
+            self.__am_collections = try_get_collections(self._am_client)
+            logger.info(self._am_collections_info)
+        return self.__am_collections or []
+
+    @property
+    def _new_collections(self):
+        new_cols = []
+        new_websites_data = self.new_websites_data
+        if new_websites_data:
+            indexed = self.index_by_acronym2letters(self._am_collections)
+            indexed.update(self.index_by_code(self._am_collections))
+            for data in new_websites_data:
+                old = data.get('old')
+                new = data.get("new")
+                if not old or not new:
+                    continue
+                col = indexed.get(old)
+                if not col:
+                    logger.info("NOT FOUND %s in AM Collections" % old)
+                    logger.info(self._am_collections_info)
+                    continue
+                new_col = deepcopy(col)
+                new_col.code = new
+                new_col.acronym = new
+                new_col.acronym2letters = new
+                new_cols.append(new_col)
+        return new_cols
+
+    def index_by_code(self, items):
+        return {i.code: i for i in items}
+
+    def index_by_acronym2letters(self, items):
+        return {i.acronym2letters: i for i in items}
+
+    @property
+    def indexed_by_acron_found_in_zip_filename(self):
+        if not self._indexed_by_acron_found_in_zip_filename:
+            self._indexed_by_acron_found_in_zip_filename = (
+                self.index_by_acronym2letters(self.collections)
+            )
+        return self._indexed_by_acron_found_in_zip_filename or {}
+
+    @property
+    def indexed_by_code(self):
+        if not self._indexed_by_code:
+            self._indexed_by_code = self.index_by_code(self.collections)
+        return self._indexed_by_code or {}
+
+    @property
+    def collections(self):
+        return self._am_collections + self._new_collections
+
+    def get_code(self, acron):
+        try:
+            return self.indexed_by_acron_found_in_zip_filename.get(acron).code
+        except AttributeError:
+            raise ValueError("Collection '%s' not found" % acron)
+
+    def codes(self):
+        return self.indexed_by_code.keys()
 
 
 def checkdatelock(previous_date=None, next_date=None, locktime=10):
