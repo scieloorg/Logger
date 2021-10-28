@@ -43,6 +43,8 @@ Passos para Configurações de Websites da Metodologia SPF
 --------------------------------------------------------
 Crie ou edite o arquivo `new_websites.json` (baseado no `new_websites.json.template`).
 
+O arquivo `new_websites.json` deve ter o seguinte formato:
+
 ```json
 [
   {
@@ -67,6 +69,11 @@ Crie ou edite o arquivo `new_websites.json` (baseado no `new_websites.json.templ
       }
     ]
 
+A localização do arquivo `new_websites.json` deve ser informada no config.ini:
+
+```
+new_websites_config = /var/www/logger/data/new_websites.json
+```
 
 Passos para Configurações
 -------------------------
