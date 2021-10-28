@@ -92,14 +92,9 @@ class Collections(object):
     coleções que o site antigo e o novo estão contabilizando acessos
     """
 
-    def __init__(self, am_client, new_websites_config_file_path=None):
+    def __init__(self, am_client):
         # AM client
         self._am_client = am_client
-        # New websites config file_path
-        self._new_websites_config_file_path = (
-            new_websites_config_file_path or
-            "new_websites.json"
-        )
         self.__am_collections = None
         self.__new_collections = None
         self._indexed_by_acron_found_in_zip_filename = None
@@ -116,10 +111,12 @@ class Collections(object):
         list of {"new": "nbr", "old": "scl"}
         """
         try:
+            # obtém o caminho do arquivo new_websites.json
             new_websites_config_file_path = settings.get("new_websites_config")
             if not new_websites_config_file_path:
                 raise ValueError(
                     "Invalid value for new_websites_config_file_path")
+            # lê a configuração de websites que estão com nova interface
             with open(new_websites_config_file_path, "r") as fp:
                 return json.loads(fp.read())
         except (ValueError, IOError) as e:
@@ -139,12 +136,10 @@ class Collections(object):
     def _new_collections(self):
         if not self.__new_collections:
             self.__new_collections = []
-            try:
-                with open(self._new_websites_config_file_path, "r") as fp:
-                    new_websites_data = json.loads(fp.read())
-            except IOError:
-                new_websites_data = None
-            else:
+
+            new_websites_data = self.new_websites_data
+            if new_websites_data:
+
                 indexed = self.index_by_acronym2letters(self._am_collections)
                 indexed.update(self.index_by_code(self._am_collections))
 
