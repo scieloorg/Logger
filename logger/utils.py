@@ -106,6 +106,28 @@ class Collections(object):
         self._indexed_by_code = None
 
     @property
+    def new_websites_data(self):
+        """
+        Retorna None ou uma lista de dicionários contendo os acrônimos
+        de coleções: new e old. Ex.:
+
+        Returns
+        -------
+        list of {"new": "nbr", "old": "scl"}
+        """
+        try:
+            new_websites_config_file_path = settings.get("new_websites_config")
+            if not new_websites_config_file_path:
+                raise ValueError(
+                    "Invalid value for new_websites_config_file_path")
+            with open(new_websites_config_file_path, "r") as fp:
+                return json.loads(fp.read())
+        except (ValueError, IOError) as e:
+            logger.info(
+                "WARNING: Unable to get new websites configuration. %s" % e
+            )
+
+    @property
     def _am_collections(self):
         self.__am_collections = (
             self.__am_collections or
