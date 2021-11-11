@@ -9,13 +9,14 @@ from unittest import TestCase
 
 class MockCollection(object):
 
-    def __init__(self, code, acronym, acronym2):
-        self.code = code
-        self.acronym = acronym
-        self.acronym2letters = acronym2
+    def __init__(self, website_id, collection_id, website_acron_in_filename):
+        self.website_id = website_id
+        self.collection_id = collection_id
+        self.website_acron_in_filename = website_acron_in_filename
 
 
 _COLLECTIONS = [
+    MockCollection("nbr", "scl", "nbr"),
     MockCollection("scl", "scl", "br"),
     MockCollection("spa", "spa", "sp"),
 ]
