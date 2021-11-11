@@ -29,7 +29,7 @@ class TestInspectorTests(TestCase):
         self.assertTrue(insp._is_valid_filename())
         expected = {
             'date': '2015-12-30',
-            'collection': 'br'
+            'website_acron_in_filename': 'br'
         }
         self.assertEqual(expected, insp._parsed_fn.groupdict())
 
@@ -39,7 +39,7 @@ class TestInspectorTests(TestCase):
         self.assertTrue(insp._is_valid_filename())
         expected = {
             'date': '2015-12-30',
-            'collection': 'br'
+            'website_acron_in_filename': 'br'
         }
         self.assertEqual(expected, insp._parsed_fn.groupdict())
 
@@ -55,17 +55,17 @@ class TestInspectorTests(TestCase):
         insp = Inspector('/var/www/scielo.br/2015-31-12_scielo.br.log.gz')
         self.assertFalse(insp._is_valid_date())
 
-    def test_is_valid_collection_in_filename(self, mock_):
+    def test_is_valid_website_in_filename(self, mock_):
         insp = Inspector('/var/www/scielo.br/2015-12-30_scielo.br.log.gz')
-        self.assertTrue(insp._is_valid_collection())
+        self.assertTrue(insp._is_valid_website())
 
-    def test_nbr_is_valid_collection_in_filename(self, mock_):
+    def test_nbr_is_valid_website_in_filename(self, mock_):
         insp = Inspector('/var/www/scielo.br/2015-12-30_scielo.nbr.log.gz')
-        self.assertTrue(insp._is_valid_collection())
+        self.assertTrue(insp._is_valid_website())
 
     def test_is_invalid_collection_in_filename(self, mock_):
         insp = Inspector('/var/www/scielo.br/2015-12-30_scielo.xxx.log.gz')
-        self.assertFalse(insp._is_valid_collection())
+        self.assertFalse(insp._is_valid_website())
 
     def test_is_valid_source_directory(self, mock_):
         insp = Inspector('/var/www/scielo.br/2015-12-30_scielo.br.log.gz')

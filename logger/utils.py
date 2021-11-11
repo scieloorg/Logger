@@ -74,14 +74,15 @@ class Configuration(SingletonMixin):
 
 
 settings = dict(Configuration.from_env().items())['app:main']
+print(settings)
 
 
 def read_websites_configuration():
-    file_path = settings.get("WEBSITES_CONFIGURATION_PATH")
+    file_path = settings.get("websites_configuration_path")
     if not file_path:
         raise ValueError("Invalid value for WEBSITES_CONFIGURATION_PATH")
     # lê a configuração de websites
-    with open(file_path, newline='') as csvfile:
+    with open(file_path, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             yield row
