@@ -42,16 +42,15 @@ REGEX_FBPE = re.compile(
     "^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$")
 
 am_client = ThriftClient(domain='articlemeta.scielo.org:11621')
+COLLECTIONS = utils.Collections()
 
 
 # abordagem para facilitar os testes
 def _allowed_collections():
-    COLLECTIONS = utils.Collections(am_client)
     return COLLECTIONS.website_ids
 
 
 def _get_collection_id(website_id):
-    COLLECTIONS = utils.Collections(am_client)
     return COLLECTIONS.get_website(website_id).collection_id
 
 

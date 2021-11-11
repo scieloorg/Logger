@@ -17,7 +17,6 @@ from watchdog.events import FileSystemEventHandler
 
 from logger import utils
 from logger.tasks import readlog
-from articlemeta.client import ThriftClient
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +24,7 @@ REGEX_FILENAME = re.compile(
     r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<website_acron_in_filename>.*?)\.*[0-9]*\.log\.gz$')
 
 
-am_client = ThriftClient(domain='articlemeta.scielo.org:11621')
-COLLECTIONS = utils.Collections(am_client)
+COLLECTIONS = utils.Collections()
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
