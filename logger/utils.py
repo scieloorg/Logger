@@ -90,6 +90,18 @@ def try_get_collections(am_client):
             return list(g)
 
 
+class Collection(object):
+    """
+    Dados de collection
+    """
+
+    def __init__(self, data):
+        self.collection_id = data['collection_id']
+        self.website = data['website']
+        self.website_id = data['website_id']
+        self.acron_in_log_file_name = data['acron_in_log_file_name']
+
+
 class Collections(object):
     """
     Junta coleções presentes no AM e
