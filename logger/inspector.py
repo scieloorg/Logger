@@ -22,7 +22,7 @@ from articlemeta.client import ThriftClient
 logger = logging.getLogger(__name__)
 
 REGEX_FILENAME = re.compile(
-    r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<collection>.*?)\.*[0-9]*\.log\.gz$')
+    r'^(?P<date>\d+4?-\d+2?-\d+2?)_scielo\.(?P<website_acron_in_filename>.*?)\.*[0-9]*\.log\.gz$')
 
 
 am_client = ThriftClient(domain='articlemeta.scielo.org:11621')
@@ -56,16 +56,16 @@ def _config_logging(logging_level='INFO', logging_file=None):
 
 
 def _get_collections():
-    return COLLECTIONS.indexed_by_acron_found_in_zip_filename
+    return COLLECTIONS.indexed_by_website_acron_in_filename
 
 
-def _get_collection_code(acron_gotten_from_zipfilename):
+def _get_website_id(website_acron_in_filename):
     try:
-        return COLLECTIONS.get_code(acron_gotten_from_zipfilename)
-    except:
+        return COLLECTIONS.get_website_id(website_acron_in_filename)
+    except Exception as e:
         logger.error(
-            'Fail to retrieve collection code for %s' %
-            acron_gotten_from_zipfilename)
+            'Fail to retrieve website acron for %s: %s' %
+            (website_acron_in_filename, e))
 
 
 class Inspector(object):
@@ -76,7 +76,7 @@ class Inspector(object):
         self._file = filename
         self._filename = filename.split('/')[-1]
         self._parsed_fn = REGEX_FILENAME.match(self._filename)
-        self.collection_acron_3 = _get_collection_code(self.collection)
+        self.website_id = _get_website_id(self.website_acron_in_filename)
 
         # aparentemente desnecessário e deveria ser externo a esta classe
         # mantido para não quebrar expectativas
@@ -116,13 +116,13 @@ class Inspector(object):
 
         return True
 
-    def _is_valid_collection(self):
+    def _is_valid_website(self):
         if not self._is_valid_filename:
             return False
 
-        if not self.collection_acron_3:
+        if not self.website_id:
             logger.warning(
-                'Invalid collection in filename: %s' % self._filename)
+                'Invalid website acron in filename: %s' % self._filename)
             return False
 
         return True
@@ -150,10 +150,10 @@ class Inspector(object):
             return self._parsed_fn.groupdict().get('date', None)
 
     @property
-    def collection(self):
+    def website_acron_in_filename(self):
         """Acronimo encontrado no nome do arquivo zip"""
         if self._parsed_fn:
-            return self._parsed_fn.groupdict().get('collection', None)
+            return self._parsed_fn.groupdict().get('website_acron_in_filename', None)
 
     def is_valid(self):
 
@@ -163,8 +163,8 @@ class Inspector(object):
         if not self._is_valid_date():
             return (False, 'invalid date')
 
-        if not self._is_valid_collection():
-            return (False, 'invalid collection code')
+        if not self._is_valid_website():
+            return (False, 'invalid website id')
 
         if not self._is_valid_source_directory():
             return (False, 'invalid source directory')
@@ -261,7 +261,7 @@ class EventHandler(FileSystemEventHandler):
             msg = "File is valid, sending for processing: %s" % event.src_path
             logger.debug(msg)
             self.write_log(event.src_path, msg)
-            readlog.delay(event.src_path, inspector.collection_acron_3)
+            readlog.delay(event.src_path, inspector.website_id)
 
         except Exception, err:
             logger.exception(sys.exc_info()[0])
