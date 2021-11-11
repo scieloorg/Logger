@@ -59,6 +59,7 @@ def _acronym_to_issn_dict(collection_acron):
     SciELO
     """
     try:
+        logger.info('Getting the journals of %s' % collection_acron)
         journals = am_client.journals(collection_acron)
     except Exception as e:
         logger.error(
@@ -90,14 +91,9 @@ class AccessChecker(object):
         collection_id = _get_collection_id(collection)
         self.acronym_to_issn_dict = acronym_to_issn_dict(collection_id)
 
-        self.allowed_issns = self._allowed_issns(self.acronym_to_issn_dict)
-
-    def _allowed_issns(self, acronym_to_issn):
-        issns = []
-        for issn in acronym_to_issn.values():
-            issns.append(issn)
-
-        return issns
+        self.allowed_issns = list(self.acronym_to_issn_dict.values())
+        logger.info(
+            'Journals (%s): %i' % (collection, len(self.allowed_issns)))
 
     def _parse_line(self, raw_line):
         try:
