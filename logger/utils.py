@@ -1,7 +1,7 @@
 #coding: utf-8
 import os
 import logging
-import json
+import csv
 import weakref
 import datetime
 import gzip
@@ -74,6 +74,17 @@ class Configuration(SingletonMixin):
 
 
 settings = dict(Configuration.from_env().items())['app:main']
+
+
+def read_websites_configuration():
+    file_path = settings.get("WEBSITES_CONFIGURATION_PATH")
+    if not file_path:
+        raise ValueError("Invalid value for WEBSITES_CONFIGURATION_PATH")
+    # lê a configuração de websites
+    with open(file_path, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            yield row
 
 
 def try_get_collections(am_client):
@@ -210,6 +221,11 @@ class Collections(object):
         return self.indexed_by_code.keys()
 
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> a9cdb90... Cria função `read_websites_configuration`
 def checkdatelock(previous_date=None, next_date=None, locktime=10):
 
     try:
