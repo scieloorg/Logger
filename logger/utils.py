@@ -127,21 +127,17 @@ class Collections(object):
         self._items = read_websites_configuration()
         self._websites = [Website(data) for data in self._items]
 
-        self._indexed_by_acron_found_in_zip_filename = None
+        self._indexed_by_website_acron_in_filename = {
+            website.acron_in_log_file_name: website
+            for website in self._websites
+        }
         self._indexed_by_website_id = {
-            website.website_id: Website for website in self._websites
+            website.website_id: website for website in self._websites
         }
 
-    def index_by_acronym2letters(self, items):
-        return {i.acronym2letters: i for i in items}
-
     @property
-    def indexed_by_acron_found_in_zip_filename(self):
-        if not self._indexed_by_acron_found_in_zip_filename:
-            self._indexed_by_acron_found_in_zip_filename = (
-                self.index_by_acronym2letters(self.websites)
-            )
-        return self._indexed_by_acron_found_in_zip_filename or {}
+    def indexed_by_website_acron_in_filename(self):
+        return self._indexed_by_website_acron_in_filename
 
     @property
     def indexed_by_website_id(self):
@@ -151,11 +147,11 @@ class Collections(object):
     def websites(self):
         return self._websites
 
-    def get_code(self, acron):
+    def get_website_id(self, website_acron):
         try:
-            return self.indexed_by_acron_found_in_zip_filename.get(acron).code
+            return self.indexed_by_website_acron_in_filename.get(website_acron).website_id
         except AttributeError:
-            raise ValueError("Collection '%s' not found" % acron)
+            raise ValueError("Collection '%s' not found" % website_acron)
 
     def codes(self):
         return self.indexed_by_website_id.keys()
