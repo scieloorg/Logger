@@ -107,9 +107,13 @@ class Collection(object):
     """
 
     def __init__(self, data):
+        # collection_id = 'scl', 'scl'
         self.collection_id = data['collection_id']
+        # website = 'new', 'classic'
         self.website = data['website']
+        # website_id = 'nbr', 'scl'
         self.website_id = data['website_id']
+        # acron_in_log_file_name = 'br', 'br'
         self.acron_in_log_file_name = data['acron_in_log_file_name']
 
 
@@ -119,75 +123,12 @@ class Collections(object):
     coleções que o site antigo e o novo estão contabilizando acessos
     """
 
-    def __init__(self, am_client, new_websites_config_file_path=None):
+    def __init__(self, am_client):
         self._items = read_websites_configuration()
+        self._collections = [Collection(data) for data in self._items]
 
-        # AM client
-        self._am_client = am_client
-        self.__am_collections = None
-        self.__new_collections = None
         self._indexed_by_acron_found_in_zip_filename = None
         self._indexed_by_code = None
-
-    @property
-    def new_websites_data(self):
-        """
-        Retorna None ou uma lista de dicionários contendo os acrônimos
-        de coleções: new e old. Ex.:
-
-        Returns
-        -------
-        list of {"new": "nbr", "old": "scl"}
-        """
-        try:
-            # obtém o caminho do arquivo new_websites.json
-            new_websites_config_file_path = settings.get("new_websites_config")
-            if not new_websites_config_file_path:
-                raise ValueError(
-                    "Invalid value for new_websites_config_file_path")
-            # lê a configuração de websites que estão com nova interface
-            with open(new_websites_config_file_path, "r") as fp:
-                return json.loads(fp.read())
-        except (ValueError, IOError) as e:
-            logger.info(
-                "WARNING: Unable to get new websites configuration. %s" % e
-            )
-
-    @property
-    def _am_collections_info(self):
-        cols = [c.code for c in self._am_collections]
-        return "Found %i collections in AM: %s" % (len(cols), ", ".join(cols))
-
-    @property
-    def _am_collections(self):
-        if not self.__am_collections:
-            self.__am_collections = try_get_collections(self._am_client)
-            logger.info(self._am_collections_info)
-        return self.__am_collections or []
-
-    @property
-    def _new_collections(self):
-        new_cols = []
-        new_websites_data = self.new_websites_data
-        if new_websites_data:
-            indexed = self.index_by_acronym2letters(self._am_collections)
-            indexed.update(self.index_by_code(self._am_collections))
-            for data in new_websites_data:
-                old = data.get('old')
-                new = data.get("new")
-                if not old or not new:
-                    continue
-                col = indexed.get(old)
-                if not col:
-                    logger.info("NOT FOUND %s in AM Collections" % old)
-                    logger.info(self._am_collections_info)
-                    continue
-                new_col = deepcopy(col)
-                new_col.code = new
-                new_col.acronym = new
-                new_col.acronym2letters = new
-                new_cols.append(new_col)
-        return new_cols
 
     def index_by_code(self, items):
         return {i.code: i for i in items}
@@ -211,7 +152,11 @@ class Collections(object):
 
     @property
     def collections(self):
+<<<<<<< HEAD
         return self._am_collections + self._new_collections
+=======
+        return self._collections
+>>>>>>> a4dcf56... Substitui `am_collections` e `new_website_collection` por `collections`
 
     def get_code(self, acron):
         try:
@@ -224,10 +169,13 @@ class Collections(object):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 
 >>>>>>> a9cdb90... Cria função `read_websites_configuration`
+=======
+>>>>>>> a4dcf56... Substitui `am_collections` e `new_website_collection` por `collections`
 def checkdatelock(previous_date=None, next_date=None, locktime=10):
 
     try:
