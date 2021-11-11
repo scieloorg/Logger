@@ -44,9 +44,15 @@ REGEX_FBPE = re.compile(
 am_client = ThriftClient(domain='articlemeta.scielo.org:11621')
 
 
+# abordagem para facilitar os testes
 def _allowed_collections():
     COLLECTIONS = utils.Collections(am_client)
-    return COLLECTIONS.codes()
+    return COLLECTIONS.website_ids
+
+
+def _get_collection_id(website_id):
+    COLLECTIONS = utils.Collections(am_client)
+    return COLLECTIONS.get_website(website_id).collection_id
 
 
 def _acronym_to_issn_dict(collection_acron):
@@ -78,7 +84,13 @@ class AccessChecker(object):
             raise ValueError('Invalid collection id ({0}), you must select one of these {1}'.format(collection, str(allowed_collections)))
 
         self.collection = collection
-        self.acronym_to_issn_dict = acronym_to_issn_dict(self.collection)
+
+        # collection_id (acronimo da colecao registrada no AM), scl,
+        # é diferente do argumento `collection` que é o id do website
+        # ('nbr' para novo site br e 'scl' para old.scielo.br)
+        collection_id = _get_collection_id(collection)
+        self.acronym_to_issn_dict = acronym_to_issn_dict(collection_id)
+
         self.allowed_issns = self._allowed_issns(self.acronym_to_issn_dict)
 
     def _allowed_issns(self, acronym_to_issn):

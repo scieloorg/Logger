@@ -152,10 +152,17 @@ class Collections(object):
         try:
             return self.indexed_by_website_acron_in_filename.get(website_acron).website_id
         except AttributeError:
-            raise ValueError("Collection '%s' not found" % website_acron)
+            raise ValueError("Website searched by acron='%s' not found" % website_acron)
 
-    def codes(self):
+    @property
+    def website_ids(self):
         return self.indexed_by_website_id.keys()
+
+    def get_website(self, website_id):
+        try:
+            return self.indexed_by_website_id[website_id]
+        except AttributeError:
+            raise ValueError("Website searched by id='%s' not found" % website_id)
 
 
 def checkdatelock(previous_date=None, next_date=None, locktime=10):
