@@ -55,10 +55,6 @@ def _config_logging(logging_level='INFO', logging_file=None):
     logger.addHandler(hl)
 
 
-def _get_collections():
-    return COLLECTIONS.indexed_by_website_acron_in_filename
-
-
 def _get_website_id(website_acron_in_filename):
     try:
         return COLLECTIONS.get_website_id(website_acron_in_filename)
@@ -77,13 +73,6 @@ class Inspector(object):
         self._filename = filename.split('/')[-1]
         self._parsed_fn = REGEX_FILENAME.match(self._filename)
         self.website_id = _get_website_id(self.website_acron_in_filename)
-
-        # aparentemente desnecessário e deveria ser externo a esta classe
-        # mantido para não quebrar expectativas
-        self.collections = self.get_collections()
-
-    def get_collections(self):
-        return _get_collections()
 
     def _is_valid_filename(self):
         if not self._parsed_fn:
