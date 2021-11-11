@@ -136,9 +136,11 @@ class Collections(object):
 
     def get_website_id(self, website_acron):
         try:
-            return self.indexed_by_website_acron_in_filename.get(website_acron).website_id
-        except AttributeError:
-            raise ValueError("Website searched by acron='%s' not found" % website_acron)
+            website = self.indexed_by_website_acron_in_filename[website_acron]
+        except KeyError:
+            raise ValueError("Website searched by acron_in_file='%s' not found" % website_acron)
+        else:
+            return website.website_id
 
     @property
     def website_ids(self):
@@ -147,7 +149,7 @@ class Collections(object):
     def get_website(self, website_id):
         try:
             return self.indexed_by_website_id[website_id]
-        except AttributeError:
+        except KeyError:
             raise ValueError("Website searched by id='%s' not found" % website_id)
 
 
