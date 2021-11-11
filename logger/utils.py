@@ -119,7 +119,9 @@ class Collections(object):
     coleções que o site antigo e o novo estão contabilizando acessos
     """
 
-    def __init__(self, am_client):
+    def __init__(self, am_client, new_websites_config_file_path=None):
+        self._items = read_websites_configuration()
+
         # AM client
         self._am_client = am_client
         self.__am_collections = None
