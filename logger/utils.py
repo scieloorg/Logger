@@ -101,7 +101,7 @@ def try_get_collections(am_client):
             return list(g)
 
 
-class Collection(object):
+class Website(object):
     """
     Dados de collection
     """
@@ -125,13 +125,12 @@ class Collections(object):
 
     def __init__(self, am_client):
         self._items = read_websites_configuration()
-        self._collections = [Collection(data) for data in self._items]
+        self._websites = [Website(data) for data in self._items]
 
         self._indexed_by_acron_found_in_zip_filename = None
-        self._indexed_by_code = None
-
-    def index_by_code(self, items):
-        return {i.code: i for i in items}
+        self._indexed_by_website_id = {
+            website.website_id: Website for website in self._websites
+        }
 
     def index_by_acronym2letters(self, items):
         return {i.acronym2letters: i for i in items}
@@ -140,23 +139,17 @@ class Collections(object):
     def indexed_by_acron_found_in_zip_filename(self):
         if not self._indexed_by_acron_found_in_zip_filename:
             self._indexed_by_acron_found_in_zip_filename = (
-                self.index_by_acronym2letters(self.collections)
+                self.index_by_acronym2letters(self.websites)
             )
         return self._indexed_by_acron_found_in_zip_filename or {}
 
     @property
-    def indexed_by_code(self):
-        if not self._indexed_by_code:
-            self._indexed_by_code = self.index_by_code(self.collections)
-        return self._indexed_by_code or {}
+    def indexed_by_website_id(self):
+        return self._indexed_by_website_id
 
     @property
-    def collections(self):
-<<<<<<< HEAD
-        return self._am_collections + self._new_collections
-=======
-        return self._collections
->>>>>>> a4dcf56... Substitui `am_collections` e `new_website_collection` por `collections`
+    def websites(self):
+        return self._websites
 
     def get_code(self, acron):
         try:
@@ -165,17 +158,9 @@ class Collections(object):
             raise ValueError("Collection '%s' not found" % acron)
 
     def codes(self):
-        return self.indexed_by_code.keys()
+        return self.indexed_by_website_id.keys()
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
-
->>>>>>> a9cdb90... Cria função `read_websites_configuration`
-=======
->>>>>>> a4dcf56... Substitui `am_collections` e `new_website_collection` por `collections`
 def checkdatelock(previous_date=None, next_date=None, locktime=10):
 
     try:
