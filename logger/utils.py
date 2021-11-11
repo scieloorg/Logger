@@ -5,7 +5,6 @@ import csv
 import weakref
 import datetime
 import gzip
-from copy import deepcopy
 from time import sleep
 
 from ConfigParser import SafeConfigParser
@@ -88,19 +87,6 @@ def read_websites_configuration():
             yield row
 
 
-def try_get_collections(am_client):
-    for i in (1, 2, 5, 10):
-        try:
-            # gerador
-            g = am_client.collections()
-        except Exception as e:
-            print(e)
-            sleep(i*60*60)
-            logger.info("%s. Tenta novamente após %s." % (str(e), i))
-        else:
-            # retorna lista e não um gerador
-            return list(g)
-
 
 class Website(object):
     """
@@ -124,7 +110,7 @@ class Collections(object):
     coleções que o site antigo e o novo estão contabilizando acessos
     """
 
-    def __init__(self, am_client):
+    def __init__(self):
         self._items = read_websites_configuration()
         self._websites = [Website(data) for data in self._items]
 
