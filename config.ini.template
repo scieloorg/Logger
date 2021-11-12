@@ -18,6 +18,4 @@ log_format = %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"
 # ArticleMeta ThriftServer
 articlemeta = articlemeta.scielo.org:11720
 
-# new websites configuration
-
-new_websites_config = /var/www/logger/data/new_websites.json
+WEBSITES_CONFIGURATION_PATH=websites.csv.template

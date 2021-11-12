@@ -41,39 +41,52 @@ Passos para instalação
 
 Passos para Configurações de Websites da Metodologia SPF
 --------------------------------------------------------
-Crie ou edite o arquivo `new_websites.json` (baseado no `new_websites.json.template`).
 
-O arquivo `new_websites.json` deve ter o seguinte formato:
+Crie ou edite o arquivo `websites.csv` (baseado no `websites.csv.template`).
 
-```json
-[
-  {
-    "new": "nbr",
-    "old: "scl"
-  },
-  {
-    "new": "acron_novo",
-    "old: "acron_antigo"
-  }
-]
+```csv
+collection_id,website,website_id,acron_in_log_file_name
+arg,classic,arg,ar
+bio,classic,bio,bi
+bol,classic,bol,bo
+cci,classic,cci,cc
+chl,classic,chl,cl
+cic,classic,cic,ci
+col,classic,col,co
+cri,classic,cri,cr
+cub,classic,cub,cu
+ecu,classic,ecu,ec
+edc,classic,edc,educa
+esp,classic,esp,es
+inv,classic,inv,cinov
+mex,classic,mex,mx
+pef,classic,pef,pef
+per,classic,per,pe
+ppg,classic,ppg,ppegeo
+pro,classic,pro,pro
+prt,classic,prt,pt
+pry,classic,pry,py
+psi,classic,psi,pepsic
+rve,classic,rve,revenf
+rvo,classic,rvo,revodonto
+rvt,classic,rvt,revtur
+scl,classic,scl,br
+scl,new,nbr,nbr
+ses,classic,ses,ses
+spa,classic,spa,sp
+sss,classic,sss,ss
+sza,classic,sza,za
+ury,classic,ury,uy
+ven,classic,ven,ve
+wid,classic,wid,wi
 ```
 
-    [
-      {
-        "new": "nbr",
-        "old: "scl"
-      },
-      {
-        "new": "acron_novo",
-        "old: "acron_antigo"
-      }
-    ]
-
-A localização do arquivo `new_websites.json` deve ser informada no config.ini:
+Edite o arquivo que corresponde a `config.ini`, editando ou adicionando valor para
 
 ```
-new_websites_config = /var/www/logger/data/new_websites.json
+WEBSITES_CONFIGURATION_PATH=/path/websites.csv
 ```
+
 
 Passos para Configurações
 -------------------------

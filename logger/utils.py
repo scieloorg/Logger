@@ -1,11 +1,10 @@
 #coding: utf-8
 import os
 import logging
-import json
+import csv
 import weakref
 import datetime
 import gzip
-from copy import deepcopy
 from time import sleep
 
 from ConfigParser import SafeConfigParser
@@ -74,20 +73,35 @@ class Configuration(SingletonMixin):
 
 
 settings = dict(Configuration.from_env().items())['app:main']
+print(settings)
 
 
-def try_get_collections(am_client):
-    for i in (1, 2, 5, 10):
-        try:
-            # gerador
-            g = am_client.collections()
-        except Exception as e:
-            print(e)
-            sleep(i*60*60)
-            logger.info("%s. Tenta novamente após %s." % (str(e), i))
-        else:
-            # retorna lista e não um gerador
-            return list(g)
+def read_websites_configuration():
+    file_path = settings.get("websites_configuration_path")
+    if not file_path:
+        raise ValueError("Invalid value for WEBSITES_CONFIGURATION_PATH")
+    # lê a configuração de websites
+    with open(file_path, 'r') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            yield row
+
+
+
+class Website(object):
+    """
+    Dados de collection
+    """
+
+    def __init__(self, data):
+        # collection_id = 'scl', 'scl'
+        self.collection_id = data['collection_id']
+        # website = 'new', 'classic'
+        self.website = data['website']
+        # website_id = 'nbr', 'scl'
+        self.website_id = data['website_id']
+        # acron_in_log_file_name = 'br', 'br'
+        self.acron_in_log_file_name = data['acron_in_log_file_name']
 
 
 class Collections(object):
@@ -96,106 +110,47 @@ class Collections(object):
     coleções que o site antigo e o novo estão contabilizando acessos
     """
 
-    def __init__(self, am_client):
-        # AM client
-        self._am_client = am_client
-        self.__am_collections = None
-        self.__new_collections = None
-        self._indexed_by_acron_found_in_zip_filename = None
-        self._indexed_by_code = None
+    def __init__(self):
+        self._items = read_websites_configuration()
+        self._websites = [Website(data) for data in self._items]
+
+        self._indexed_by_website_acron_in_filename = {
+            website.acron_in_log_file_name: website
+            for website in self._websites
+        }
+        self._indexed_by_website_id = {
+            website.website_id: website for website in self._websites
+        }
 
     @property
-    def new_websites_data(self):
-        """
-        Retorna None ou uma lista de dicionários contendo os acrônimos
-        de coleções: new e old. Ex.:
+    def indexed_by_website_acron_in_filename(self):
+        return self._indexed_by_website_acron_in_filename
 
-        Returns
-        -------
-        list of {"new": "nbr", "old": "scl"}
-        """
+    @property
+    def indexed_by_website_id(self):
+        return self._indexed_by_website_id
+
+    @property
+    def websites(self):
+        return self._websites
+
+    def get_website_id(self, website_acron):
         try:
-            # obtém o caminho do arquivo new_websites.json
-            new_websites_config_file_path = settings.get("new_websites_config")
-            if not new_websites_config_file_path:
-                raise ValueError(
-                    "Invalid value for new_websites_config_file_path")
-            # lê a configuração de websites que estão com nova interface
-            with open(new_websites_config_file_path, "r") as fp:
-                return json.loads(fp.read())
-        except (ValueError, IOError) as e:
-            logger.info(
-                "WARNING: Unable to get new websites configuration. %s" % e
-            )
+            website = self.indexed_by_website_acron_in_filename[website_acron]
+        except KeyError:
+            raise ValueError("Website searched by acron_in_file='%s' not found" % website_acron)
+        else:
+            return website.website_id
 
     @property
-    def _am_collections_info(self):
-        cols = [c.code for c in self._am_collections]
-        return "Found %i collections in AM: %s" % (len(cols), ", ".join(cols))
+    def website_ids(self):
+        return self.indexed_by_website_id.keys()
 
-    @property
-    def _am_collections(self):
-        if not self.__am_collections:
-            self.__am_collections = try_get_collections(self._am_client)
-            logger.info(self._am_collections_info)
-        return self.__am_collections or []
-
-    @property
-    def _new_collections(self):
-        new_cols = []
-        new_websites_data = self.new_websites_data
-        if new_websites_data:
-            indexed = self.index_by_acronym2letters(self._am_collections)
-            indexed.update(self.index_by_code(self._am_collections))
-            for data in new_websites_data:
-                old = data.get('old')
-                new = data.get("new")
-                if not old or not new:
-                    continue
-                col = indexed.get(old)
-                if not col:
-                    logger.info("NOT FOUND %s in AM Collections" % old)
-                    logger.info(self._am_collections_info)
-                    continue
-                new_col = deepcopy(col)
-                new_col.code = new
-                new_col.acronym = new
-                new_col.acronym2letters = new
-                new_cols.append(new_col)
-        return new_cols
-
-    def index_by_code(self, items):
-        return {i.code: i for i in items}
-
-    def index_by_acronym2letters(self, items):
-        return {i.acronym2letters: i for i in items}
-
-    @property
-    def indexed_by_acron_found_in_zip_filename(self):
-        if not self._indexed_by_acron_found_in_zip_filename:
-            self._indexed_by_acron_found_in_zip_filename = (
-                self.index_by_acronym2letters(self.collections)
-            )
-        return self._indexed_by_acron_found_in_zip_filename or {}
-
-    @property
-    def indexed_by_code(self):
-        if not self._indexed_by_code:
-            self._indexed_by_code = self.index_by_code(self.collections)
-        return self._indexed_by_code or {}
-
-    @property
-    def collections(self):
-        return self._am_collections + self._new_collections
-
-    def get_code(self, acron):
+    def get_website(self, website_id):
         try:
-            return self.indexed_by_acron_found_in_zip_filename.get(acron).code
-        except AttributeError:
-            raise ValueError("Collection '%s' not found" % acron)
-
-    def codes(self):
-        return self.indexed_by_code.keys()
+            return self.indexed_by_website_id[website_id]
+        except KeyError:
+            raise ValueError("Website searched by id='%s' not found" % website_id)
 
 
 def checkdatelock(previous_date=None, next_date=None, locktime=10):

@@ -42,23 +42,31 @@ REGEX_FBPE = re.compile(
     "^[0-9]{4}-[0-9]{3}[0-9xX]\([0-9]{2}\)[0-9]{8}$")
 
 am_client = ThriftClient(domain='articlemeta.scielo.org:11621')
+COLLECTIONS = utils.Collections()
 
 
+# abordagem para facilitar os testes
 def _allowed_collections():
-    COLLECTIONS = utils.Collections(am_client)
-    return COLLECTIONS.codes()
+    return COLLECTIONS.website_ids
 
 
-def _acronym_to_issn_dict(collection):
+def _get_collection_id(website_id):
+    return COLLECTIONS.get_website(website_id).collection_id
+
+
+def _acronym_to_issn_dict(collection_id):
     """Produz um dicionário que mapeia acrônimo de periódico para seu ISSN 
     SciELO
     """
     try:
-        journals = am_client.journals(collection)
-    except:
-        logger.error('Fail to retrieve journals issns form thrift server')
-
-    return {i.acronym: i.scielo_issn for i in journals}
+        logger.info('Getting the journals of %s' % collection_id)
+        journals = am_client.journals(collection_id)
+    except Exception as e:
+        logger.error(
+            'Fail to retrieve journals issns (%s) from thrift server: %s' %
+            (collection_id, str(e)))
+    else:
+        return {i.acronym: i.scielo_issn for i in journals}
 
 
 class AccessChecker(object):
@@ -73,19 +81,21 @@ class AccessChecker(object):
         self._parser = apachelog.parser(APACHE_LOG_FORMAT)
         allowed_collections = allowed_collections()
 
+        # o argumento `collection` corresponde ao `website_id`:
+        # 'nbr' para novo site br e 'scl' para old.scielo.br
         if collection not in allowed_collections:
             raise ValueError('Invalid collection id ({0}), you must select one of these {1}'.format(collection, str(allowed_collections)))
 
         self.collection = collection
-        self.acronym_to_issn_dict = acronym_to_issn_dict(self.collection)
-        self.allowed_issns = self._allowed_issns(self.acronym_to_issn_dict)
 
-    def _allowed_issns(self, acronym_to_issn):
-        issns = []
-        for issn in acronym_to_issn.values():
-            issns.append(issn)
+        # `collection_id` - acronimo da colecao no AM, é scl,
+        # tanto para o site novo como para o site clássico
+        collection_id = _get_collection_id(collection)
+        self.acronym_to_issn_dict = acronym_to_issn_dict(collection_id)
 
-        return issns
+        self.allowed_issns = list(self.acronym_to_issn_dict.values())
+        logger.info(
+            'Journals (%s): %i' % (collection, len(self.allowed_issns)))
 
     def _parse_line(self, raw_line):
         try:
