@@ -58,7 +58,7 @@ def _get_website_id(website_acron_in_filename):
         return COLLECTIONS.get_website_id(website_acron_in_filename)
     except Exception as e:
         logger.error(
-            'Fail to retrieve website acron for %s: %s' %
+            'Fail to retrieve website id for %s: %s' %
             (website_acron_in_filename, e))
 
 
@@ -109,7 +109,7 @@ class Inspector(object):
 
         if not self.website_id:
             logger.warning(
-                'Invalid website acron in filename: %s' % self._filename)
+                'Not found website acron in filename: %s' % self._filename)
             return False
 
         return True

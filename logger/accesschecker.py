@@ -54,16 +54,17 @@ def _get_collection_id(website_id):
     return COLLECTIONS.get_website(website_id).collection_id
 
 
-def _acronym_to_issn_dict(collection_acron):
+def _acronym_to_issn_dict(collection_id):
     """Produz um dicionário que mapeia acrônimo de periódico para seu ISSN 
     SciELO
     """
     try:
-        logger.info('Getting the journals of %s' % collection_acron)
-        journals = am_client.journals(collection_acron)
+        logger.info('Getting the journals of %s' % collection_id)
+        journals = am_client.journals(collection_id)
     except Exception as e:
         logger.error(
-            'Fail to retrieve journals issns form thrift server: %s' % str(e))
+            'Fail to retrieve journals issns (%s) from thrift server: %s' %
+            (collection_id, str(e)))
     else:
         return {i.acronym: i.scielo_issn for i in journals}
 
@@ -80,14 +81,15 @@ class AccessChecker(object):
         self._parser = apachelog.parser(APACHE_LOG_FORMAT)
         allowed_collections = allowed_collections()
 
+        # o argumento `collection` corresponde ao `website_id`:
+        # 'nbr' para novo site br e 'scl' para old.scielo.br
         if collection not in allowed_collections:
             raise ValueError('Invalid collection id ({0}), you must select one of these {1}'.format(collection, str(allowed_collections)))
 
         self.collection = collection
 
-        # collection_id (acronimo da colecao registrada no AM), scl,
-        # é diferente do argumento `collection` que é o id do website
-        # ('nbr' para novo site br e 'scl' para old.scielo.br)
+        # `collection_id` - acronimo da colecao no AM, é scl,
+        # tanto para o site novo como para o site clássico
         collection_id = _get_collection_id(collection)
         self.acronym_to_issn_dict = acronym_to_issn_dict(collection_id)
 
