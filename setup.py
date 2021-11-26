@@ -13,12 +13,12 @@ with open(os.path.join(here, 'CHANGES.rst')) as f:
     CHANGES = f.read()
 
 install_requires = [
-    'requests>=2.11.1',
-    'apachelog>=1.0',
-    'pymongo>=2.8',
-    'celery>=3.1.18',
-    'watchdog>=0.8.3',
-    'articlemetaapi',
+    'requests==2.19.1',
+    'apachelog==1.0',
+    'pymongo==2.9',
+    'celery==3.1.18',
+    'watchdog==0.8.3',
+    'articlemetaapi==1.26.5',
 ]
 
 tests_require = [

@@ -12,7 +12,7 @@ kombu==3.0.37
 legendarium==2.0.2
 pathtools==0.1.2
 ply==3.11
-pymongo==3.7.2
+pymongo==2.9
 pytz==2018.5
 PyYAML==3.13
 requests==2.19.1
