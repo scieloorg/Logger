@@ -279,7 +279,7 @@ class AccessChecker(object):
             data['code'] = match.groupdict()['pid']
             data['script'] = ''
             try:
-                data['page'] = match.groupdict()['part']
+                data['page_v3'] = match.groupdict()['part']
             except KeyError:
                 pass
             return data
@@ -295,6 +295,7 @@ class AccessChecker(object):
                 # URLs do OPAC
                 data['code'] = match.groupdict()['pid']
                 data['script'] = ''
+                data['page_v3'] = 'article'
             else:
                 # URLs do site clássico
                 if not data['query_string']:
@@ -319,13 +320,15 @@ class AccessChecker(object):
         if pdf_request:
             data['code'] = pdf_request['pdf_path']
             data['script'] = ''
+
             data.update(pdf_request)
         else:
             match = re.search(r'/a/(?P<pid>[a-zA-Z0-9]{23})', parsed_line['%r'])
             if match:
                 # URLs do OPAC
-                data['code'] = match.groupdict()['pid'] + "_pdf"
+                data['code'] = match.groupdict()['pid']
                 data['script'] = ''
+                data['page_v3'] = 'pdf'
             else:
                 logger.debug('cannot count log line "%s": request is invalid', raw_line)
                 return None

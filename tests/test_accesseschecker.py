@@ -282,6 +282,7 @@ class OPACURLParsingTests(unittest.TestCase):
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
+                        'page_v3': 'article',
                         'month': '05'
                     }
 
@@ -305,6 +306,7 @@ class OPACURLParsingTests(unittest.TestCase):
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
+                        'page_v3': 'article',
                         'month': '05'
                     }
 
@@ -364,7 +366,7 @@ class OPACURLParsingTests(unittest.TestCase):
 
         expected = {
                         'ip': '187.19.211.179',
-                        'code': 'F5Zr9TrzfmMgz9kvGZL3rZB_pdf',
+                        'code': 'F5Zr9TrzfmMgz9kvGZL3rZB',
                         'access_type': 'PDF',
                         'iso_date': '2013-05-30',
                         'iso_datetime': '2013-05-30T00:01:01',
@@ -375,6 +377,7 @@ class OPACURLParsingTests(unittest.TestCase):
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
+                        'page_v3': 'pdf',
                         'month': '05'
                     }
 
@@ -398,7 +401,7 @@ class OPACURLParsingTests(unittest.TestCase):
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
-                        'page': 'abstract',
+                        'page_v3': 'abstract',
                         'month': '05'
                     }
 
