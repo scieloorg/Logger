@@ -398,6 +398,7 @@ class OPACURLParsingTests(unittest.TestCase):
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
+                        'page': 'abstract',
                         'month': '05'
                     }
 

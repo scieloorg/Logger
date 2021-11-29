@@ -273,6 +273,17 @@ class AccessChecker(object):
         return data
 
     def _match_access_type_html(self, data, parsed_line, raw_line):
+        match = re.search(r'/a/(?P<pid>[a-zA-Z0-9]{23})/(?P<part>abstract)', parsed_line['%r'])
+        if match:
+            # URLs do OPAC
+            data['code'] = match.groupdict()['pid']
+            data['script'] = ''
+            try:
+                data['page'] = match.groupdict()['part']
+            except KeyError:
+                pass
+            return data
+
         match = re.search(r'/article/.+?/.+?/.+?/', parsed_line['%r'])
         if match:
             data['code'] = match.group()
