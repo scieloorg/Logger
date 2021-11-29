@@ -1,4 +1,5 @@
 import unittest
+from mock import patch, ANY
 
 from logger import ratchet
 
@@ -8,6 +9,87 @@ class RatchetBulkTests(unittest.TestCase):
     def setUp(self):
 
         self.rb = ratchet.Local('fakeapiuri', 'scl')
+
+    @patch("logger.ratchet.Local.register_html_accesses")
+    def test_register_access_for_new_website_pdf(self, mock_register_html_accesses):
+        parsed_line = {
+            'ip': '187.19.211.179',
+            'code': 'F5Zr9TrzfmMgz9kvGZL3rZB',
+            'access_type': 'PDF',
+            'iso_date': '2013-05-30',
+            'iso_datetime': '2013-05-30T00:01:01',
+            'year': '2013',
+            'query_string': {"format": "pdf"},
+            'day': '30',
+            'http_code': '200',
+            'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+            'original_date': '[30/May/2013:00:01:01 -0300]',
+            'script': '',
+            'page_v3': 'pdf',
+            'month': '05'
+        }
+
+        self.rb.register_access(parsed_line)
+        mock_register_html_accesses.assert_called_once_with(
+            'pdf',
+            ANY,
+            '2013-05-30',
+            '187.19.211.179',
+        )
+
+    @patch("logger.ratchet.Local.register_html_accesses")
+    def test_register_access_for_new_website_article(self, mock_register_html_accesses):
+        parsed_line = {
+            'ip': '187.19.211.179',
+            'code': 'F5Zr9TrzfmMgz9kvGZL3rZB',
+            'access_type': 'HTML',
+            'iso_date': '2013-05-30',
+            'iso_datetime': '2013-05-30T00:01:01',
+            'year': '2013',
+            'query_string': {"format": "html"},
+            'day': '30',
+            'http_code': '200',
+            'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+            'original_date': '[30/May/2013:00:01:01 -0300]',
+            'script': '',
+            'page_v3': 'article',
+            'month': '05'
+        }
+
+        self.rb.register_access(parsed_line)
+        mock_register_html_accesses.assert_called_once_with(
+            'article',
+            ANY,
+            '2013-05-30',
+            '187.19.211.179',
+        )
+
+    @patch("logger.ratchet.Local.register_html_accesses")
+    def test_register_access_for_new_website_abstract(self, mock_register_html_accesses):
+        parsed_line = {
+            'ip': '187.19.211.179',
+            'code': 'F5Zr9TrzfmMgz9kvGZL3rZB',
+            'access_type': 'HTML',
+            'iso_date': '2013-05-30',
+            'iso_datetime': '2013-05-30T00:01:01',
+            'year': '2013',
+            'query_string': {"lang": "pt"},
+            'day': '30',
+            'http_code': '200',
+            'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+            'original_date': '[30/May/2013:00:01:01 -0300]',
+            'script': '',
+            'page_v3': 'abstract',
+            'month': '05'
+        }
+
+        self.rb.register_access(parsed_line)
+        mock_register_html_accesses.assert_called_once_with(
+            'abstract',
+            ANY,
+            '2013-05-30',
+            '187.19.211.179',
+        )
 
     def test_register_download_access_keys(self):
 

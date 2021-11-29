@@ -13,6 +13,11 @@ import pymongo
 _logger = logging.getLogger(__name__)
 
 
+def pid_v3_to_pid_v2(new_pid):
+    # TODO
+    return new_pid
+
+
 def dorequest(url):
 
     attempts = 0
@@ -331,13 +336,13 @@ class Local(RatchetBulk):
 
         if script == "sci_serial":
             self.register_journal_access(pid, date)
-        elif script == "sci_abstract":
+        elif script in ["sci_abstract", "abstract"]:
             self.register_abstract_access(pid, date)
         elif script == "sci_issuetoc":
             self.register_toc_access(pid, date)
-        elif script == "sci_arttext":
+        elif script in ["sci_arttext", "article"]:
             self.register_article_access(pid, date)
-        elif script == "sci_pdf":
+        elif script in ["sci_pdf", "pdf"]:
             self.register_pdf_access(pid, date)
         elif script == "sci_home":
             self.register_home_access(pid, date)
@@ -347,6 +352,14 @@ class Local(RatchetBulk):
             self.register_alpha_access(pid, date)
 
     def register_access(self, parsed_line):
+        if parsed_line.get("page_v3"):
+            self.register_html_accesses(
+                parsed_line["page_v3"],
+                pid_v3_to_pid_v2(parsed_line['code']),
+                parsed_line['iso_date'],
+                parsed_line['ip']
+            )
+            return
 
         if parsed_line['access_type'] == "PDF":
             pdfid = parsed_line['pdf_path']
@@ -354,7 +367,6 @@ class Local(RatchetBulk):
             self.register_pdf_download_accesses(issn, pdfid, 
                 parsed_line['iso_date'], parsed_line['ip']
             )
-
         if parsed_line['access_type'] == "HTML":
             script = parsed_line['query_string']['script']
             pid = parsed_line['query_string']['pid']

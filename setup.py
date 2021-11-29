@@ -22,7 +22,7 @@ install_requires = [
 ]
 
 tests_require = [
-    'mocker'
+    'mock'
 ]
 
 setup(
