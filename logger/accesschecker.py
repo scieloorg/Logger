@@ -265,49 +265,57 @@ class AccessChecker(object):
             return None
 
         if data['access_type'] == u'HTML':
-            match = re.search(r'/article/.+?/.+?/.+?/', parsed_line['%r'])
-            if match:
-                data['code'] = match.group()
-                data['script'] = ''
-
-            else:
-                match = re.search(r'/a/(?P<pid>[a-zA-Z0-9]{23})', parsed_line['%r'])
-                if match:
-                    # URLs do OPAC
-                    data['code'] = match.groupdict()['pid']
-                    data['script'] = ''
-                else:
-                    # URLs do site clássico
-                    if not data['query_string']:
-                        logger.debug('cannot count log line "%s": missing querystring', raw_line)
-                        return None
-
-                    if 'script' not in data['query_string'] or 'pid' not in data['query_string']:
-                        logger.debug('cannot count log line "%s": missing script or pid in querystring', raw_line)
-                        return None
-
-                    if not self._is_valid_html_request(data['query_string']['script'],
-                                                       data['query_string']['pid']):
-                        logger.debug('cannot count log line "%s": request is invalid', raw_line)
-                        return None
-
-                    data['code'] = data['query_string']['pid']
-                    data['script'] = data['query_string']['script']
+            return self._match_access_type_html(data, parsed_line, raw_line)
 
         if data['access_type'] == u'PDF':
-            pdf_request = self._is_valid_pdf_request(parsed_line['%r'])
-            if pdf_request:
-                data['code'] = pdf_request['pdf_path']
+            return self._match_access_type_pdf(data, parsed_line, raw_line)
+
+        return data
+
+    def _match_access_type_html(self, data, parsed_line, raw_line):
+        match = re.search(r'/article/.+?/.+?/.+?/', parsed_line['%r'])
+        if match:
+            data['code'] = match.group()
+            data['script'] = ''
+
+        else:
+            match = re.search(r'/a/(?P<pid>[a-zA-Z0-9]{23})', parsed_line['%r'])
+            if match:
+                # URLs do OPAC
+                data['code'] = match.groupdict()['pid']
                 data['script'] = ''
-                data.update(pdf_request)
             else:
-                match = re.search(r'/a/(?P<pid>[a-zA-Z0-9]{23})', parsed_line['%r'])
-                if match:
-                    # URLs do OPAC
-                    data['code'] = match.groupdict()['pid'] + "_pdf"
-                    data['script'] = ''
-                else:
+                # URLs do site clássico
+                if not data['query_string']:
+                    logger.debug('cannot count log line "%s": missing querystring', raw_line)
+                    return None
+
+                if 'script' not in data['query_string'] or 'pid' not in data['query_string']:
+                    logger.debug('cannot count log line "%s": missing script or pid in querystring', raw_line)
+                    return None
+
+                if not self._is_valid_html_request(data['query_string']['script'],
+                                                   data['query_string']['pid']):
                     logger.debug('cannot count log line "%s": request is invalid', raw_line)
                     return None
 
+                data['code'] = data['query_string']['pid']
+                data['script'] = data['query_string']['script']
+        return data
+
+    def _match_access_type_pdf(self, data, parsed_line, raw_line):
+        pdf_request = self._is_valid_pdf_request(parsed_line['%r'])
+        if pdf_request:
+            data['code'] = pdf_request['pdf_path']
+            data['script'] = ''
+            data.update(pdf_request)
+        else:
+            match = re.search(r'/a/(?P<pid>[a-zA-Z0-9]{23})', parsed_line['%r'])
+            if match:
+                # URLs do OPAC
+                data['code'] = match.groupdict()['pid'] + "_pdf"
+                data['script'] = ''
+            else:
+                logger.debug('cannot count log line "%s": request is invalid', raw_line)
+                return None
         return data
