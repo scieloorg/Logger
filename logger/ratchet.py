@@ -184,6 +184,13 @@ class RatchetBulk(object):
         # Register access inside collection record for page alphabetic list
         self._load_to_bulk(code=self._collection, access_date=access_date, page=page, type_doc='website')
 
+    def register_v3_page_accesses(self, page, code, access_date):
+        # Register access for a specific article
+        self._load_to_bulk(code=code, access_date=access_date, page=page, type_doc='article')
+
+        # Register access inside collection record for page sci_arttext
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page, type_doc='website')
+
 
 class ReadCube(RatchetBulk):
 
@@ -353,9 +360,18 @@ class Local(RatchetBulk):
 
     def register_access(self, parsed_line):
         if parsed_line.get("page_v3"):
+            pid = pid_v3_to_pid_v2(parsed_line['code'])
+            if pid in [parsed_line['code'], None]:
+                self.register_v3_page_accesses(
+                    parsed_line["page_v3"],
+                    parsed_line['code'],
+                    parsed_line['iso_date']
+                )
+                return
+            # conseguiu obter o pid v2
             self.register_html_accesses(
                 parsed_line["page_v3"],
-                pid_v3_to_pid_v2(parsed_line['code']),
+                pid,
                 parsed_line['iso_date'],
                 parsed_line['ip']
             )
