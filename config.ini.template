@@ -19,3 +19,17 @@ log_format = %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"
 articlemeta = articlemeta.scielo.org:11720
 
 WEBSITES_CONFIGURATION_PATH=websites.csv.template
+
+
+###############
+# PID MANAGER CONFIGURATIONS
+##############
+
+# OBRIGATORIO Local db sql 
+pid_manager_db=/path/pid_manager_v3.db
+
+# OPCIONAL, default = 5000 no código
+# pid_manager_max_items_in_memory=10000
+
+# OPCIONAL url de api (atualmente inexistente) que entrega dados do artigo dado v3
+# pid_manager_url=
