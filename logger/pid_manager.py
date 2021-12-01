@@ -125,7 +125,7 @@ class PidManagerDB:
         d = json.load(open(file_path, "r"))
         for v3, data in d.items():
             row = (
-                data["pid_v2"], v3, data["journal_acronym"],
+                data["pid"], v3, data["journal_acronym"],
                 fix_date_format(data["update"]))
             rows.append(row)
             if len(rows) == 50:
