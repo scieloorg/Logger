@@ -13,6 +13,8 @@ import pymongo
 from logger.ratchet import Local
 from logger.accesschecker import AccessChecker
 from logger import utils
+from logger import pid_manager as pid_manager_module
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +28,14 @@ MONGO_URI_COUNTER = utils.settings.get(
     'mongo_uri_counter', 'mongodb://127.0.0.1:27017/database_name')
 LOGS_SOURCE = utils.settings.get(
     'logs_source', '.')
+
+pid_manager_api = pid_manager_module.PidManagerAPI(
+    utils.settings.get('pid_manager_url'))
+pid_manager_db = pid_manager_module.PidManagerDB(
+    utils.settings.get('pid_manager_db'))
+pid_manager_obj = pid_manager_module.PidManager(
+	pid_manager_db, pid_manager_api,
+    utils.settings.get('pid_manager_max_items_in_memory'))
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
