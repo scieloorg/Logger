@@ -10,12 +10,8 @@ import requests
 from requests import exceptions
 import pymongo
 
+
 _logger = logging.getLogger(__name__)
-
-
-def pid_v3_to_pid_v2(new_pid):
-    # TODO
-    return new_pid
 
 
 def dorequest(url):
@@ -253,13 +249,17 @@ class ReadCube(RatchetBulk):
         self.bulk_data = None
 
 
-
 class Local(RatchetBulk):
 
     def __init__(self, mongodb_uri, scielo_collection):
         self._db_url = urlparse.urlparse(mongodb_uri)
         self._collection = scielo_collection
         self.bulk_data = {}
+
+    # sera substituido por logger.pid_manager.PidManager.pid_v3_to_pid_v2
+    # em tempo de execucao
+    def pid_v3_to_pid_v2(self, v3):
+        return v3
 
     def __enter__(self):
         self._conn = pymongo.MongoClient(host=self._db_url.hostname, port=self._db_url.port)
@@ -360,8 +360,11 @@ class Local(RatchetBulk):
 
     def register_access(self, parsed_line):
         if parsed_line.get("page_v3"):
-            pid = pid_v3_to_pid_v2(parsed_line['code'])
+            pid = self.pid_v3_to_pid_v2(parsed_line['code'])
             if pid in [parsed_line['code'], None]:
+                # nao conseguiu obter o pid v2, mas
+                # registra acesso para o pid v3
+                # para futuramente recuperar a contagem
                 self.register_v3_page_accesses(
                     parsed_line["page_v3"],
                     parsed_line['code'],

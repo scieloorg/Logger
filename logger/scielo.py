@@ -29,13 +29,18 @@ MONGO_URI_COUNTER = utils.settings.get(
 LOGS_SOURCE = utils.settings.get(
     'logs_source', '.')
 
+
+# PID MANAGER
 pid_manager_api = pid_manager_module.PidManagerAPI(
     utils.settings.get('pid_manager_url'))
 pid_manager_db = pid_manager_module.PidManagerDB(
     utils.settings.get('pid_manager_db'))
 pid_manager_obj = pid_manager_module.PidManager(
-	pid_manager_db, pid_manager_api,
+    pid_manager_db, pid_manager_api,
     utils.settings.get('pid_manager_max_items_in_memory'))
+
+# substitui por pid_manager_obj.pid_v3_to_pid_v2
+Local.pid_v3_to_pid_v2 = pid_manager_obj.pid_v3_to_pid_v2
 
 
 def _config_logging(logging_level='INFO', logging_file=None):
