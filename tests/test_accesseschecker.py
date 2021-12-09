@@ -244,7 +244,7 @@ class OPACURLParsingTests(unittest.TestCase):
         """URL de artigo em HTML no padrão do novo site. Este padrão já foi
         suplantado, mas podem haver instâncias que o utilizam. 
         """
-        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  https://www.scielo.br/article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
         expected = {
                         'ip': '187.19.211.179',
@@ -267,7 +267,7 @@ class OPACURLParsingTests(unittest.TestCase):
     def test_document_url_v2(self):
         """URL de artigo em HTML no padrão do novo site.
         """
-        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  https://www.scielo.br/j/bjmbr/a/F5Zr9TrzfmMgz9kvGZL3rZB HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/j/bjmbr/a/F5Zr9TrzfmMgz9kvGZL3rZB HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
         expected = {
                         'ip': '187.19.211.179',
@@ -282,6 +282,7 @@ class OPACURLParsingTests(unittest.TestCase):
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
+                        'page_v3': 'article',
                         'month': '05'
                     }
 
@@ -290,7 +291,7 @@ class OPACURLParsingTests(unittest.TestCase):
     def test_document_url_v3(self):
         """URL de artigo em HTML no padrão do novo site.
         """
-        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  https://www.scielo.br/j/bjmbr/a/F5Zr9TrzfmMgz9kvGZL3rZB?format=html HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/j/bjmbr/a/F5Zr9TrzfmMgz9kvGZL3rZB?format=html HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
         expected = {
                         'ip': '187.19.211.179',
@@ -299,12 +300,13 @@ class OPACURLParsingTests(unittest.TestCase):
                         'iso_date': '2013-05-30',
                         'iso_datetime': '2013-05-30T00:01:01',
                         'year': '2013',
-                        'query_string': None,
+                        'query_string': {"format": "html"},
                         'day': '30',
                         'http_code': '200',
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
+                        'page_v3': 'article',
                         'month': '05'
                     }
 
@@ -314,7 +316,7 @@ class OPACURLParsingTests(unittest.TestCase):
         """URL de artigo em HTML no padrão do novo site. Trata-se da mesma URL
         do caso `test_document_url` mas com a URL relativa e não absoluta.
         """
-        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  /article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET /article/bjmbr/2018.v51n11/e7704/en/ HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
         expected = {
                         'ip': '187.19.211.179',
@@ -360,21 +362,46 @@ class OPACURLParsingTests(unittest.TestCase):
     def test_pdf_url_v2(self):
         """URL de artigo em HTML no padrão do novo site.
         """
-        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET  https://www.scielo.br/j/bjmbr/a/F5Zr9TrzfmMgz9kvGZL3rZB?format=pdf HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/j/bjmbr/a/F5Zr9TrzfmMgz9kvGZL3rZB?format=pdf HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
 
         expected = {
                         'ip': '187.19.211.179',
-                        'code': 'F5Zr9TrzfmMgz9kvGZL3rZB_pdf',
+                        'code': 'F5Zr9TrzfmMgz9kvGZL3rZB',
                         'access_type': 'PDF',
                         'iso_date': '2013-05-30',
                         'iso_datetime': '2013-05-30T00:01:01',
                         'year': '2013',
-                        'query_string': None,
+                        'query_string': {"format": "pdf"},
                         'day': '30',
                         'http_code': '200',
                         'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
                         'original_date': '[30/May/2013:00:01:01 -0300]',
                         'script': '',
+                        'page_v3': 'pdf',
+                        'month': '05'
+                    }
+
+        self.assertEqual(self.ac.parsed_access(line), expected)
+
+    def test_abstract_url_v2(self):
+        """URL de artigo em HTML no padrão do novo site.
+        """
+        line = '187.19.211.179 - - [30/May/2013:00:01:01 -0300] "GET https://www.scielo.br/j/bjmbr/a/F5Zr9TrzfmMgz9kvGZL3rZB/abstract?lang=pt HTTP/1.1" 200 25084 "-" "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)"'
+
+        expected = {
+                        'ip': '187.19.211.179',
+                        'code': 'F5Zr9TrzfmMgz9kvGZL3rZB',
+                        'access_type': 'HTML',
+                        'iso_date': '2013-05-30',
+                        'iso_datetime': '2013-05-30T00:01:01',
+                        'year': '2013',
+                        'query_string': {"lang": "pt"},
+                        'day': '30',
+                        'http_code': '200',
+                        'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+                        'original_date': '[30/May/2013:00:01:01 -0300]',
+                        'script': '',
+                        'page_v3': 'abstract',
                         'month': '05'
                     }
 

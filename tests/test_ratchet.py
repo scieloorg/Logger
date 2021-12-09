@@ -1,13 +1,220 @@
 import unittest
+from mock import patch
 
 from logger import ratchet
+from logger import pid_manager
 
 
 class RatchetBulkTests(unittest.TestCase):
 
     def setUp(self):
+        """
+        Instancia o PidManager com a base de dados de testes
+        de modo que será consultada para obter o pid v2 e não usará mock
+        para isso
+        """
+        pid_manager_db = pid_manager.PidManagerDB(
+            './tests/fixtures/pid_manager_test.db'
+        )
+        pid_manager_api = pid_manager.PidManagerAPI()
+        p = pid_manager.PidManager(pid_manager_db, pid_manager_api)
+
+        # faz com que Local.pid_v3_to_pid_v2 tenha o mesmo comportamento de
+        # p.pid_v3_to_pid_v2
+        ratchet.Local.pid_v3_to_pid_v2 = p.pid_v3_to_pid_v2
 
         self.rb = ratchet.Local('fakeapiuri', 'scl')
+
+    @patch("logger.ratchet.Local.register_html_accesses")
+    def test_register_access_for_new_website_pdf(self, mock_register_html_accesses):
+        """
+        Consulta a base de dados `tests/fixtures/pid_manager_test.db`
+        v3 = F5Zr9TrzfmMgz9kvGZL3rZB
+        v2 = S1519-38292013000200004
+        registra acesso a pdf para S1519-38292013000200004
+        """
+        parsed_line = {
+            'ip': '187.19.211.179',
+            'code': 'F5Zr9TrzfmMgz9kvGZL3rZB',
+            'access_type': 'PDF',
+            'iso_date': '2013-05-30',
+            'iso_datetime': '2013-05-30T00:01:01',
+            'year': '2013',
+            'query_string': {"format": "pdf"},
+            'day': '30',
+            'http_code': '200',
+            'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+            'original_date': '[30/May/2013:00:01:01 -0300]',
+            'script': '',
+            'page_v3': 'pdf',
+            'month': '05'
+        }
+        self.rb.register_access(parsed_line)
+        mock_register_html_accesses.assert_called_once_with(
+            'pdf',
+            "S1519-38292013000200004",
+            '2013-05-30',
+            '187.19.211.179',
+        )
+
+    @patch("logger.ratchet.Local.register_html_accesses")
+    def test_register_access_for_new_website_article(self, mock_register_html_accesses):
+        """
+        Consulta a base de dados `tests/fixtures/pid_manager_test.db`
+        v3 = F5Zr9TrzfmMgz9kvGZL3rZB
+        v2 = S1519-38292013000200004
+        registra acesso a artigo para S1519-38292013000200004
+        """
+        parsed_line = {
+            'ip': '187.19.211.179',
+            'code': 'F5Zr9TrzfmMgz9kvGZL3rZB',
+            'access_type': 'HTML',
+            'iso_date': '2013-05-30',
+            'iso_datetime': '2013-05-30T00:01:01',
+            'year': '2013',
+            'query_string': {"format": "html"},
+            'day': '30',
+            'http_code': '200',
+            'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+            'original_date': '[30/May/2013:00:01:01 -0300]',
+            'script': '',
+            'page_v3': 'article',
+            'month': '05'
+        }
+        self.rb.register_access(parsed_line)
+        mock_register_html_accesses.assert_called_once_with(
+            'article',
+            "S1519-38292013000200004",
+            '2013-05-30',
+            '187.19.211.179',
+        )
+
+    @patch("logger.ratchet.Local.register_html_accesses")
+    def test_register_access_for_new_website_abstract(self, mock_register_html_accesses):
+        """
+        Consulta a base de dados `tests/fixtures/pid_manager_test.db`
+        v3 = F5Zr9TrzfmMgz9kvGZL3rZB
+        v2 = S1519-38292013000200004
+        registra acesso a abstract para S1519-38292013000200004
+        """
+        parsed_line = {
+            'ip': '187.19.211.179',
+            'code': 'F5Zr9TrzfmMgz9kvGZL3rZB',
+            'access_type': 'HTML',
+            'iso_date': '2013-05-30',
+            'iso_datetime': '2013-05-30T00:01:01',
+            'year': '2013',
+            'query_string': {"lang": "pt"},
+            'day': '30',
+            'http_code': '200',
+            'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+            'original_date': '[30/May/2013:00:01:01 -0300]',
+            'script': '',
+            'page_v3': 'abstract',
+            'month': '05'
+        }
+
+        self.rb.register_access(parsed_line)
+        mock_register_html_accesses.assert_called_once_with(
+            'abstract',
+            "S1519-38292013000200004",
+            '2013-05-30',
+            '187.19.211.179',
+        )
+
+    #####
+    @patch("logger.ratchet.Local.register_v3_page_accesses")
+    def test_register_access_for_new_website_pdf_unable_to_get_v2(self, mock_register_v3_page_accesses):
+        """
+        Consulta a base de dados `tests/fixtures/pid_manager_test.db`
+        v3 = F5Zr9TrzfmMgz9kvGZL3rZZ
+        v2 = nao encontrado
+        registra acesso a pdf para F5Zr9TrzfmMgz9kvGZL3rZZ
+        """
+        parsed_line = {
+            'ip': '187.19.211.179',
+            'code': 'F5Zr9TrzfmMgz9kvGZL3rZZ',
+            'access_type': 'PDF',
+            'iso_date': '2013-05-30',
+            'iso_datetime': '2013-05-30T00:01:01',
+            'year': '2013',
+            'query_string': {"format": "pdf"},
+            'day': '30',
+            'http_code': '200',
+            'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+            'original_date': '[30/May/2013:00:01:01 -0300]',
+            'script': '',
+            'page_v3': 'pdf',
+            'month': '05'
+        }
+        self.rb.register_access(parsed_line)
+        mock_register_v3_page_accesses.assert_called_once_with(
+            'pdf',
+            'F5Zr9TrzfmMgz9kvGZL3rZZ',
+            '2013-05-30',
+        )
+
+    @patch("logger.ratchet.Local.register_v3_page_accesses")
+    def test_register_access_for_new_website_article_unable_to_get_v2(self, mock_register_v3_page_accesses):
+        """
+        Consulta a base de dados `tests/fixtures/pid_manager_test.db`
+        v3 = F5Zr9TrzfmMgz9kvGZL3rZZ
+        v2 = nao encontrado
+        registra acesso a article para F5Zr9TrzfmMgz9kvGZL3rZZ
+        """
+        parsed_line = {
+            'ip': '187.19.211.179',
+            'code': 'F5Zr9TrzfmMgz9kvGZL3rZZ',
+            'access_type': 'HTML',
+            'iso_date': '2013-05-30',
+            'iso_datetime': '2013-05-30T00:01:01',
+            'year': '2013',
+            'query_string': {"format": "html"},
+            'day': '30',
+            'http_code': '200',
+            'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+            'original_date': '[30/May/2013:00:01:01 -0300]',
+            'script': '',
+            'page_v3': 'article',
+            'month': '05'
+        }
+        self.rb.register_access(parsed_line)
+        mock_register_v3_page_accesses.assert_called_once_with(
+            'article',
+            'F5Zr9TrzfmMgz9kvGZL3rZZ',
+            '2013-05-30'
+        )
+
+    @patch("logger.ratchet.Local.register_v3_page_accesses")
+    def test_register_access_for_new_website_abstract_unable_to_get_v2(self, mock_register_v3_page_accesses):
+        """
+        Consulta a base de dados `tests/fixtures/pid_manager_test.db`
+        v3 = F5Zr9TrzfmMgz9kvGZL3rZZ
+        v2 = nao encontrado
+        registra acesso a abstract para F5Zr9TrzfmMgz9kvGZL3rZZ
+        """
+        parsed_line = {
+            'ip': '187.19.211.179',
+            'code': 'F5Zr9TrzfmMgz9kvGZL3rZZ',
+            'access_type': 'HTML',
+            'iso_date': '2013-05-30',
+            'iso_datetime': '2013-05-30T00:01:01',
+            'year': '2013',
+            'query_string': {"lang": "pt"},
+            'day': '30',
+            'http_code': '200',
+            'original_agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+            'original_date': '[30/May/2013:00:01:01 -0300]',
+            'script': '',
+            'page_v3': 'abstract',
+            'month': '05'
+        }
+        self.rb.register_access(parsed_line)
+        mock_register_v3_page_accesses.assert_called_once_with(
+            'abstract',
+            'F5Zr9TrzfmMgz9kvGZL3rZZ',
+            '2013-05-30',
+        )
 
     def test_register_download_access_keys(self):
 

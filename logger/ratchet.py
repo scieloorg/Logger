@@ -10,6 +10,7 @@ import requests
 from requests import exceptions
 import pymongo
 
+
 _logger = logging.getLogger(__name__)
 
 
@@ -179,6 +180,13 @@ class RatchetBulk(object):
         # Register access inside collection record for page alphabetic list
         self._load_to_bulk(code=self._collection, access_date=access_date, page=page, type_doc='website')
 
+    def register_v3_page_accesses(self, page, code, access_date):
+        # Register access for a specific article
+        self._load_to_bulk(code=code, access_date=access_date, page=page, type_doc='article')
+
+        # Register access inside collection record for page sci_arttext
+        self._load_to_bulk(code=self._collection, access_date=access_date, page=page, type_doc='website')
+
 
 class ReadCube(RatchetBulk):
 
@@ -241,13 +249,17 @@ class ReadCube(RatchetBulk):
         self.bulk_data = None
 
 
-
 class Local(RatchetBulk):
 
     def __init__(self, mongodb_uri, scielo_collection):
         self._db_url = urlparse.urlparse(mongodb_uri)
         self._collection = scielo_collection
         self.bulk_data = {}
+
+    # sera substituido por logger.pid_manager.PidManager.pid_v3_to_pid_v2
+    # em tempo de execucao
+    def pid_v3_to_pid_v2(self, v3):
+        return v3
 
     def __enter__(self):
         self._conn = pymongo.MongoClient(host=self._db_url.hostname, port=self._db_url.port)
@@ -331,13 +343,13 @@ class Local(RatchetBulk):
 
         if script == "sci_serial":
             self.register_journal_access(pid, date)
-        elif script == "sci_abstract":
+        elif script in ["sci_abstract", "abstract"]:
             self.register_abstract_access(pid, date)
         elif script == "sci_issuetoc":
             self.register_toc_access(pid, date)
-        elif script == "sci_arttext":
+        elif script in ["sci_arttext", "article"]:
             self.register_article_access(pid, date)
-        elif script == "sci_pdf":
+        elif script in ["sci_pdf", "pdf"]:
             self.register_pdf_access(pid, date)
         elif script == "sci_home":
             self.register_home_access(pid, date)
@@ -347,6 +359,26 @@ class Local(RatchetBulk):
             self.register_alpha_access(pid, date)
 
     def register_access(self, parsed_line):
+        if parsed_line.get("page_v3"):
+            pid = self.pid_v3_to_pid_v2(parsed_line['code'])
+            if pid in [parsed_line['code'], None]:
+                # nao conseguiu obter o pid v2, mas
+                # registra acesso para o pid v3
+                # para futuramente recuperar a contagem
+                self.register_v3_page_accesses(
+                    parsed_line["page_v3"],
+                    parsed_line['code'],
+                    parsed_line['iso_date']
+                )
+                return
+            # conseguiu obter o pid v2
+            self.register_html_accesses(
+                parsed_line["page_v3"],
+                pid,
+                parsed_line['iso_date'],
+                parsed_line['ip']
+            )
+            return
 
         if parsed_line['access_type'] == "PDF":
             pdfid = parsed_line['pdf_path']
@@ -354,7 +386,6 @@ class Local(RatchetBulk):
             self.register_pdf_download_accesses(issn, pdfid, 
                 parsed_line['iso_date'], parsed_line['ip']
             )
-
         if parsed_line['access_type'] == "HTML":
             script = parsed_line['query_string']['script']
             pid = parsed_line['query_string']['pid']
