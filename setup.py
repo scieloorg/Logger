@@ -16,7 +16,7 @@ install_requires = [
     'requests==2.19.1',
     'apachelog==1.0',
     'pymongo==2.9',
-    'celery==3.1.18',
+    'celery==5.2.2',
     'watchdog==0.8.3',
     'articlemetaapi==1.26.5',
 ]
