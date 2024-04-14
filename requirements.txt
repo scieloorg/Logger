@@ -7,7 +7,7 @@ billiard==3.3.0.23
 celery==3.1.18
 certifi==2018.8.24
 chardet==3.0.4
-idna==2.7
+idna==3.7
 kombu==3.0.37
 legendarium==2.0.2
 pathtools==0.1.2
